@@ -1,0 +1,41 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from routers import auth, lessons, ai, progress, roadmap, docs, projects, challenges, quizzes, career, community, notes
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Tables are managed by Alembic migrations.
+    # Run `alembic upgrade head` before starting the app.
+    yield
+
+app = FastAPI(title="CodeSphere AI Learning Platform", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(lessons.router, prefix="/api/lessons", tags=["Lessons"])
+app.include_router(ai.router, prefix="/api/ai", tags=["CodeSquareAgent"])
+app.include_router(progress.router, prefix="/api/progress", tags=["Progress"])
+app.include_router(roadmap.router, prefix="/api/roadmap", tags=["Roadmap"])
+app.include_router(docs.router, prefix="/api/docs", tags=["Library"])
+app.include_router(projects.router, prefix="/api/projects", tags=["Projects"])
+app.include_router(challenges.router, prefix="/api/challenges", tags=["Challenges"])
+app.include_router(quizzes.router, prefix="/api/quizzes", tags=["Quizzes"])
+app.include_router(career.router, prefix="/api/career", tags=["Career"])
+app.include_router(community.router, prefix="/api/community", tags=["Community"])
+app.include_router(notes.router, prefix="/api/notes", tags=["CodeSquareNote"])
+
+@app.get("/")
+async def root():
+    return {"message": "CodeSphere AI Learning Platform API", "version": "1.0.0"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

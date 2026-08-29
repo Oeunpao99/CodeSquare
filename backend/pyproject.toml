@@ -1,0 +1,22 @@
+[project]
+name = "codesphere-backend"
+version = "1.0.0"
+description = "CodeSphere AI Learning Platform - FastAPI backend"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "python-jose[cryptography]==3.3.0",
+    "python-multipart==0.0.6",
+    "pydantic==2.5.2",
+    "sqlalchemy==2.0.23",
+    "asyncpg==0.29.0",
+    "psycopg[binary]==3.1.19",
+    "alembic==1.13.1",
+    "httpx==0.25.2",
+    "openai>=1.99,<2",
+    "google-auth==2.25.2",
+    "google-auth-oauthlib==1.2.0",
+    "python-dotenv==1.0.0",
+    "bcrypt==4.1.2",
+]

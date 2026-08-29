@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Inter,system-ui,sans-serif;background:#0b0b0e;color:#e4e4e7;-webkit-font-smoothing:antialiased}
+    .mono{font-family:'JetBrains Mono',monospace}
+    .label{font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:#22d3ee}
+    .card{background:#111114;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600}
+    .b-cyan{background:rgba(34,211,238,.2);color:#22d3ee}
+    .b-orange{background:rgba(251,146,60,.2);color:#fb923c}
+    .b-red{background:rgba(248,113,113,.18);color:#f87171}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;border:1px solid rgba(45,212,191,.5);background:rgba(255,255,255,.06);color:#2dd4bf;box-shadow:0 0 0 1px rgba(45,212,191,.15),0 4px 18px -8px rgba(45,212,191,.6)}
+    .btn-ghost{border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#a1a1aa;box-shadow:none}
+    .nav-i{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a1a1aa}
+    .nav-i svg{width:15px;height:15px;flex-shrink:0;color:#71717a}
+    .nav-i.on{color:#2dd4bf;background:linear-gradient(90deg,rgba(45,212,191,.16),rgba(45,212,191,.03));border:1px solid rgba(45,212,191,.3);box-shadow:0 0 20px -8px rgba(45,212,191,.8)}
+    .nav-i.on svg{color:#2dd4bf}
+    .grp{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.22em;color:rgba(113,113,122,.7);padding:10px 12px 4px}
+    a{color:#2dd4bf;text-decoration:none}a:hover{color:#5eead4}
+    .cl{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:22px;white-space:pre;color:#d4d4d8}
+    .ln{color:#3f3f46;user-select:none;display:inline-block;width:26px;text-align:right;margin-right:16px}
+  </style>
+</helmet>
+
+<div style="display:flex;width:1440px;height:960px;overflow:hidden;background:#0b0b0e">
+
+  <aside style="width:288px;flex-shrink:0;background:#17171b;border-right:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column">
+    <div style="padding:24px 24px 14px">
+      <div class="mono" style="font-size:10px;color:#71717a">//</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+        <span class="mono" style="color:#2dd4bf;font-size:18px">&#10095;</span>
+        <span class="mono" style="font-size:18px;font-weight:700">CodeSphere</span>
+        <span style="width:7px;height:15px;background:rgba(45,212,191,.7);display:inline-block"></span>
+      </div>
+      <div class="mono" style="font-size:11px;color:#71717a;margin-top:5px">~/workspace<span style="color:#4ade80"> $</span> <span style="color:#2dd4bf">git status</span></div>
+    </div>
+    <nav style="flex:1;padding:0 12px;display:flex;flex-direction:column;gap:6px;overflow:hidden">
+      <div class="grp">// learn</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>learn</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>roadmap</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>library</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>progress</div>
+      <div class="grp">// practice</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>practice</div>
+      <div class="nav-i on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M19 7l2-2M5 7 3 5m16 12 2 2M5 17l-2 2M12 2v2M2 12h2m16 0h2"/></svg>debugging</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>ai tutor</div>
+      <div class="grp">// build</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>projects</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>simulations</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>portfolio</div>
+      <div class="grp">// career</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m23 6-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>job readiness</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>skill assessment</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2m6-2v2M9 20v2m6-2v2M2 9h2m-2 6h2m16-6h2m-2 6h2"/></svg>career mentor</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>resume</div>
+      <div class="grp">// community</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>discussions</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>peer reviews</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="7"/><path d="M8.2 13.9 7 23l5-3 5 3-1.2-9.1"/></svg>leaderboard</div>
+    </nav>
+    <div style="border-top:1px solid rgba(255,255,255,.1);padding:12px">
+      <div style="display:flex;align-items:center;gap:12px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05)">
+        <div style="width:38px;height:38px;border-radius:8px;background:#0b0b0e;border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center;color:#2dd4bf;font-weight:700;font-family:'JetBrains Mono',monospace">A</div>
+        <div style="flex:1;min-width:0">
+          <div class="mono" style="font-size:13px;font-weight:600">alex<span style="color:#71717a;font-weight:400">@local</span></div>
+          <div class="mono" style="font-size:11px;color:#71717a">status: <span style="color:#4ade80">online</span></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main style="flex:1;padding:32px 40px;overflow:hidden">
+    <div style="max-width:940px">
+      <a class="mono" style="font-size:13px;color:#a1a1aa;display:inline-block;margin-bottom:14px">&#8592; practice</a>
+      <div class="label">// practice</div>
+      <h1 class="mono" style="font-size:24px;font-weight:700;margin:4px 0 4px;display:flex;align-items:center;gap:8px">
+        debugging<span style="width:9px;height:19px;background:rgba(45,212,191,.7);display:inline-block"></span>
+      </h1>
+      <div style="display:flex;align-items:center;gap:8px;margin:12px 0 16px">
+        <span class="badge b-orange">intermediate</span>
+        <span class="badge b-cyan">arrays</span>
+        <span class="badge b-red"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M19 7l2-2M5 7 3 5"/></svg> find the bug</span>
+        <span class="mono" style="font-size:12px;color:#71717a;margin-left:auto">reveal costs &#8722;10 XP</span>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <p style="font-size:15px;font-weight:600;color:#e4e4e7;margin-bottom:6px">sum_to(n) should return 1 + 2 + … + n. It's off.</p>
+        <p style="font-size:14px;color:#a1a1aa;line-height:1.6">One line is wrong. Fix it so every test passes, then say in a sentence what the bug was.</p>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <div style="flex:1;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:12px 14px">
+            <div class="mono" style="font-size:11px;color:#f87171;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px">failing test</div>
+            <div class="mono" style="font-size:13px;color:#d4d4d8">sum_to(5)  →  expected <span style="color:#4ade80">15</span>, got <span style="color:#f87171">10</span></div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px">
+            <div class="mono" style="font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px">passing</div>
+            <div class="mono" style="font-size:13px;color:#a1a1aa">sum_to(1) → 1 &nbsp;·&nbsp; sum_to(0) → 0</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#17171b;overflow:hidden;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)">
+          <span style="width:12px;height:12px;border-radius:50%;background:rgba(248,113,113,.8)"></span>
+          <span style="width:12px;height:12px;border-radius:50%;background:rgba(251,146,60,.8)"></span>
+          <span style="width:12px;height:12px;border-radius:50%;background:rgba(74,222,128,.8)"></span>
+          <span class="mono" style="font-size:12px;color:#71717a;margin-left:8px">buggy.py</span>
+        </div>
+        <div style="padding:16px 18px">
+          <div class="cl"><span class="ln">1</span><span style="color:#8b5cf6">def</span> <span style="color:#3b82f6">sum_to</span>(n):</div>
+          <div class="cl"><span class="ln">2</span>    total = <span style="color:#fb923c">0</span></div>
+          <div class="cl" style="background:rgba(248,113,113,.1);border-left:2px solid #f87171;margin:0 -18px;padding-left:16px"><span class="ln">3</span>    <span style="color:#8b5cf6">for</span> i <span style="color:#8b5cf6">in</span> <span style="color:#3b82f6">range</span>(<span style="color:#fb923c">1</span>, n):</div>
+          <div class="cl"><span class="ln">4</span>        total += i</div>
+          <div class="cl"><span class="ln">5</span>    <span style="color:#8b5cf6">return</span> total</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;padding:16px 18px">
+        <div class="label" style="color:#71717a;font-size:11px">// explain the fix &nbsp;<span style="color:#3f3f46">(required to pass)</span></div>
+        <div class="mono" style="font-size:13px;color:#71717a;margin-top:8px;line-height:1.7">range(1, n) stops at n&#8722;1, so the last term is never added — needs range(1, n+1)…<span style="width:8px;height:15px;background:rgba(45,212,191,.5);display:inline-block;vertical-align:-2px"></span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <button class="btn btn-ghost" style="gap:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Reveal bug &#8722;10 XP</button>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="mono" style="font-size:11px;color:#71717a">&#8984;/Ctrl+&#8629;</span>
+          <button class="btn"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg> Run tests</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>

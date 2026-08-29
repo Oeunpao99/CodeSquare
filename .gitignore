@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# Node
+node_modules/
+frontend/dist/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs / scratch / OS
+*.log
+*.pid
+frontend/dev_out.txt
+frontend/dev_err.txt
+frontend/dev_*.txt
+.DS_Store
+Thumbs.db
+
+# IDE / tooling
+.vscode/
+.idea/
+.claude/

@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Inter,system-ui,sans-serif;background:#0b0b0e;color:#e4e4e7;-webkit-font-smoothing:antialiased}
+    .mono{font-family:'JetBrains Mono',monospace}
+    .label{font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:#22d3ee}
+    .card{background:#111114;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;border:1px solid rgba(45,212,191,.5);background:rgba(255,255,255,.06);color:#2dd4bf;box-shadow:0 0 0 1px rgba(45,212,191,.15),0 4px 18px -8px rgba(45,212,191,.6)}
+    .nav-i{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a1a1aa}
+    .nav-i svg{width:15px;height:15px;flex-shrink:0;color:#71717a}
+    .nav-i.on{color:#2dd4bf;background:linear-gradient(90deg,rgba(45,212,191,.16),rgba(45,212,191,.03));border:1px solid rgba(45,212,191,.3);box-shadow:0 0 20px -8px rgba(45,212,191,.8)}
+    .nav-i.on svg{color:#2dd4bf}
+    .grp{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.22em;color:rgba(113,113,122,.7);padding:10px 12px 4px}
+    a{color:#2dd4bf;text-decoration:none}a:hover{color:#5eead4}
+    .chip{font-family:'JetBrains Mono',monospace;font-size:12px;padding:7px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#a1a1aa}
+  </style>
+</helmet>
+
+<div style="display:flex;width:1440px;height:960px;overflow:hidden;background:#0b0b0e">
+
+  <aside style="width:288px;flex-shrink:0;background:#17171b;border-right:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column">
+    <div style="padding:24px 24px 14px">
+      <div class="mono" style="font-size:10px;color:#71717a">//</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+        <span class="mono" style="color:#2dd4bf;font-size:18px">&#10095;</span>
+        <span class="mono" style="font-size:18px;font-weight:700">CodeSphere</span>
+        <span style="width:7px;height:15px;background:rgba(45,212,191,.7);display:inline-block"></span>
+      </div>
+      <div class="mono" style="font-size:11px;color:#71717a;margin-top:5px">~/workspace<span style="color:#4ade80"> $</span> <span style="color:#2dd4bf">git status</span></div>
+    </div>
+    <nav style="flex:1;padding:0 12px;display:flex;flex-direction:column;gap:6px;overflow:hidden">
+      <div class="grp">// learn</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>learn</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>roadmap</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>library</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>progress</div>
+      <div class="grp">// practice</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>practice</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M19 7l2-2M5 7 3 5m16 12 2 2M5 17l-2 2M12 2v2M2 12h2m16 0h2"/></svg>debugging</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>ai tutor</div>
+      <div class="grp">// build</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>projects</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>simulations</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>portfolio</div>
+      <div class="grp">// career</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m23 6-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>job readiness</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>skill assessment</div>
+      <div class="nav-i on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2m6-2v2M9 20v2m6-2v2M2 9h2m-2 6h2m16-6h2m-2 6h2"/></svg>career mentor</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>resume</div>
+      <div class="grp">// community</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>discussions</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>peer reviews</div>
+      <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="7"/><path d="M8.2 13.9 7 23l5-3 5 3-1.2-9.1"/></svg>leaderboard</div>
+    </nav>
+    <div style="border-top:1px solid rgba(255,255,255,.1);padding:12px">
+      <div style="display:flex;align-items:center;gap:12px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05)">
+        <div style="width:38px;height:38px;border-radius:8px;background:#0b0b0e;border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center;color:#2dd4bf;font-weight:700;font-family:'JetBrains Mono',monospace">A</div>
+        <div style="flex:1;min-width:0">
+          <div class="mono" style="font-size:13px;font-weight:600">alex<span style="color:#71717a;font-weight:400">@local</span></div>
+          <div class="mono" style="font-size:11px;color:#71717a">status: <span style="color:#4ade80">online</span></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:28px 40px 18px;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div class="label" style="color:#2dd4bf">// career</div>
+      <h1 class="mono" style="font-size:24px;font-weight:700;margin-top:4px;display:flex;align-items:center;gap:8px">
+        career_mentor<span style="width:9px;height:19px;background:rgba(45,212,191,.7);display:inline-block"></span>
+      </h1>
+      <p class="mono" style="font-size:12px;color:#71717a;margin-top:4px">reads your skills, projects &amp; goal — private to you</p>
+    </div>
+
+    <div style="flex:1;display:flex;gap:20px;padding:20px 40px;overflow:hidden">
+      <!-- conversation -->
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+        <div style="flex:1;display:flex;flex-direction:column;gap:16px;overflow:hidden;padding-right:4px">
+
+          <div style="display:flex;gap:12px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2dd4bf,#0d9488);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0b0b0e" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+            </div>
+            <div style="background:#111114;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;max-width:620px">
+              <p style="font-size:14px;line-height:1.65;color:#d4d4d8">You're an <strong style="color:#e4e4e7">AI Engineer</strong> track at <strong style="color:#2dd4bf">41% readiness</strong>. Your strongest area is SQL; the two holding you back are <span class="mono" style="color:#fb923c;font-size:13px">python</span> and <span class="mono" style="color:#fb923c;font-size:13px">problem-solving</span> — both sitting near zero because you've solved challenges but haven't worked the lesson track.</p>
+              <p style="font-size:14px;line-height:1.65;color:#d4d4d8;margin-top:10px">Do this next, in order:</p>
+              <ol class="mono" style="font-size:13px;color:#a1a1aa;margin:8px 0 0 18px;line-height:1.9">
+                <li>Finish <span style="color:#e4e4e7">Python</span> lessons — you're at 0/20</li>
+                <li>Clear 10 <span style="color:#e4e4e7">Problem Solving</span> challenges</li>
+                <li>Ship a 2nd portfolio project (a small FastAPI service)</li>
+              </ol>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;justify-content:flex-end">
+            <div style="background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);border-radius:12px;padding:12px 16px;max-width:520px">
+              <p style="font-size:14px;line-height:1.6;color:#d4d4d8">Am I ready to apply for junior backend roles yet?</p>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2dd4bf,#0d9488);flex-shrink:0;display:flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0b0b0e" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+            </div>
+            <div style="background:#111114;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;max-width:620px">
+              <p style="font-size:14px;line-height:1.65;color:#d4d4d8">Not yet — junior backend postings typically expect working REST + SQL + testing, and one deployable project. You have SQL basics and 2 challenges; you're missing the backend track and testing. Realistic target: <strong style="color:#2dd4bf">6–8 weeks</strong> at your current pace. Want me to turn that into a week-by-week plan?</p>
+              <div style="display:flex;gap:8px;margin-top:12px">
+                <span class="btn" style="padding:6px 12px;font-size:12px">Yes, make the plan</span>
+                <span class="chip">Show me backend gaps</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- suggested + input -->
+        <div style="margin-top:16px">
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <span class="chip">What should I build next?</span>
+            <span class="chip">Draft a 2-week SQL plan</span>
+            <span class="chip">Which of my skills is closest to "Strong"?</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px">
+            <span class="mono" style="color:#2dd4bf;font-size:14px">&#10095;</span>
+            <span class="mono" style="flex:1;font-size:13px;color:#71717a">ask your mentor…</span>
+            <span class="btn" style="padding:6px 14px">send</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- context rail -->
+      <div style="width:290px;flex-shrink:0">
+        <div class="card" style="padding:20px">
+          <div class="label" style="color:#71717a">// context the mentor sees</div>
+          <div class="mono" style="font-size:12px;color:#a1a1aa;line-height:2;margin-top:10px">
+            <div style="display:flex;justify-content:space-between"><span>goal</span><span style="color:#e4e4e7">AI Engineer</span></div>
+            <div style="display:flex;justify-content:space-between"><span>readiness</span><span style="color:#2dd4bf">41%</span></div>
+            <div style="display:flex;justify-content:space-between"><span>projects</span><span style="color:#e4e4e7">2</span></div>
+            <div style="display:flex;justify-content:space-between"><span>challenges</span><span style="color:#e4e4e7">22 solved</span></div>
+            <div style="display:flex;justify-content:space-between"><span>streak</span><span style="color:#e4e4e7">9 days</span></div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,.08);margin:14px 0"></div>
+          <div class="mono" style="font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px">weakest skills</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div class="mono" style="font-size:12px;color:#fb923c;padding:5px 10px;border-radius:7px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3)">python · 0</div>
+            <div class="mono" style="font-size:12px;color:#fb923c;padding:5px 10px;border-radius:7px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3)">problem-solving · 0</div>
+          </div>
+          <p style="font-size:12px;color:#71717a;margin-top:14px;line-height:1.6">Nothing you type here is stored or shared with other learners.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>
