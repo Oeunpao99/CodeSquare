@@ -11,8 +11,10 @@ WORKDIR /app
 
 # Only the manifest + lock, so this layer is cached until deps actually change.
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-project
+# No BuildKit cache mount here — this image also builds on the legacy builder
+# (hosts without the buildx plugin). uv re-downloads on a cold cache; the COPY
+# above still keeps this layer cached until pyproject.toml / uv.lock change.
+RUN uv sync --frozen --no-dev --no-install-project
 
 # ---------- runtime: slim image with just the venv + app code ----------
 FROM python:3.11-slim-bookworm AS runtime
