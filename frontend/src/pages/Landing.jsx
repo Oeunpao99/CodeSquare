@@ -94,6 +94,7 @@ function Landing() {
         'Debugging challenges: a program broken on purpose. Find the bug',
         'Quizzes: server-graded multiple-choice that feeds your XP',
         'CodeSquareAgent: a streaming AI tutor with chat history & slash commands',
+        'Ask for a diagram — ER, flow, sequence — and it renders live in the chat, export SVG / PNG / HTML',
       ],
     },
     {
