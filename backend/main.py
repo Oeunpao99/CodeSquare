@@ -1,7 +1,9 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from routers import auth, lessons, ai, progress, roadmap, docs, projects, challenges, quizzes, career, community, notes
+from routers import auth, lessons, ai, progress, roadmap, docs, projects, challenges, quizzes, career, community, notes, notifications
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -11,9 +13,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="CodeSphere AI Learning Platform", lifespan=lifespan)
 
+# Comma-separated list of allowed browser origins. In production set this to the
+# site's public URL(s), e.g. CORS_ORIGINS="https://app.example.com".
+_CORS_DEFAULT = "http://localhost:5173,http://localhost:3000"
+_cors_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", _CORS_DEFAULT).split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,6 +37,7 @@ app.include_router(challenges.router, prefix="/api/challenges", tags=["Challenge
 app.include_router(quizzes.router, prefix="/api/quizzes", tags=["Quizzes"])
 app.include_router(career.router, prefix="/api/career", tags=["Career"])
 app.include_router(community.router, prefix="/api/community", tags=["Community"])
+app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 app.include_router(notes.router, prefix="/api/notes", tags=["CodeSquareNote"])
 
 @app.get("/")

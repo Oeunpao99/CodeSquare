@@ -167,7 +167,7 @@ function ProjectWorkspace() {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-transparent text-xl font-bold outline-none border-b border-transparent focus:border-cs-line/20 min-w-0 flex-grow"
+            className="bg-transparent text-3xl font-bold outline-none border-b border-transparent focus:border-cs-line/20 min-w-0 flex-grow"
           />
           <select
             value={status}
@@ -253,7 +253,12 @@ function ProjectWorkspace() {
               </button>
             </div>
             <div className="h-[calc(100vh-18rem)] min-h-[360px]">
-              <CodeEditor value={code} onChange={setCode} language={editorMode(project.language)} />
+              <CodeEditor
+                value={code}
+                onChange={setCode}
+                language={editorMode(project.language)}
+                onSubmit={() => { if (!reviewing) runReview(); }}
+              />
             </div>
           </div>
         )}

@@ -63,7 +63,7 @@ function MajorPicker({ onboarding = false, onPicked }) {
                   </span>
                 )}
               </div>
-              <h3 className="font-bold">{m.label}</h3>
+              <h3 className="font-bold text-base">{m.label}</h3>
               <p className="text-xs font-mono text-cs-text-muted mb-2">{m.tagline}</p>
               <p className="text-sm text-cs-text-dim leading-relaxed mb-4">{m.blurb}</p>
               <div className="flex flex-wrap gap-1.5">

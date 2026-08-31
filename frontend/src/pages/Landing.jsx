@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   FiCode, FiZap, FiMessageCircle, FiArrowRight, FiPlay,
-  FiTerminal, FiCheckCircle
+  FiTerminal, FiCheckCircle, FiBook, FiTrendingUp, FiAward, FiLayers,
 } from 'react-icons/fi';
 import ThemeMenu from '../components/ThemeMenu';
 import LangLogo from '../components/LangLogo';
@@ -76,6 +76,61 @@ function Landing() {
     },
   ];
 
+  // Every feature that's shipped, grouped by the stage of the journey it serves.
+  const journey = [
+    {
+      stage: 'Learn', tag: '01', color: '#2DD4BF', icon: <FiBook />,
+      items: [
+        'Structured lessons, laddered by difficulty — resume exactly where you left off',
+        'Roadmap view: the whole path and what unlocks next',
+        'Library: searchable reference docs with reading progress & bookmarks',
+        'Progress dashboard: XP, streaks and per-topic mastery',
+      ],
+    },
+    {
+      stage: 'Practice', tag: '02', color: '#8B5CF6', icon: <FiZap />,
+      items: [
+        'Coding challenges in a real browser editor — run instantly, auto-graded',
+        'Debugging challenges: a program broken on purpose. Find the bug',
+        'Quizzes: server-graded multiple-choice that feeds your XP',
+        'CodeSquareAgent: a streaming AI tutor with chat history & slash commands',
+      ],
+    },
+    {
+      stage: 'Build', tag: '03', color: '#22D3EE', icon: <FiCode />,
+      items: [
+        'Project workspace — the AI scopes a build to what you have actually learned',
+        'Code, markdown notes and a task list, all in one place',
+        'AI code review on your project before you call it done',
+        'CodeSquare Note: an encrypted vault for keys & snippets',
+      ],
+    },
+    {
+      stage: 'Career', tag: '04', color: '#4ADE80', icon: <FiTrendingUp />,
+      items: [
+        'Job Readiness: track the skills employers actually ask for',
+        'See where you stand and which gaps to close next',
+        'Portfolio: a shareable page of everything you have shipped',
+      ],
+    },
+    {
+      stage: 'Community', tag: '05', color: '#FB923C', icon: <FiAward />,
+      items: [
+        'Dev Community feed: post ideas, progress, questions and showcases',
+        'Comment and react on other learners’ posts — learn in public',
+        'Leaderboard: XP ranking across every learner',
+      ],
+    },
+    {
+      stage: 'Yours to keep', tag: '06', color: '#F78C6C', icon: <FiLayers />,
+      items: [
+        'Light / dark themes with your own accent color',
+        'Transparent AI usage metering — no surprise limits',
+        'Works on every screen, phone to widescreen',
+      ],
+    },
+  ];
+
   const languages = [
     {
       name: 'Python',
@@ -138,7 +193,7 @@ function Landing() {
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-cs-dark/70 backdrop-blur-2xl border-b border-cs-line/10">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2 font-mono text-lg font-bold text-cs-text group">
-            <span className="text-cs-primary">⟨/⟩</span>
+            <img src="/logo.png" alt="CodeSquare" className="h-8 w-auto object-contain" />
             <span className="text-cs-text-muted">~/</span>codesphere
             <span className="hidden sm:inline-flex items-center gap-1 ml-2 font-mono text-xs text-cs-text-muted">
               <span className="text-cs-green">$</span> <span className="text-cs-primary group-hover:text-cs-mint group-hover:shadow-[0_0_8px_rgb(var(--cs-primary)/0.5)] transition-all">status</span>
@@ -189,11 +244,23 @@ function Landing() {
         <div className="relative max-w-6xl mx-auto grid lg:grid-cols-2 gap-14 items-center w-full">
           {/* left */}
           <div>
-            <h1 className="text-5xl md:text-6xl font-extrabold leading-[1.05] mb-6">
-              Learn to code with an{' '}
-              <span className="text-gradient-dev">CodeSquareAgent</span>{' '}
-              that reads your errors.
-            </h1>
+            <div className="mb-6">
+              <p className="flex items-center gap-2 font-mono text-sm text-cs-text-muted mb-3 whitespace-nowrap overflow-x-auto">
+                <span className="text-cs-green">$</span>
+                <span className="text-cs-text">codesphere</span>
+                <span className="text-cs-text-dim">learn</span>
+                <span className="text-cs-orange">--tutor</span>
+              </p>
+              <h1 className="font-mono text-4xl md:text-6xl font-bold leading-[1.1]">
+                <span className="text-cs-red/80 line-through decoration-cs-red/40">Traceback?</span>
+                <span className="text-cs-text-dim"> no sweat:</span>
+                <br />
+                <span className="text-gradient-dev">CodeSquareAgent</span>
+                <span className="text-cs-text"> reads</span>
+                <span className="text-cs-mint"> your errors.</span>
+                <span className="text-cs-mint animate-blink">_</span>
+              </h1>
+            </div>
             <p className="text-lg text-cs-text-dim mb-8 max-w-xl">
               From <span className="font-mono text-cs-mint">"what is a variable?"</span> to shipping
               real projects. Structured lessons, a live editor, and a tutor that explains the
@@ -209,9 +276,9 @@ function Landing() {
             </div>
             <div className="flex gap-10">
               {[
-                { num: '9', label: 'Interactive Lessons' },
+                { num: '9+', label: 'Structured Lessons' },
                 { num: '4', label: 'CodeSquareAgent Modes' },
-                { num: '∞', label: 'Practice Exercises' },
+                { num: '∞', label: 'Challenges & Quizzes' },
               ].map((s) => (
                 <div key={s.label} className="flex flex-col">
                   <span className="text-3xl font-extrabold text-gradient-dev font-mono">{s.num}</span>
@@ -299,6 +366,48 @@ function Landing() {
               </div>
               <h3 className="text-lg font-bold mb-2">{f.title}</h3>
               <p className="text-sm text-cs-text-dim leading-relaxed">{f.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FULL JOURNEY — every shipped feature, by stage */}
+      <section className="max-w-6xl mx-auto px-6 py-24">
+        <span className="mono-label">// the full path</span>
+        <h2 className="text-4xl font-extrabold mt-3 mb-3">
+          From <span className="font-mono text-cs-mint">"what's a variable?"</span> to job-ready
+        </h2>
+        <p className="text-cs-text-dim mb-14 max-w-2xl">
+          One place for the whole journey. Every stage is already built in — you never
+          have to go hunt for the next tool.
+        </p>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {journey.map((col) => (
+            <div key={col.tag} className="glass glass-hover rounded-2xl p-6 flex flex-col">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-10 h-10 flex items-center justify-center rounded-lg text-lg glass"
+                    style={{ color: col.color }}
+                  >
+                    {col.icon}
+                  </span>
+                  <h3 className="text-lg font-bold">{col.stage}</h3>
+                </div>
+                <span className="font-mono text-xs text-cs-text-muted">// {col.tag}</span>
+              </div>
+              <ul className="space-y-2.5">
+                {col.items.map((it, i) => (
+                  <li key={i} className="flex gap-2.5 text-sm text-cs-text-dim leading-relaxed">
+                    <span
+                      className="mt-[7px] w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: col.color }}
+                    />
+                    <span>{it}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
@@ -463,9 +572,9 @@ function Landing() {
               <Link to="/auth" className="btn btn-primary btn-lg font-mono">
                 ❯ codesphere init <FiArrowRight />
               </Link>
-              <button className="btn btn-ghost btn-lg font-mono">
+              <Link to="/auth" className="btn btn-ghost btn-lg font-mono">
                 <span className="text-cs-green">$</span> view roadmap
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -475,7 +584,7 @@ function Landing() {
       <footer className="py-12 px-6 border-t border-cs-line/10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 font-mono font-bold">
-            <span className="text-cs-primary">⟨/⟩</span>
+            <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
             <span className="text-cs-text-muted">~/</span>codesphere
           </div>
           <p className="font-mono text-xs text-cs-text-muted">

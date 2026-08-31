@@ -10,6 +10,7 @@ const estimatedReadTime = (html) =>
 import AiIcon from '../components/AiIcon';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from '../utils/toast';
+import { highlightAllCode } from '../utils/highlight';
 
 function LessonView() {
   const { slug, moduleId, lessonId } = useParams();
@@ -36,6 +37,7 @@ function LessonView() {
   });
   const [resizingTutor, setResizingTutor] = useState(false);
   const rafRef = useRef(0);
+  const lessonBodyRef = useRef(null);
 
   const startTutorResize = (e) => {
     e.preventDefault();
@@ -92,8 +94,12 @@ function LessonView() {
     }
   };
 
-  const currentExercise = lesson?.exercises?.[activeExercise];
+  useEffect(() => {
+    if (!lesson) return;
+    highlightAllCode(lessonBodyRef.current, slug);
+  }, [lesson, slug]);
 
+  const currentExercise = lesson?.exercises?.[activeExercise];
   const handleCodeChange = (newCode) => {
     setCode(newCode);
   };
@@ -272,6 +278,7 @@ function LessonView() {
 
             <div className="pt-6 border-t border-cs-line/10">
               <div
+                ref={lessonBodyRef}
                 className="lesson-article"
                 dangerouslySetInnerHTML={{ __html: lesson.content }}
               />
@@ -324,7 +331,7 @@ function LessonView() {
                 <button onClick={resetExercise} className="btn btn-ghost btn-sm">
                   Reset
                 </button>
-                <button onClick={executeCode} disabled={submitting} className="btn btn-primary btn-sm">
+                <button onClick={executeCode} disabled={submitting} title="Run (Ctrl+Enter)" className="btn btn-primary btn-sm">
                   <FiPlay /> {submitting ? 'Running...' : 'Run Code'}
                 </button>
               </div>
@@ -341,6 +348,7 @@ function LessonView() {
                   value={code}
                   onChange={handleCodeChange}
                   language={slug}
+                  onSubmit={() => { if (!submitting) executeCode(); }}
                 />
               </div>
             </div>

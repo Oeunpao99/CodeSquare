@@ -35,22 +35,23 @@ const AUTO_COMPACT_AT = 0.9;   // fraction full → auto-compact
 const KEEP_RECENT = 4;         // turns left untouched when compacting
 const estTokens = (s) => Math.ceil((s || '').length / 4);
 
-function ContextDonut({ pct, onClick, busy }) {
+function ContextDonut({ pct, onClick, busy, compact: dense = false }) {
   const r = 9;
   const c = 2 * Math.PI * r;
   const p = Math.min(1, Math.max(0, pct));
   const remaining = Math.round((1 - p) * 100);
   const color = p >= 0.9 ? 'rgb(var(--cs-red))' : p >= 0.7 ? 'rgb(var(--cs-orange))' : 'rgb(var(--cs-primary))';
+  const svg = dense ? 18 : 24;
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={busy}
       title={`${remaining}% context left · click to compact${busy ? ' (working…)' : ''}`}
-      className="h-11 w-11 shrink-0 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] flex items-center justify-center hover:border-cs-primary/40 transition-colors disabled:opacity-50"
+      className={`${dense ? 'h-8 w-8' : 'h-11 w-11'} shrink-0 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] flex items-center justify-center hover:border-cs-primary/40 transition-colors disabled:opacity-50`}
       aria-label={`Context ${remaining}% remaining — compact`}
     >
-      <svg width="24" height="24" viewBox="0 0 24 24" className={busy ? 'animate-spin' : ''}>
+      <svg width={svg} height={svg} viewBox="0 0 24 24" className={busy ? 'animate-spin' : ''}>
         <circle cx="12" cy="12" r={r} fill="none" stroke="rgb(var(--cs-line) / 0.2)" strokeWidth="3" />
         <circle
           cx="12" cy="12" r={r} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round"
@@ -610,9 +611,13 @@ function AITutor({ language, context, embedded = false, persist = false }) {
             </button>
           ))}
         </div>
-        <form onSubmit={onSubmit} className="flex gap-2 items-end">
-          {/* Input pill — grows upward as you type; the $ hugs the first line. */}
-          <div className="flex-grow flex items-start gap-2 px-3.5 py-2.5 bg-cs-overlay/[0.05] border border-cs-line/15 rounded-xl focus-within:border-cs-primary/50 transition-colors shadow-[inset_0_1px_0_rgb(var(--cs-line)/0.05)]">
+        {/* Composer — input on top, a toolbar (slash · context donut · run) below. */}
+        <form
+          onSubmit={onSubmit}
+          className="bg-cs-overlay/[0.05] border border-cs-line/15 rounded-xl focus-within:border-cs-primary/50 transition-colors shadow-[inset_0_1px_0_rgb(var(--cs-line)/0.05)]"
+        >
+          {/* Row 1 — text input; grows upward as you type, the $ hugs the first line. */}
+          <div className="flex items-start gap-2 px-3.5 pt-3 pb-1.5">
             <span className="text-cs-green font-mono text-[13px] select-none shrink-0 leading-6">$</span>
             <textarea
               ref={taRef}
@@ -626,29 +631,38 @@ function AITutor({ language, context, embedded = false, persist = false }) {
             />
           </div>
 
-          {/* Actions — donut, slash, run — kept together, pinned to the bottom. */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {realMsgs.length > 1 && (
-              <ContextDonut pct={ctxPct} busy={compacting} onClick={() => compact(false)} />
-            )}
+          {/* Row 2 — toolbar */}
+          <div className="flex items-center gap-1.5 px-2 py-2 border-t border-cs-line/10">
             <button
               type="button"
               onClick={insertSlash}
               title="Slash commands"
-              className="h-11 w-9 flex items-center justify-center rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] font-mono text-base text-cs-text-dim hover:text-cs-primary hover:border-cs-primary/40 transition-colors"
+              className="h-8 px-2 inline-flex items-center gap-1.5 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] font-mono text-sm text-cs-text-dim hover:text-cs-primary hover:border-cs-primary/40 transition-colors"
             >
-              /
+              / <span className="hidden sm:inline text-[11px]">commands</span>
             </button>
+
+            {realMsgs.length > 1 && (
+              <ContextDonut pct={ctxPct} busy={compacting} onClick={() => compact(false)} compact />
+            )}
+
+            <span className="flex-grow" />
+
+            <span className="hidden md:inline text-[10px] text-cs-text-muted/60 font-mono mr-1">
+              Shift+Enter = newline
+            </span>
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="h-11 px-4 flex items-center justify-center gap-1.5 bg-cs-primary/15 text-cs-primary border border-cs-primary/40 rounded-lg font-mono text-sm disabled:opacity-40 hover:bg-cs-primary/25 hover:shadow-[0_0_18px_-8px_rgb(var(--cs-primary)/0.8)] transition-all"
+              className="h-8 px-3.5 inline-flex items-center justify-center gap-1.5 bg-cs-primary/15 text-cs-primary border border-cs-primary/40 rounded-lg font-mono text-sm disabled:opacity-40 hover:bg-cs-primary/25 hover:shadow-[0_0_18px_-8px_rgb(var(--cs-primary)/0.8)] transition-all"
             >
               <FiSend className="text-cs-primary" /> <span className="hidden sm:inline">run</span>
             </button>
           </div>
         </form>
-        <p className="text-[10px] text-cs-text-muted/70 mt-1 font-mono">Shift+Enter for a new line · ❯ send · <span className="text-cs-primary">/session</span> <span className="text-cs-primary">/new</span> <span className="text-cs-primary">/usage</span></p>
+        <p className="text-[10px] text-cs-text-muted/70 mt-1 font-mono">
+          Try <span className="text-cs-primary">/session</span> <span className="text-cs-primary">/new</span> <span className="text-cs-primary">/usage</span>
+        </p>
       </div>
     </div>
   );

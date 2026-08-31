@@ -631,4 +631,10 @@ async def seed_fullstack():
 
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(seed_fullstack())
+    from backfill_exercises import ensure_every_lesson_has_exercise
+
+    async def _run():
+        await seed_fullstack()
+        await ensure_every_lesson_has_exercise()
+
+    asyncio.run(_run())

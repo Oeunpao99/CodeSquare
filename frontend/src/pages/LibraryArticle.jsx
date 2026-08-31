@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { FiArrowRight, FiCheck, FiCheckCircle, FiClock, FiPlay, FiHelpCircle, FiBookmark } from 'react-icons/fi';
+import { FiArrowLeft, FiArrowRight, FiCheck, FiCheckCircle, FiClock, FiPlay, FiHelpCircle, FiBookmark } from 'react-icons/fi';
 import { docService } from '../services/api';
 import { toast } from '../utils/toast';
 import { MAJORS } from '../majors';
 import CollectionLogo from '../components/CollectionLogo';
+import TutorDock from '../components/TutorDock';
+import { highlightAllCode } from '../utils/highlight';
 
 const slugifyHeading = (t) =>
   String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'section';
@@ -158,6 +160,8 @@ function LibraryArticle() {
     });
     setToc(items);
 
+    highlightAllCode(root, data.collection_slug);
+
     const cleanups = [];
     root.querySelectorAll('pre').forEach((pre) => {
       if (pre.dataset.deco) return;
@@ -219,6 +223,16 @@ function LibraryArticle() {
     () => (data?.major_slugs || []).map((m) => MAJORS[m]?.label).filter(Boolean),
     [data]
   );
+
+  // Plain-text excerpt of the article, fed to the tutor so it can answer about
+  // what the learner is actually reading.
+  const tutorContext = useMemo(() => {
+    if (!data) return '';
+    const el = document.createElement('div');
+    el.innerHTML = data.body || '';
+    const excerpt = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 1800);
+    return `The learner is reading the Library article "${data.title}" in the ${data.collection_title} collection.\n\nArticle excerpt:\n${excerpt}`;
+  }, [data]);
 
   const navGroups = useMemo(() => {
     if (!data) return [];
@@ -284,7 +298,7 @@ function LibraryArticle() {
       </div>
 
       <div
-        className={`px-6 lg:px-10 pt-8 grid lg:grid-cols-[14rem_minmax(0,52rem)_13rem] 2xl:grid-cols-[15rem_minmax(0,62rem)_14rem] gap-x-10 gap-y-8 items-start transition-opacity duration-150 ${
+        className={`px-6 lg:px-10 pt-8 grid lg:grid-cols-[14rem_minmax(0,52rem)_13rem] 2xl:grid-cols-[15rem_minmax(0,52rem)_14rem] gap-x-10 gap-y-8 items-start transition-opacity duration-150 ${
           loading ? 'opacity-50' : 'opacity-100'
         }`}
       >
@@ -491,42 +505,59 @@ function LibraryArticle() {
             </div>
           )}
 
-          {/* pager */}
+          {/* pager — arrow always on the outer edge (◄ prev … next ►) so the
+              direction reads at a glance */}
           <div className="grid grid-cols-2 gap-3 mt-4">
             {data.prev ? (
               <Link
                 to={`/library/${data.collection_slug}/${data.prev.slug}`}
-                className="rounded-xl border border-cs-line/10 bg-cs-darker p-4 hover:border-cs-line/25 transition"
+                className="group flex items-center gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 hover:border-cs-primary/30 hover:bg-cs-overlay/[0.04] transition"
               >
-                <span className="block font-mono text-[10px] tracking-[0.09em] text-cs-text-muted mb-1">
-                  PREVIOUS
+                <FiArrowLeft className="shrink-0 text-lg text-cs-text-muted transition-all group-hover:-translate-x-0.5 group-hover:text-cs-primary" />
+                <span className="min-w-0">
+                  <span className="block font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-0.5">
+                    PREVIOUS
+                  </span>
+                  <span className="block font-mono text-sm font-medium text-cs-text truncate transition-colors group-hover:text-cs-primary">
+                    {data.prev.title}
+                  </span>
                 </span>
-                <span className="font-mono text-sm font-medium text-cs-text">{data.prev.title}</span>
               </Link>
             ) : (
-              <span className="rounded-xl border border-cs-line/10 bg-cs-darker p-4 opacity-40">
-                <span className="block font-mono text-[10px] tracking-[0.09em] text-cs-text-muted mb-1">
-                  PREVIOUS
+              <span className="flex items-center gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 opacity-40">
+                <FiArrowLeft className="shrink-0 text-lg text-cs-text-muted" />
+                <span className="min-w-0">
+                  <span className="block font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-0.5">
+                    PREVIOUS
+                  </span>
+                  <span className="block font-mono text-sm text-cs-text-dim">Start of collection</span>
                 </span>
-                <span className="font-mono text-sm text-cs-text-dim">Start of collection</span>
               </span>
             )}
             {data.next ? (
               <Link
                 to={`/library/${data.collection_slug}/${data.next.slug}`}
-                className="rounded-xl border border-cs-line/10 bg-cs-darker p-4 text-right hover:border-cs-line/25 transition"
+                className="group flex items-center justify-end gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 text-right hover:border-cs-primary/30 hover:bg-cs-overlay/[0.04] transition"
               >
-                <span className="block font-mono text-[10px] tracking-[0.09em] text-cs-text-muted mb-1">
-                  NEXT
+                <span className="min-w-0">
+                  <span className="block font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-0.5">
+                    NEXT
+                  </span>
+                  <span className="block font-mono text-sm font-medium text-cs-text truncate transition-colors group-hover:text-cs-primary">
+                    {data.next.title}
+                  </span>
                 </span>
-                <span className="font-mono text-sm font-medium text-cs-text">{data.next.title}</span>
+                <FiArrowRight className="shrink-0 text-lg text-cs-text-muted transition-all group-hover:translate-x-0.5 group-hover:text-cs-primary" />
               </Link>
             ) : (
-              <span className="rounded-xl border border-cs-line/10 bg-cs-darker p-4 text-right opacity-40">
-                <span className="block font-mono text-[10px] tracking-[0.09em] text-cs-text-muted mb-1">
-                  NEXT
+              <span className="flex items-center justify-end gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 text-right opacity-40">
+                <span className="min-w-0">
+                  <span className="block font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-0.5">
+                    NEXT
+                  </span>
+                  <span className="block font-mono text-sm text-cs-text-dim">End of collection</span>
                 </span>
-                <span className="font-mono text-sm text-cs-text-dim">End of collection</span>
+                <FiArrowRight className="shrink-0 text-lg text-cs-text-muted" />
               </span>
             )}
           </div>
@@ -555,14 +586,14 @@ function LibraryArticle() {
               </li>
             ))}
           </ul>
-          <Link
-            to="/tutor"
-            className="mt-6 inline-flex items-center gap-2 text-[13px] text-cs-text-dim hover:text-cs-primary transition-colors"
-          >
-            <FiHelpCircle /> Ask the CodeSquareAgent
-          </Link>
+          <p className="mt-6 text-[13px] text-cs-text-dim inline-flex items-center gap-2">
+            <FiHelpCircle /> Stuck? Open the <span className="text-cs-primary">AI Tutor</span> tab on the right.
+          </p>
         </aside>
       </div>
+
+      {/* Ask the CodeSquareAgent about this article without leaving the page. */}
+      <TutorDock context={tutorContext} />
     </main>
   );
 }

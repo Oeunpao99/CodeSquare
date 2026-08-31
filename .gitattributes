@@ -1,0 +1,22 @@
+# Keep line endings sane across Windows/Linux. Shell scripts and Dockerfiles
+# must be LF so they run inside Linux containers; .bat stays CRLF for Windows.
+* text=auto
+
+*.sh    text eol=lf
+*.bash  text eol=lf
+Dockerfile      text eol=lf
+*.dockerfile    text eol=lf
+docker-entrypoint.sh text eol=lf
+nginx.conf      text eol=lf
+
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Binary assets — never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff  binary
+*.woff2 binary

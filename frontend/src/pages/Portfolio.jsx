@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { projectService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import LangLogo from '../components/LangLogo';
 import {
   FiGlobe, FiArrowRight, FiCheckSquare, FiStar, FiArrowUpRight,
-  FiFolder,
+  FiFolder, FiGithub, FiLinkedin, FiEdit3,
 } from 'react-icons/fi';
+
+const PROFILE_LINKS = [
+  { key: 'github_url', label: 'GitHub', icon: <FiGithub /> },
+  { key: 'website_url', label: 'Website', icon: <FiGlobe /> },
+  { key: 'linkedin_url', label: 'LinkedIn', icon: <FiLinkedin /> },
+];
 
 function scoreCls(s) {
   if (s >= 80) return 'text-cs-green';
@@ -14,11 +21,14 @@ function scoreCls(s) {
 }
 
 function Portfolio() {
+  const { user } = useAuth();
   const [items, setItems] = useState(null);   // null = loading
 
   useEffect(() => {
     projectService.portfolio().then((r) => setItems(r.data)).catch(() => setItems([]));
   }, []);
+
+  const links = PROFILE_LINKS.filter((l) => user?.[l.key]);
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
@@ -30,6 +40,36 @@ function Portfolio() {
         <p className="text-sm text-cs-text-dim mt-1">
           Your finished projects · {items ? items.length : 0} {items && items.length === 1 ? 'entry' : 'entries'}
         </p>
+      </div>
+
+      {/* identity card — pulled from your profile */}
+      <div className="card border-cs-primary/15 mb-6 flex flex-col sm:flex-row gap-5">
+        <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-main border-2 border-cs-primary/40 flex items-center justify-center text-3xl font-bold text-cs-dark shrink-0">
+          {user?.avatar
+            ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+            : <span>{(user?.display_name || user?.username)?.charAt(0).toUpperCase()}</span>}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold">{user?.display_name || user?.username}</h2>
+          {user?.headline && <p className="text-sm text-cs-primary font-mono mt-0.5">{user.headline}</p>}
+          {user?.bio && <p className="text-sm text-cs-text-dim mt-2 max-w-2xl whitespace-pre-line">{user.bio}</p>}
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            {links.map((l) => (
+              <a
+                key={l.key} href={user[l.key]} target="_blank" rel="noreferrer noopener"
+                className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md glass glass-hover text-cs-text-dim hover:text-cs-primary"
+              >
+                {l.icon} {l.label}
+              </a>
+            ))}
+            <Link
+              to="/profile"
+              className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md text-cs-text-muted hover:text-cs-primary"
+            >
+              <FiEdit3 /> edit
+            </Link>
+          </div>
+        </div>
       </div>
 
       {items === null && <p className="text-cs-text-muted font-mono text-sm">scanning ~/projects…</p>}

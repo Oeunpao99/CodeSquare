@@ -1,0 +1,24 @@
+# Virtualenvs / caches
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Secrets & local env
+.env
+.env.*
+
+# VCS / editor / docs
+.git/
+.gitignore
+.vscode/
+.idea/
+*.md
+
+# Build context noise
+Dockerfile
+.dockerignore

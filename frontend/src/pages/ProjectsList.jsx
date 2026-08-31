@@ -167,7 +167,7 @@ function ProjectsList() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] flex items-start justify-between gap-4 flex-wrap">
+      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 lg:pr-14 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] flex items-start justify-between gap-4 flex-wrap">
         <div>
           <span className="mono-label">// workspace</span>
           <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
@@ -225,7 +225,7 @@ function ProjectsList() {
               >
                 <div className="flex items-center gap-3 mb-3">
                   <LangLogo name={p.language} className="text-2xl shrink-0" />
-                  <h3 className="font-bold flex-grow min-w-0 truncate">{p.title}</h3>
+                  <h3 className="font-bold text-[15px] flex-grow min-w-0 truncate">{p.title}</h3>
                   <button
                     onClick={(e) => togglePin(p, e)}
                     className={`shrink-0 ${p.pinned ? 'text-cs-orange' : 'text-cs-text-muted/40 hover:text-cs-text-muted'}`}

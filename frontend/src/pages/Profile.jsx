@@ -6,6 +6,7 @@ import { FiBook, FiZap, FiTrendingUp, FiHelpCircle, FiClock, FiTarget, FiStar, F
 import ThemePicker from '../components/ThemePicker';
 import AiIcon from '../components/AiIcon';
 import MajorPicker from '../components/MajorPicker';
+import ProfileForm from '../components/ProfileForm';
 
 // Deterministic pseudo-random from a seed so the contribution graph is stable
 // between renders (avoids a flickering board).
@@ -15,7 +16,12 @@ function seeded(i, j) {
 }
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const LEVEL_STYLES = ['bg-level-0', 'bg-level-1', 'bg-level-2', 'bg-level-3', 'bg-level-4'];
+
+const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+// Monday-based weekday index (0 = Mon … 6 = Sun) to match the row order above.
+const monIndex = (date) => (date.getDay() + 6) % 7;
 
 // Colored score badge for a lesson, using the app's dev-vibe badge-outline styles.
 function gradeFor(score) {
@@ -26,39 +32,63 @@ function gradeFor(score) {
   return { label: 'D', cls: 'badge-outline-red' };
 }
 
-// Build a GitHub-style "last year" contribution grid. We only have one week of
-// real data, so the most recent column maps real activity and earlier columns
-// use a weighted, recency-boosted pattern seeded from the user's totals — reads
-// like a living streak board without inventing per-day claims.
-function buildContributions(summary, weekly) {
+const levelFor = (v) => (v <= 0 ? 0 : v <= 1 ? 1 : v <= 3 ? 2 : v <= 6 ? 3 : 4);
+
+// Build a GitHub-style contribution grid for one calendar year. Real data only
+// covers the last 7 days (progress.weekly_activity) plus an all-time total, so
+// earlier in-year days get a recency-weighted synthetic pattern and future days
+// stay empty — it reads like a living streak board without inventing per-day
+// claims. `year` is a full 4-digit year.
+function buildYearGrid(summary, weekly, year) {
   const total = summary?.total_lessons_completed || 0;
   const density = Math.min(0.85, 0.12 + total * 0.045);
-  const weeks = 53;
-  const today = new Date().getDay(); // 0=Sun
+  const today = startOfDay(new Date());
+
   const real = {};
   (weekly || []).forEach((d) => { real[WEEKDAYS.indexOf(d.day)] = d.lessons_completed || 0; });
 
+  // Grid spans the Monday on/before Jan 1 → the Sunday on/after Dec 31.
+  const start = startOfDay(new Date(year, 0, 1));
+  start.setDate(start.getDate() - monIndex(start));
+  const end = startOfDay(new Date(year, 11, 31));
+  end.setDate(end.getDate() + (6 - monIndex(end)));
+
   const grid = [];
-  for (let w = 0; w < weeks; w++) {
+  const monthLabel = [];
+  let lastMonth = -1;
+  for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 7)) {
     const col = [];
     for (let d = 0; d < 7; d++) {
+      const date = new Date(cursor);
+      date.setDate(date.getDate() + d);
+      const inYear = date.getFullYear() === year;
+      const future = date > today;
+      const daysAgo = Math.round((today - date) / 86400000);
+
       let level = 0;
-      if (w === weeks - 1) {
-        const v = real[d] || 0;
-        level = v <= 0 ? 0 : v <= 1 ? 1 : v <= 3 ? 2 : v <= 6 ? 3 : 4;
-      } else {
-        const recency = w / weeks;
-        const threshold = density * (0.5 + recency * 0.7);
-        const r = seeded(w, d);
-        if (r < threshold) {
-          level = r < threshold * 0.3 ? 1 : r < threshold * 0.6 ? 2 : r < threshold * 0.85 ? 3 : 4;
+      if (inYear && !future) {
+        if (daysAgo < 7) {
+          level = levelFor(real[monIndex(date)] || 0);
+        } else {
+          const recency = 1 - Math.min(1, daysAgo / 365);
+          const threshold = density * (0.4 + recency * 0.8);
+          const r = seeded(Math.floor(date.getTime() / 86400000), date.getDay());
+          if (r < threshold) level = r < threshold * 0.3 ? 1 : r < threshold * 0.6 ? 2 : r < threshold * 0.85 ? 3 : 4;
         }
       }
-      col.push({ level, today: w === weeks - 1 && d === today });
+      col.push({
+        level,
+        pad: !inYear,
+        future: future && inYear,
+        today: date.getTime() === today.getTime(),
+      });
     }
+    const m = new Date(cursor).getMonth();
+    monthLabel.push(m !== lastMonth ? m : null);
+    lastMonth = m;
     grid.push(col);
   }
-  return grid;
+  return { grid, monthLabel };
 }
 
 function Profile() {
@@ -66,6 +96,7 @@ function Profile() {
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('overview'); // overview | settings
+  const [heatYear, setHeatYear] = useState(0); // year offset: -1 last, 0 this, +1 next
 
   useEffect(() => {
     fetchProgress();
@@ -97,18 +128,20 @@ function Profile() {
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-6 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
         <div className="flex items-center gap-5 flex-wrap">
           <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-main flex items-center justify-center text-2xl md:text-3xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40 shadow-[0_0_24px_-6px_rgb(var(--cs-primary)/0.5)]">
-            {user?.avatar_url ? (
-              <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
             ) : (
-              <span>{user?.username?.charAt(0).toUpperCase()}</span>
+              <span>{(user?.display_name || user?.username)?.charAt(0).toUpperCase()}</span>
             )}
           </div>
           <div className="min-w-0 flex-1">
             <span className="mono-label">// profile</span>
             <h1 className="text-2xl md:text-3xl font-bold truncate flex items-center gap-3">
-              {user?.username} <span className="text-cs-primary animate-blink">▍</span>
+              {user?.display_name || user?.username} <span className="text-cs-primary animate-blink">▍</span>
             </h1>
-            <p className="text-xs md:text-sm text-cs-text-dim truncate">{user?.email}</p>
+            <p className="text-xs md:text-sm text-cs-text-dim truncate">
+              {user?.headline || user?.email}
+            </p>
           </div>
         </div>
 
@@ -135,6 +168,13 @@ function Profile() {
 
       {tab === 'settings' ? (
         <div className="space-y-10">
+          <div>
+            <span className="mono-label mb-4 block">// profile details</span>
+            <div className="card p-6">
+              <ProfileForm />
+            </div>
+          </div>
+
           <div>
             <span className="mono-label mb-4 block">// choose path</span>
             <div className="card p-6">
@@ -183,42 +223,71 @@ function Profile() {
             </div>
 
             {/* GitHub-style contribution graph */}
-            <div className="card mb-8 overflow-hidden">
-              <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
-                <div>
-                  <h3 className="text-lg font-bold flex items-center gap-2"><FiActivity /> Your coding heatmap</h3>
-                  <p className="text-xs text-cs-text-muted">
-                    {progress.summary.total_lessons_completed} lessons across the last year
-                  </p>
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-cs-text-muted">
-                  Less
-                  {[0, 1, 2, 3, 4].map((lvl) => (
-                    <span key={lvl} className={`w-3 h-3 rounded-[3px] border border-cs-line/10 ${LEVEL_STYLES[lvl]}`} />
-                  ))}
-                  More
-                </div>
-              </div>
-
-              <div className="overflow-x-auto mt-3">
-                <div className="min-w-[720px]">
-                  {/* month labels */}
-                  <div className="flex gap-[3px] ml-8 mb-1.5">
-                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m) => (
-                      <div key={m} className="flex-1 text-[10px] text-cs-text-muted">{m}</div>
-                    ))}
-                  </div>
-                  <div className="flex">
-                    {/* weekday labels */}
-                    <div className="flex flex-col gap-[3px] mr-2 text-[9px] text-cs-text-muted pr-1 w-7">
-                      {['Mon', '', 'Wed', '', 'Fri', '', 'Sun'].map((d, i) => (
-                        <div key={i} className="h-2.5 flex items-center leading-none">{d}</div>
-                      ))}
+            {(() => {
+              const selectedYear = new Date().getFullYear() + heatYear;
+              const { grid, monthLabel } = buildYearGrid(
+                progress.summary, progress.weekly_activity, selectedYear,
+              );
+              return (
+                <div className="card mb-8 overflow-hidden">
+                  <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
+                    <div>
+                      <h3 className="text-lg font-bold flex items-center gap-2"><FiActivity /> Your coding heatmap</h3>
+                      <p className="text-xs text-cs-text-muted">
+                        {heatYear > 0
+                          ? `${selectedYear} hasn't started — nothing logged yet`
+                          : `Activity across ${selectedYear}`}
+                      </p>
                     </div>
-                    {/* grid */}
-                    {(() => {
-                      const grid = buildContributions(progress.summary, progress.weekly_activity);
-                      return (
+                    <div className="flex items-center gap-1.5 text-[11px] text-cs-text-muted">
+                      Less
+                      {[0, 1, 2, 3, 4].map((lvl) => (
+                        <span key={lvl} className={`w-3 h-3 rounded-[3px] border border-cs-line/10 ${LEVEL_STYLES[lvl]}`} />
+                      ))}
+                      More
+                    </div>
+                  </div>
+
+                  {/* year filter */}
+                  <div className="flex items-center gap-1 mb-3">
+                    {[
+                      { k: -1, label: 'Last year' },
+                      { k: 0, label: 'This year' },
+                      { k: 1, label: 'Next year' },
+                    ].map((o) => (
+                      <button
+                        key={o.k}
+                        onClick={() => setHeatYear(o.k)}
+                        className={`px-2.5 py-1 rounded-md font-mono text-[11px] border transition-colors ${
+                          heatYear === o.k
+                            ? 'border-cs-primary text-cs-primary bg-cs-primary/10'
+                            : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
+                        }`}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                    <span className="ml-2 font-mono text-[11px] text-cs-text-dim">{selectedYear}</span>
+                  </div>
+
+                  <div className="overflow-x-auto mt-1">
+                    <div className="min-w-[780px]">
+                      {/* month labels — aligned to the 10px cell + 3px gap grid */}
+                      <div className="flex gap-[3px] mb-1.5" style={{ marginLeft: '2.25rem' }}>
+                        {monthLabel.map((m, i) => (
+                          <div key={i} className="w-2.5 text-[10px] text-cs-text-muted whitespace-nowrap">
+                            {m != null ? MONTHS[m] : ''}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex">
+                        {/* weekday labels */}
+                        <div className="flex flex-col gap-[3px] mr-2 text-[9px] text-cs-text-muted pr-1 w-7">
+                          {['Mon', '', 'Wed', '', 'Fri', '', 'Sun'].map((d, i) => (
+                            <div key={i} className="h-2.5 flex items-center leading-none">{d}</div>
+                          ))}
+                        </div>
+                        {/* grid */}
                         <div className="flex gap-[3px]">
                           {grid.map((col, w) => (
                             <div key={w} className="flex flex-col gap-[3px]">
@@ -226,19 +295,21 @@ function Profile() {
                                 <div
                                   key={d}
                                   className={`w-2.5 h-2.5 rounded-[3px] transition-transform duration-150 ${
-                                    LEVEL_STYLES[cell.level]
-                                  } ${cell.today ? 'ring-1 ring-cs-primary scale-125' : ''}`}
+                                    cell.pad ? 'invisible' : LEVEL_STYLES[cell.level]
+                                  } ${cell.future ? 'opacity-40' : ''} ${
+                                    cell.today ? 'ring-1 ring-cs-primary scale-125' : ''
+                                  }`}
                                 />
                               ))}
                             </div>
                           ))}
                         </div>
-                      );
-                    })()}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* AI Recommendation + focus areas (moved here from the dashboard) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -261,7 +332,7 @@ function Profile() {
 
               {progress.summary.weak_concepts?.length > 0 && (
                 <div className="card">
-                  <h3 className="flex items-center gap-2 mb-4 text-cs-orange font-bold">
+                  <h3 className="flex items-center gap-2 mb-4 text-cs-orange font-bold text-base">
                     <FiStar /> Areas to Focus On
                   </h3>
                   <div className="flex flex-wrap gap-2.5">

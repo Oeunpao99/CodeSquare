@@ -106,25 +106,25 @@ function Quizzes() {
                 i > 0 ? 'border-t border-cs-line/10' : ''
               }`}
             >
-              <span className={`badge-outline ${DIFF_BADGE[z.difficulty] || 'badge-outline-cyan'} shrink-0`}>
+              <span className={`badge-outline text-sm ${DIFF_BADGE[z.difficulty] || 'badge-outline-cyan'} shrink-0`}>
                 {z.difficulty}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold truncate group-hover:text-cs-primary transition-colors">
+                <p className="font-semibold text-lg truncate group-hover:text-cs-primary transition-colors">
                   {z.title}
                 </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-                  <span className="font-mono text-[11px] text-cs-text-muted">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+                  <span className="font-mono text-sm text-cs-text-muted">
                     {z.question_count} question{z.question_count === 1 ? '' : 's'}
                   </span>
-                  {z.topic && <span className="font-mono text-[11px] text-cs-text-muted">{z.topic}</span>}
+                  {z.topic && <span className="font-mono text-sm text-cs-text-muted">{z.topic}</span>}
                   {z.language && (
-                    <span className="font-mono text-[11px] text-cs-text-dim inline-flex items-center gap-1">
+                    <span className="font-mono text-sm text-cs-text-dim inline-flex items-center gap-1">
                       <span className="inline-block w-1.5 h-1.5 rounded-full bg-cs-cyan/70" /> {z.language}
                     </span>
                   )}
                   {z.best_score > 0 && !z.passed && (
-                    <span className="font-mono text-[11px] text-cs-orange">best {z.best_score}%</span>
+                    <span className="font-mono text-sm text-cs-orange">best {z.best_score}%</span>
                   )}
                 </div>
               </div>

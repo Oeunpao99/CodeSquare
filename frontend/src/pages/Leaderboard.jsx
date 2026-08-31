@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { communityService } from '../services/api';
 import { MAJORS } from '../majors';
+import VerifiedBadge from '../components/VerifiedBadge';
 import {
   FiAward, FiTerminal, FiZap, FiCheckCircle, FiCode, FiChevronUp,
 } from 'react-icons/fi';
@@ -29,8 +30,11 @@ function Row({ r, highlight }) {
           : <span>{r.username?.charAt(0).toUpperCase()}</span>}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-mono text-sm font-semibold truncate">
-          {r.username}
+        <p className="font-mono text-base font-semibold truncate">
+          <Link to={`/u/${r.username}`} className="inline-flex items-center gap-1 hover:text-cs-primary transition-colors">
+            <span className="truncate">{r.username}</span>
+            {r.verified && <VerifiedBadge size="h-4 w-4" />}
+          </Link>
           {highlight && <span className="text-cs-primary font-normal"> · you</span>}
         </p>
         {major && <p className="font-mono text-[11px] text-cs-text-muted truncate">{major}</p>}

@@ -1,309 +1,113 @@
-"""Give every exercise-less lesson one small, checkable exercise.
+"""Guarantee every lesson has at least one Practice exercise.
 
-Whole modules (all of Backend Foundations, JS module 3-4, HTML module 3, parts
-of Python) shipped with lesson prose but no Exercise, so those lessons — and
-their Library articles — could never be completed. This adds one exercise each,
-reusing the lesson's own starter_code / solution.
+Some seed files ship lessons with prose but no ``Exercise`` row, which means the
+lesson (and its mirrored Library article) can never be completed. This pass adds
+one small, always-passable exercise to any lesson that lacks one, built from the
+lesson's own ``starter_code`` / ``solution`` / ``code_example``.
 
-Checks are deliberately light: the runner exposes the raw submission as `code`,
-so most tests are "did you use X" token checks; Python lessons that leave a
-variable behind get a real assertion. Enough to mark the lesson done without
-being a puzzle.
+Design goals:
+  * **ID-independent** — finds gaps with a query, never a hard-coded id map, so
+    it stays correct across re-seeds and newly added lessons.
+  * **Idempotent** — a lesson that already has an exercise is left untouched.
+  * **Language-agnostic** — the check is a light "you actually wrote something"
+    test on the raw submission, enough to mark the lesson done without being a
+    puzzle.
 
-Idempotent — skips any lesson that already has an exercise.
+Run standalone, or rely on ``seed_data.py`` which calls it at the end:
 
-    python backfill_exercises.py
+    python backfill_exercises.py            # add missing exercises
+    python backfill_exercises.py --verify   # report only; exit 1 if any gap
 """
 import asyncio
+import sys
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 
 from database import async_session
-from models.models import Lesson, Exercise
+from models.models import Exercise, Language, Lesson, Module
 
 
-def C(*subs):
-    """Token checks against the raw source (case-insensitive)."""
-    return [
-        {"description": f"uses `{s}`", "test": f"{s.lower()!r} in code.lower()"}
-        for s in subs
+def _default_exercise(lesson: Lesson, lang_slug: str) -> dict:
+    """A minimal, always-passable exercise derived from the lesson itself."""
+    starter = (lesson.starter_code or lesson.code_example or "").strip()
+    if not starter:
+        starter = "# Write your code here\n" if lang_slug in {"python", "linux-shell"} else "// Write your code here\n"
+    solution = (lesson.solution or lesson.code_example or starter).strip()
+
+    # The runner exposes the raw submission as `code`. Only an explicit False
+    # fails a test, so this just asks the learner to write something real.
+    tests = [
+        {"description": "you wrote some code", "test": "len(code.strip()) >= 8"},
     ]
-
-
-def A(desc, expr):
-    """A Python assertion evaluated after the submission runs."""
-    return {"description": desc, "test": f"assert {expr}"}
-
-
-NOSPACE = "code.replace(' ', '').lower()"
-
-SPECS = {
-    # ---- python ----
-    60: dict(
-        title="Both positive?",
-        description="Set `both_positive` to True only when both `a` and `b` are greater than 0.",
-        tests=[A("both_positive matches a>0 and b>0", "both_positive == (a > 0 and b > 0)")],
-        hints=["Combine two comparisons with `and`", "`both_positive = a > 0 and b > 0`"],
-    ),
-    61: dict(
-        title="Count to five",
-        description="Use a `while` loop to print the numbers 1 through 5.",
-        tests=C("while", "print")
-        + [{"description": "advances the counter", "test": f"'+=1' in {NOSPACE} or 'i=i+1' in {NOSPACE}"}],
-        hints=["Start with `i = 1`", "Increase `i` inside the loop or it runs forever"],
-    ),
-    63: dict(
-        title="First three",
-        description="Print the first three items of `nums` using a slice.",
-        tests=[A("prints nums[:3]", "nums[:3] == [4, 8, 15]")],
-        hints=["Slicing looks like `nums[:3]`"],
-    ),
-    66: dict(
-        title="Word count",
-        description="Print how many words are in `sentence` (split on spaces, then count).",
-        tests=C(".split()", "len("),
-        hints=["`sentence.split()` gives a list of words", "`len(...)` counts them"],
-    ),
-    67: dict(
-        title="Define banner()",
-        description="Define a function `banner()` that prints a header, then call it.",
-        tests=C("def banner", "banner()"),
-        hints=["`def banner():` then an indented `print(...)`", "Call it on its own line: `banner()`"],
-    ),
-    69: dict(
-        title="Join with a separator",
-        description="Write `join(parts, sep='-')` that returns the parts joined by `sep`.",
-        tests=[
-            A("default separator works", "join(['a', 'b', 'c']) == 'a-b-c'"),
-            A("custom separator works", "join(['a', 'b'], '/') == 'a/b'"),
+    return {
+        "title": f"Try it: {lesson.title}",
+        "description": (
+            "Practice what this lesson covered — edit the code below and run it. "
+            "Use the lesson example as a guide."
+        ),
+        "starter_code": starter,
+        "solution": solution,
+        "test_cases": {"tests": tests},
+        "hints": [
+            "Re-read the lesson's example and adapt it here.",
+            "Click Show solution if you get stuck.",
         ],
-        hints=["Give `sep` a default in the signature: `sep='-'`", "`return sep.join(parts)`"],
-    ),
-    65: dict(
-        title="Restock the pens",
-        description="Add 2 to the `'pen'` count in `inventory`, then print the dict.",
-        tests=[A("pen count increased by 2", "inventory['pen'] == 5")],
-        hints=["`inventory['pen'] += 2`"],
-    ),
-    # ---- javascript ----
-    72: dict(
-        title="Template literal",
-        description="Use a backtick template literal to log `Area: <w*h>`.",
-        tests=C("${") + [{"description": "uses backticks", "test": "'`' in code"}],
-        hints=["Wrap the string in backticks: `` `...` ``", "Embed with `${ w * h }`"],
-    ),
-    73: dict(
-        title="In range?",
-        description="Log whether `score` is between 70 and 100 (inclusive) using `&&`.",
-        tests=C("&&", ">="),
-        hints=["`score >= 70 && score <= 100`"],
-    ),
-    74: dict(
-        title="Coerce then add",
-        description="Convert the string `raw` to a number and log it plus 8.",
-        tests=C("number("),
-        hints=["`Number(raw)` turns '42' into 42"],
-    ),
-    75: dict(
-        title="Loop 1..5",
-        description="Use a `for` loop to log the numbers 1 through 5.",
-        tests=C("for (", "console.log"),
-        hints=["`for (let i = 1; i <= 5; i++)`"],
-    ),
-    76: dict(
-        title="Last item",
-        description="Log the last element of the `names` array using `.length`.",
-        tests=C(".length"),
-        hints=["`names[names.length - 1]`"],
-    ),
-    77: dict(
-        title="Filter the big ones",
-        description="Log the items of `prices` greater than 20 using `.filter()`.",
-        tests=C(".filter("),
-        hints=["`prices.filter(p => p > 20)`"],
-    ),
-    78: dict(
-        title="Object fields",
-        description="Given `p = { x, y }`, log `p.x + p.y`.",
-        tests=C("p.x", "p.y"),
-        hints=["Access fields with a dot: `p.x`"],
-    ),
-    79: dict(
-        title="Arrow function",
-        description="Write `toCents` as an arrow function that rounds dollars to whole cents.",
-        tests=C("=>", "math.round"),
-        hints=["`const toCents = d => Math.round(d * 100)`"],
-    ),
-    80: dict(
-        title="forEach callback",
-        description="Use `.forEach()` to log each number in `nums` doubled.",
-        tests=C(".foreach("),
-        hints=["`nums.forEach(n => console.log(n * 2))`"],
-    ),
-    81: dict(
-        title="Set text content",
-        description="Select `#status` and set its `textContent` to `'ready'`.",
-        tests=C("queryselector", "textcontent"),
-        hints=["`document.querySelector('#status')`", "`.textContent = 'ready'`"],
-    ),
-    82: dict(
-        title="Wire a click",
-        description="Add a click listener to the button with `addEventListener`.",
-        tests=C("addeventlistener"),
-        hints=["`btn.addEventListener('click', () => { ... })`"],
-    ),
-    # ---- html-css ----
-    84: dict(
-        title="A link",
-        description="Write an anchor tag linking to a URL.",
-        tests=C("<a ", "href="),
-        hints=["`<a href=\"https://...\">text</a>`"],
-    ),
-    86: dict(
-        title="A tiny form",
-        description="Write a `<form>` with a text `<input>` and a `<button>`.",
-        tests=C("<form", "<input", "<button"),
-        hints=["Inputs need a `type`: `<input type=\"text\">`"],
-    ),
-    88: dict(
-        title="Style a heading",
-        description="Give `h1` a `font-size` and center it with `text-align`.",
-        tests=C("font-size", "text-align"),
-        hints=["`h1 { font-size: 32px; text-align: center; }`"],
-    ),
-    89: dict(
-        title="Flex row",
-        description="Make `.row` a flex container with a `gap`.",
-        tests=C("display", "flex", "gap"),
-        hints=["`.row { display: flex; gap: 8px; }`"],
-    ),
-    90: dict(
-        title="Profile card markup",
-        description="Write an `<article>` with a class, a name and a role.",
-        tests=C("<article", "class="),
-        hints=["`<article class=\"card\"> ... </article>`"],
-    ),
-    87: dict(
-        title="Box model padding",
-        description="Give `.note` some `padding`.",
-        tests=C(".note", "padding"),
-        hints=["`.note { padding: 20px; }`"],
-    ),
-    # ---- backend-foundations ----
-    30: dict(
-        title="Create a table",
-        description="Write a `CREATE TABLE posts` statement with an id, title and body.",
-        tests=C("create table", "posts"),
-        hints=["`CREATE TABLE posts ( id ..., title ..., body ... );`"],
-    ),
-    31: dict(
-        title="A SELECT with a filter",
-        description="Write a `SELECT ... FROM ... WHERE ...` query.",
-        tests=C("select", "from", "where"),
-        hints=["`SELECT col FROM table WHERE condition;`"],
-    ),
-    32: dict(
-        title="Apply migrations",
-        description="Give the command that applies all pending migrations.",
-        tests=C("alembic", "upgrade", "head"),
-        hints=["`alembic upgrade head`"],
-    ),
-    33: dict(
-        title="Add a column",
-        description="In `upgrade()`, add a nullable `summary` TEXT column to `posts`.",
-        tests=C("add_column", "summary"),
-        hints=["`op.add_column('posts', sa.Column('summary', sa.Text(), nullable=True))`"],
-    ),
-    34: dict(
-        title="A health route",
-        description="Add a `GET /health` route that returns `{\"status\": \"ok\"}`.",
-        tests=C("@app.get", "/health"),
-        hints=["`@app.get('/health')` above a function that returns the dict"],
-    ),
-    35: dict(
-        title="A request model",
-        description="Model `UserIn` with `email: str` and `age: int`.",
-        tests=C("basemodel", "email", "age"),
-        hints=["`class UserIn(BaseModel):` then the two typed fields"],
-    ),
-    36: dict(
-        title="Where are the docs?",
-        description="Give the path FastAPI serves interactive Swagger docs on.",
-        tests=C("/docs"),
-        hints=["It's `/docs` (ReDoc is `/redoc`)"],
-    ),
-    37: dict(
-        title="curl method flag",
-        description="Give the `curl` flag that sets the HTTP method.",
-        tests=C("-x"),
-        hints=["`curl -X POST ...`"],
-    ),
-    38: dict(
-        title="Compose up",
-        description="Give the command that builds and starts everything in the background.",
-        tests=C("docker compose up", "--build"),
-        hints=["`docker compose up --build -d`"],
-    ),
-    39: dict(
-        title="When does CI run?",
-        description="One word: the git event that typically triggers a CI pipeline.",
-        tests=C("push"),
-        hints=["Every `git push`"],
-    ),
-    40: dict(
-        title="New branch",
-        description="Create and switch to a new branch called `fix/typo`.",
-        tests=C("git switch", "-c"),
-        hints=["`git switch -c fix/typo`"],
-    ),
-    41: dict(
-        title="Generate an SSH key",
-        description="Give the command that generates a modern ed25519 SSH key.",
-        tests=C("ssh-keygen", "ed25519"),
-        hints=["`ssh-keygen -t ed25519 -C \"you@example.com\"`"],
-    ),
-}
+        "order": 1,
+    }
 
 
-async def backfill() -> None:
+async def _lessons_without_exercise(db):
+    """Every lesson id that has zero Exercise rows, with its language slug."""
+    rows = (
+        await db.execute(
+            select(Lesson, Language.slug)
+            .join(Module, Lesson.module_id == Module.id)
+            .join(Language, Module.language_id == Language.id)
+            .where(~Lesson.id.in_(select(Exercise.lesson_id)))
+            .order_by(Language.slug, Lesson.id)
+        )
+    ).all()
+    return rows
+
+
+async def ensure_every_lesson_has_exercise(verify_only: bool = False) -> int:
+    """Add a default exercise to every exercise-less lesson.
+
+    Returns the number of lessons still missing an exercise afterwards (0 on
+    success). In ``verify_only`` mode nothing is written.
+    """
     async with async_session() as db:
-        added = skipped = missing = 0
-        for lesson_id, spec in SPECS.items():
-            lesson = (
-                await db.execute(select(Lesson).where(Lesson.id == lesson_id))
-            ).scalar_one_or_none()
-            if not lesson:
-                missing += 1
-                print(f"  lesson {lesson_id}: not found, skipped")
-                continue
+        total = (await db.execute(select(func.count()).select_from(Lesson))).scalar() or 0
+        gaps = await _lessons_without_exercise(db)
 
-            has = (
-                await db.execute(
-                    select(func.count()).select_from(Exercise).where(Exercise.lesson_id == lesson_id)
-                )
-            ).scalar()
-            if has:
-                skipped += 1
-                continue
+        if verify_only:
+            for lesson, slug in gaps:
+                print(f"  MISSING  [{slug}] lesson {lesson.id}: {lesson.title}")
+            print(f"\n{total - len(gaps)}/{total} lessons have an exercise; {len(gaps)} missing.")
+            return len(gaps)
 
-            db.add(
-                Exercise(
-                    lesson_id=lesson_id,
-                    title=spec["title"],
-                    description=spec["description"],
-                    starter_code=lesson.starter_code or "",
-                    solution=lesson.solution or "",
-                    test_cases={"tests": spec["tests"]},
-                    hints=spec.get("hints", []),
-                    order=1,
-                )
-            )
-            added += 1
-            print(f"  + lesson {lesson_id:>3}  {spec['title']}")
+        for lesson, slug in gaps:
+            spec = _default_exercise(lesson, slug)
+            db.add(Exercise(lesson_id=lesson.id, **spec))
+            print(f"  + [{slug}] lesson {lesson.id:>4}  {lesson.title}")
 
         await db.commit()
-        print(f"\nAdded {added}, already had one {skipped}, missing {missing}.")
+
+        remaining = len(await _lessons_without_exercise(db))
+        print(
+            f"\nAdded {len(gaps)} exercise(s); "
+            f"{total - remaining}/{total} lessons now covered."
+        )
+        return remaining
+
+
+async def _main() -> None:
+    verify = "--verify" in sys.argv
+    remaining = await ensure_every_lesson_has_exercise(verify_only=verify)
+    if remaining:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    asyncio.run(backfill())
+    asyncio.run(_main())

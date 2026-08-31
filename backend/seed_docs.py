@@ -24,6 +24,7 @@ from models.models import (
     Language, Module, Lesson, DocCollection, DocTopic, UserDocProgress,
 )
 from majors import MAJOR_TRACKS
+from seed_docs_infra import INFRA_SHELVES
 
 
 # Track slugs to mirror, in the order their shelves should appear.
@@ -2494,6 +2495,9 @@ STANDALONE = [
         ],
     },
 ]
+
+# Cloud & infrastructure reference shelves live in their own module for size.
+STANDALONE.extend(INFRA_SHELVES)
 
 
 _DIFF_RANK = {"beginner": 0, "intermediate": 1, "advanced": 2}

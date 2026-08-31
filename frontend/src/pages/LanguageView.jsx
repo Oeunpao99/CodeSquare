@@ -44,28 +44,35 @@ function LanguageView() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-6">
-      {/* Sticky header — back link + course title + progress stay locked while modules scroll */}
-      <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-5 -mt-4 mb-6">
-        <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-cs-text-muted hover:text-cs-primary mb-4">
+      {/* Sticky header — just the compact identity bar stays locked while modules scroll */}
+      <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-4 mb-6">
+        <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-cs-text-muted hover:text-cs-primary mb-3">
           <FiArrowLeft /> Back to Dashboard
         </Link>
 
-        <div className="flex items-center gap-6">
-          <LangLogo name={language.slug || language.name} className="text-5xl shrink-0" />
+        <div className="flex items-center gap-4 lg:gap-6">
+          <LangLogo name={language.slug || language.name} className="text-4xl lg:text-5xl shrink-0" />
           <div className="min-w-0 flex-grow">
-            <h1 className="text-3xl font-bold mb-1 truncate">{language.name}</h1>
-            <p className="text-cs-text-muted truncate">{language.description}</p>
+            <h1 className="text-2xl lg:text-3xl font-bold mb-0.5 truncate">{language.name}</h1>
+            <p className="text-sm text-cs-text-muted truncate">{language.description}</p>
           </div>
           <div className="hidden md:block text-right shrink-0">
             <p className="font-mono text-sm text-cs-text-dim">{completedLessons} / {totalLessons} lessons</p>
             <div className="mt-1.5 h-2 w-40 bg-cs-darker rounded overflow-hidden">
-              <div className="h-full bg-gradient-main rounded transition-all duration-500" style={{ width: `${progressPct}%` }}></div>
+              <div
+                className="h-full rounded transition-all duration-500"
+                style={{
+                  width: `${progressPct}%`,
+                  background: 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
+                }}
+              ></div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Header info strip — progress + what you'll learn + agent */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-stretch">
+      {/* Info strip — progress + what you'll learn + agent (scrolls away) */}
+      <div className="mb-8 grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-stretch">
           <div className="rounded-xl border border-cs-line/10 bg-cs-darker/60 p-3">
             <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted mb-2">// course progress</h3>
             <p className="text-sm text-cs-text">
@@ -98,7 +105,6 @@ function LanguageView() {
             </p>
           </div>
         </div>
-      </div>
 
       <div>
         {language.modules?.map((module) => (
@@ -144,7 +150,7 @@ function LanguageView() {
                   </div>
 
                   <div className="flex-grow">
-                    <h3 className="font-semibold mb-1">{lesson.title}</h3>
+                    <h3 className="font-semibold text-[15px] mb-1">{lesson.title}</h3>
                     <div className="flex gap-4 text-xs text-cs-text-muted">
                       <span className="flex items-center gap-1"><FiClock /> {Math.ceil(lesson.content.length / 500)} min</span>
                       <span className="flex items-center gap-1"><FiZap /> {lesson.xp_reward} XP</span>

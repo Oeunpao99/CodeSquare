@@ -1,0 +1,84 @@
+# Production stack for CodeSquare.
+#
+#   cd <repo root>
+#   cp .env.prod.example .env.prod   &&   edit .env.prod
+#   docker compose --env-file .env.prod -f docker/docker-compose.prod.yml up -d --build
+#
+# Only the `frontend` container publishes a port (HTTP_PORT). Put a TLS
+# terminator (Caddy / Traefik / cloud LB) in front of it for HTTPS.
+
+name: codesquare
+
+x-db-env: &db-env
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-codesquare}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}@db:5432/${POSTGRES_DB:-codesquare}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-codesquare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-codesquare}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Uncomment to reach the DB from the host (loopback only).
+    # ports:
+    #   - "127.0.0.1:5432:5432"
+
+  # One-shot: bring the schema up to head, then exit. `backend` waits for this
+  # to finish successfully before it starts, so migrations never race workers.
+  migrate:
+    image: codesquare-backend:latest
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file:
+      - ../.env.prod
+    environment:
+      <<: *db-env
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  backend:
+    image: codesquare-backend:latest
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ../.env.prod
+    environment:
+      <<: *db-env
+    expose:
+      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    restart: always
+    # 8084: free on the shared host (8080/8082/8083/8085/8086/8090 are taken by
+    # other stacks). Override with HTTP_PORT in .env.prod if needed.
+    ports:
+      - "${HTTP_PORT:-8084}:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

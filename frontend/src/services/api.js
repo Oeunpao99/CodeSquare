@@ -47,6 +47,13 @@ export const authService = {
   getMe: () => api.get('/auth/me'),
 
   updateMajor: (major) => api.patch('/auth/major', { major }),
+
+  // Partial profile update — only the keys you pass are changed. Pass
+  // avatar_data: '' to remove an uploaded photo, complete_onboarding: true to
+  // finish the first-run flow in the same call.
+  updateProfile: (data) => api.patch('/auth/profile', data),
+
+  skipOnboarding: () => api.post('/auth/onboarding/skip'),
 };
 
 export const lessonService = {
@@ -104,6 +111,23 @@ export const careerService = {
 
 export const communityService = {
   leaderboard: (limit = 50) => api.get('/community/leaderboard', { params: { limit } }),
+  profile: (username) => api.get(`/community/users/${username}`),
+
+  // --- community feed ---
+  posts: (params = {}) => api.get('/community/posts', { params }),
+  post: (id) => api.get(`/community/posts/${id}`),
+  createPost: (data) => api.post('/community/posts', data),
+  updatePost: (id, data) => api.patch(`/community/posts/${id}`, data),
+  deletePost: (id) => api.delete(`/community/posts/${id}`),
+  likePost: (id) => api.post(`/community/posts/${id}/like`),
+  flagPost: (id) => api.post(`/community/posts/${id}/flag`),
+  addComment: (id, body) => api.post(`/community/posts/${id}/comments`, { body }),
+  deleteComment: (id) => api.delete(`/community/comments/${id}`),
+};
+
+export const notificationService = {
+  list: () => api.get('/notifications'),
+  markAllRead: () => api.post('/notifications/read'),
 };
 
 export const challengeService = {

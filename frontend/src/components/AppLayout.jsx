@@ -9,9 +9,10 @@ import {
   FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
   FiUser, FiSettings, FiLayers, FiCircle, FiActivity, FiChevronRight, FiChevronUp,
   FiChevronsLeft, FiChevronsRight, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
-  FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle,
+  FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers,
 } from 'react-icons/fi';
 import MajorIcon from './MajorIcon';
+import NotificationBell from './NotificationBell';
 
 // Sidebar nav grouped by the student journey (Learn → Practice → Build) so new
 // sections slot into an existing group instead of lengthening a flat list.
@@ -51,6 +52,7 @@ const NAV_GROUPS = [
   {
     id: 'community',
     items: [
+      { to: '/community', label: 'Dev Community', icon: FiUsers },
       { to: '/leaderboard', label: 'Leaderboard', icon: FiAward },
     ],
   },
@@ -210,38 +212,22 @@ function AppLayout() {
           {isActive && (
             <motion.span
               layoutId="sidebar-active"
-              className="absolute inset-0 rounded-[12px] border border-cs-primary/30 bg-cs-primary/[0.10]"
+              className="absolute inset-0 rounded-[10px] bg-cs-primary/[0.10]"
               transition={{ type: 'spring', stiffness: 420, damping: 34 }}
             />
           )}
           {isActive && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-cs-primary" aria-hidden="true" />
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-cs-primary" aria-hidden="true" />
           )}
           <span
-            className={`relative flex items-center gap-3 pl-3 pr-3 py-3 rounded-[12px] font-mono text-[15px] font-bold uppercase tracking-wide border transition-all duration-200 ${
+            className={`relative flex items-center gap-3 pl-3.5 pr-3 py-2.5 rounded-[10px] font-mono text-[15px] transition-colors duration-150 ${
               isActive
-                ? 'text-cs-primary'
-                : 'border-transparent text-cs-text-dim group-hover:border-cs-primary/40 group-hover:border-opacity-100 group-hover:bg-cs-overlay/[0.08] group-hover:text-cs-text group-hover:font-bold group-hover:shadow-[0_0_20px_-8px_rgb(var(--cs-primary)/0.6)]'
+                ? 'text-cs-primary font-semibold'
+                : 'text-cs-text-dim font-medium group-hover:bg-cs-overlay/[0.06] group-hover:text-cs-text'
             }`}
           >
-            {/* command prefix arrow — fades in on hover/active */}
-            <span
-              className={`text-cs-primary text-base w-5 shrink-0 transition-all duration-200 ${
-                isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1 group-hover:opacity-70 group-hover:translate-x-0'
-              }`}
-            >
-              ❯
-            </span>
-            <item.icon className={`text-lg shrink-0 transition-colors ${isActive ? 'text-cs-primary' : 'text-cs-text-muted group-hover:text-cs-cyan'}`} />
-            {/* command label with terminal-styled accent */}
-            <span className={`flex-grow truncate ${isActive ? 'text-cs-primary' : ''}`}>
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity text-cs-text-muted -mr-1">$ </span>
-              {item.label.toLowerCase()}
-            </span>
-            <span
-              className={`w-2 h-2 rounded-[3px] shrink-0 transition-opacity ${isActive ? 'bg-cs-primary animate-pulse opacity-100' : 'opacity-0'}`}
-              aria-hidden="true"
-            />
+            <item.icon className={`text-[19px] shrink-0 transition-colors ${isActive ? 'text-cs-primary' : 'text-cs-text-muted group-hover:text-cs-cyan'}`} />
+            <span className="flex-grow truncate">{item.label}</span>
           </span>
         </>
       );
@@ -263,11 +249,11 @@ function AppLayout() {
       />
       {/* subtle grid / scanline tech backdrop */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-80"
+        className="pointer-events-none absolute inset-0 opacity-50"
         style={{
           backgroundImage:
-            'radial-gradient(rgb(var(--cs-primary) / 0.06) 1px, transparent 1px)',
-          backgroundSize: '18px 18px',
+            'radial-gradient(rgb(var(--cs-primary) / 0.05) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
           maskImage: 'radial-gradient(ellipse 120% 70% at 50% 0%, #000 30%, transparent 100%)',
           WebkitMaskImage: 'radial-gradient(ellipse 120% 70% at 50% 0%, #000 30%, transparent 100%)',
         }}
@@ -281,7 +267,7 @@ function AppLayout() {
 
       {/* Brand (compact) + expand at top */}
       <div className="relative px-3 pt-5 pb-2 flex flex-col items-center gap-3">
-        <span className="text-2xl text-cs-primary font-mono font-bold">⟨/⟩</span>
+        <img src="/logo.png" alt="CodeSquare" className="h-9 w-auto object-contain" />
         <button
           onClick={toggleCollapsed}
           title="Expand sidebar"
@@ -309,15 +295,15 @@ function AppLayout() {
                 {isActive && (
                   <motion.span
                     layoutId="sidebar-active"
-                    className="absolute inset-0 rounded-[12px] border border-cs-primary/30 bg-cs-primary/[0.10]"
+                    className="absolute inset-0 rounded-[10px] bg-cs-primary/[0.10]"
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                   />
                 )}
                 <span
-                  className={`relative flex items-center justify-center py-4 rounded-[12px] border font-mono text-xl transition-all duration-200 ${
+                  className={`relative flex items-center justify-center py-3.5 rounded-[10px] font-mono text-xl transition-colors duration-150 ${
                     isActive
-                      ? 'text-cs-primary font-bold'
-                      : 'border-transparent text-cs-text-muted group-hover:border-cs-primary/40 group-hover:bg-cs-overlay/[0.08] group-hover:text-cs-cyan group-hover:shadow-[0_0_20px_-8px_rgb(var(--cs-primary)/0.6)]'
+                      ? 'text-cs-primary'
+                      : 'text-cs-text-muted group-hover:bg-cs-overlay/[0.06] group-hover:text-cs-cyan'
                   }`}
                 >
                   <item.icon className="shrink-0" />
@@ -336,11 +322,18 @@ function AppLayout() {
       {/* Brand — green brandmark on the same line as the collapse control */}
       <div className="relative px-5 py-5 flex flex-col gap-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-2xl font-bold tracking-tight leading-none text-cs-green [text-shadow:0_0_18px_rgb(var(--cs-green)/0.35)]">
-            Code
-            <span className="text-cs-mint">Square</span>
-            <span className="text-cs-text animate-blink">_</span>
-          </span>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src="/logo.png"
+              alt="CodeSquare"
+              className="h-12 w-auto object-contain shrink-0"
+            />
+            <span className="font-mono text-3xl font-bold tracking-tight leading-none text-cs-green [text-shadow:0_0_18px_rgb(var(--cs-green)/0.35)] whitespace-nowrap">
+              Code
+              <span className="text-cs-mint">Square</span>
+              <span className="text-cs-text animate-blink">_</span>
+            </span>
+          </div>
           <button
             onClick={toggleCollapsed}
             title="Collapse sidebar"
@@ -349,8 +342,8 @@ function AppLayout() {
             <FiChevronsLeft className="text-lg" />
           </button>
         </div>
-        <span className="font-mono text-[11px] text-cs-text-muted">
-          <span className="text-cs-green">const</span> <span className="text-cs-text">// build boldly</span>
+        <span className="font-mono text-[11px] tracking-wide text-cs-text-muted">
+          build boldly
         </span>
       </div>
 
@@ -362,13 +355,13 @@ function AppLayout() {
             <div key={grp.id} className="space-y-1">
               <button
                 onClick={() => toggleNavGroup(grp.id)}
-                className="w-full flex items-center gap-1.5 px-3 pt-2.5 pb-1.5 font-mono text-xs font-semibold uppercase tracking-[0.22em] text-cs-text-dim hover:text-cs-text transition-colors"
+                className="w-full flex items-center gap-1.5 px-3.5 pt-3 pb-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-cs-text-muted hover:text-cs-text transition-colors"
                 aria-expanded={!isCollapsed}
               >
                 <FiChevronDown
-                  className={`text-sm shrink-0 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}
+                  className={`text-xs shrink-0 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}
                 />
-                <span>// {grp.id}</span>
+                <span>{grp.id}</span>
               </button>
               <AnimatePresence initial={false}>
                 {!isCollapsed && (
@@ -395,10 +388,10 @@ function AppLayout() {
           className="w-full flex items-center gap-3 p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.06] backdrop-blur-md hover:border-cs-primary/40 hover:shadow-[0_0_18px_-10px_rgb(var(--cs-primary)/0.7),inset_0_1px_0_rgb(var(--cs-line)/0.06)] hover:bg-cs-overlay/[0.1] transition-all text-left"
         >
           <span className="relative w-10 h-10 rounded-lg bg-cs-darkest border border-cs-primary/30 flex items-center justify-center font-mono font-bold text-cs-primary overflow-hidden shrink-0">
-            {user?.avatar_url ? (
-              <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-base">{user?.username?.charAt(0).toUpperCase()}</span>
+              <span className="text-base">{(user?.display_name || user?.username)?.charAt(0).toUpperCase()}</span>
             )}
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-cs-green ring-2 ring-cs-darkest" />
           </span>
@@ -461,20 +454,37 @@ function AppLayout() {
 
   return (
     <div className="min-h-screen bg-cs-dark">
+      {/* Desktop notification bell — pinned top-right, vertically centered in an
+          h-14 strip anchored at top-0 so it sits within the top band that pages'
+          sticky headers keep clear on the right (the few pages with a top-right
+          control — e.g. Practice's mode toggle — add `lg:pr-14` to their header
+          row to reserve this ~44px). The strip is click-through
+          (pointer-events-none) except for the bell itself. z sits above page
+          sticky headers (30) but below the CodeSquareAgent dock (40), so an open
+          dock on the library pages covers it instead of it floating over chat. */}
+      <div className="hidden lg:flex items-center justify-end fixed top-0 right-0 h-14 pr-6 z-[35] pointer-events-none">
+        <div className="pointer-events-auto">
+          <NotificationBell />
+        </div>
+      </div>
+
       {/* Mobile top bar */}
       <header className="sticky top-0 z-40 lg:hidden bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10">
         <div className="px-4 py-3 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 font-mono text-lg font-bold text-cs-text">
-            <span className="text-cs-primary">⟨/⟩</span>
-            <span className="text-cs-text-muted">~/</span>codesphere
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
+            <span className="font-mono text-lg font-bold text-cs-text">codesphere</span>
           </Link>
-          <button
-            onClick={() => setOpen(true)}
-            className="p-2 rounded-lg border border-cs-line/10 text-cs-text-dim hover:text-cs-primary transition-colors"
-            aria-label="Open menu"
-          >
-            <FiMenu className="text-xl" />
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button
+              onClick={() => setOpen(true)}
+              className="p-2 rounded-lg border border-cs-line/10 text-cs-text-dim hover:text-cs-primary transition-colors"
+              aria-label="Open menu"
+            >
+              <FiMenu className="text-xl" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -537,14 +547,14 @@ function AppLayout() {
             {/* header */}
             <div className="px-6 py-4 border-b border-cs-line/10 flex items-center gap-4">
               <span className="w-12 h-12 rounded-full bg-gradient-main flex items-center justify-center font-bold overflow-hidden text-cs-dark shrink-0">
-                {user?.avatar_url ? (
-                  <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-xl">{user?.username?.charAt(0).toUpperCase()}</span>
+                  <span className="text-xl">{(user?.display_name || user?.username)?.charAt(0).toUpperCase()}</span>
                 )}
               </span>
               <div className="flex-grow min-w-0">
-                <p className="font-bold truncate">{user?.username}</p>
+                <p className="font-bold truncate">{user?.display_name || user?.username}</p>
                 <p className="text-xs text-cs-text-muted truncate">{user?.email}</p>
               </div>
               <button
@@ -682,12 +692,14 @@ function AppLayout() {
                     )}
                   </div>
 
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-cs-red/30 text-cs-red hover:bg-cs-red/10 transition-colors"
-                  >
-                    <FiLogOut /> Log out
-                  </button>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center justify-center gap-2 w-[100px] p-2.5 rounded-xl border border-cs-red/30 text-cs-red text-sm hover:bg-cs-red/10 transition-colors"
+                    >
+                      <FiLogOut /> Log out
+                    </button>
+                  </div>
                 </div>
               )}
 

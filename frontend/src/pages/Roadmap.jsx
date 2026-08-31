@@ -4,9 +4,12 @@ import { useMajor } from '../context/MajorContext';
 import { roadmapService } from '../services/api';
 import {
   FiCheck, FiCircle, FiPlay, FiBook,
-  FiChevronDown, FiAward,
+  FiChevronDown, FiAward, FiList, FiShare2,
 } from 'react-icons/fi';
 import MajorIcon from '../components/MajorIcon';
+import RoadmapFlow from '../components/RoadmapFlow';
+
+const VIEW_KEY = 'cs-roadmap-view';
 
 const STATUS_META = {
   'not-started': { label: 'Not started', cls: 'border-cs-line/20 bg-cs-overlay/10 text-cs-text-muted' },
@@ -19,6 +22,14 @@ function Roadmap() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
+  const [view, setView] = useState(() => {
+    try { return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'flow'; } catch { return 'flow'; }
+  });
+
+  const setViewPersist = (v) => {
+    setView(v);
+    try { localStorage.setItem(VIEW_KEY, v); } catch { /* ignore */ }
+  };
 
   useEffect(() => {
     if (!major) return;
@@ -46,17 +57,37 @@ function Roadmap() {
           page). The major blurb/chips scroll away in the card below. */}
       <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-6 mb-6">
         <p className="mono-label text-cs-text-muted">// your roadmap</p>
-        <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-          {majorData && (
-            <span
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-xl shrink-0"
-              style={{ background: `${majorData.color}1f`, color: majorData.color }}
+        <div className="flex items-end justify-between gap-4 flex-wrap lg:pr-14">
+          <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
+            {majorData && (
+              <span
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-xl shrink-0"
+                style={{ background: `${majorData.color}1f`, color: majorData.color }}
+              >
+                <MajorIcon major={major} />
+              </span>
+            )}
+            {majorData ? majorData.label : 'Your'} <span className="text-cs-primary">Roadmap</span>
+          </h1>
+          <div className="inline-flex rounded-lg border border-cs-line/15 overflow-hidden font-mono text-xs">
+            <button
+              onClick={() => setViewPersist('flow')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
+                view === 'flow' ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-muted hover:text-cs-text'
+              }`}
             >
-              <MajorIcon major={major} />
-            </span>
-          )}
-          {majorData ? majorData.label : 'Your'} <span className="text-cs-primary">Roadmap</span>
-        </h1>
+              <FiShare2 /> Map
+            </button>
+            <button
+              onClick={() => setViewPersist('list')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 border-l border-cs-line/15 transition-colors ${
+                view === 'list' ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-muted hover:text-cs-text'
+              }`}
+            >
+              <FiList /> List
+            </button>
+          </div>
+        </div>
       </div>
 
       {majorData && (
@@ -95,13 +126,20 @@ function Roadmap() {
                 </div>
                 <div className="h-3 bg-cs-darker rounded overflow-hidden">
                   <div
-                    className="h-full bg-gradient-main rounded transition-all duration-700"
-                    style={{ width: `${data.percent}%` }}
+                    className="h-full rounded transition-all duration-700"
+                    style={{
+                      width: `${data.percent}%`,
+                      background: 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
+                    }}
                   ></div>
                 </div>
               </div>
             )}
 
+            {view === 'flow' ? (
+              <RoadmapFlow data={data} />
+            ) : (
+            <>
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-cs-text-muted">
               <FiBook /> Suggested learning path
             </h2>
@@ -116,12 +154,12 @@ function Roadmap() {
                   return (
                     <div key={track.slug} className="relative pl-16">
                       <div
-                        className={`absolute left-0 top-1 w-12 h-12 rounded-full border-2 flex items-center justify-center text-lg ${
+                        className={`absolute left-0 top-1 w-12 h-12 rounded-full border-2 bg-cs-dark flex items-center justify-center text-lg ${
                           track.status === 'completed'
-                            ? 'bg-cs-green/20 border-cs-green text-cs-green'
+                            ? 'border-cs-green text-cs-green shadow-[inset_0_0_0_2.5rem_rgb(var(--cs-green)/0.16)]'
                             : track.status === 'in-progress'
-                            ? 'bg-cs-primary/20 border-cs-primary text-cs-primary'
-                            : 'bg-cs-overlay/20 border-cs-line/20 text-cs-text-muted'
+                            ? 'border-cs-primary text-cs-primary shadow-[inset_0_0_0_2.5rem_rgb(var(--cs-primary)/0.16)]'
+                            : 'border-cs-line/25 text-cs-text-muted shadow-[inset_0_0_0_2.5rem_rgb(var(--cs-overlay)/0.1)]'
                         }`}
                       >
                         {track.status === 'completed' ? (
@@ -149,8 +187,11 @@ function Roadmap() {
                             <div className="flex items-center gap-3">
                               <div className="flex-grow max-w-xs h-2 bg-cs-darker rounded overflow-hidden">
                                 <div
-                                  className="h-full bg-gradient-main rounded transition-all duration-500"
-                                  style={{ width: `${track.percent}%` }}
+                                  className="h-full rounded transition-all duration-500"
+                                  style={{
+                                    width: `${track.percent}%`,
+                                    background: 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
+                                  }}
                                 ></div>
                               </div>
                               <span className="text-xs text-cs-text-muted">
@@ -207,9 +248,10 @@ function Roadmap() {
                                   </p>
                                   <div className="h-1.5 bg-cs-darker rounded overflow-hidden mt-2">
                                     <div
-                                      className="h-full bg-gradient-main rounded"
+                                      className="h-full rounded"
                                       style={{
                                         width: `${mod.total_lessons ? (mod.completed_lessons / mod.total_lessons) * 100 : 0}%`,
+                                        background: 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
                                       }}
                                     ></div>
                                   </div>
@@ -224,6 +266,8 @@ function Roadmap() {
                 })}
               </div>
             </div>
+            </>
+            )}
           </>
         )}
     </main>

@@ -2,10 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, computed_field
 from typing import Optional
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
+import base64
+import binascii
+import re
 import bcrypt
 from database import get_db
 from models.models import User
@@ -28,18 +31,50 @@ class UserCreate(BaseModel):
     password: str
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     email: str
     username: str
+    display_name: Optional[str] = None
+    headline: Optional[str] = None
+    bio: Optional[str] = None
     avatar_url: Optional[str] = None
+    # Raw uploaded image — kept out of the serialized payload; `avatar` below is
+    # the effective one clients should render.
+    avatar_data: Optional[str] = Field(default=None, exclude=True)
+    github_url: Optional[str] = None
+    website_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
     major: Optional[str] = None
+    onboarded_at: Optional[datetime] = Field(default=None, exclude=True)
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    @computed_field
+    @property
+    def avatar(self) -> Optional[str]:
+        """Uploaded image wins over an OAuth picture URL."""
+        return self.avatar_data or self.avatar_url
+
+    @computed_field
+    @property
+    def onboarded(self) -> bool:
+        return self.onboarded_at is not None
 
 class MajorUpdate(BaseModel):
     major: Optional[str] = None
+
+class ProfileUpdate(BaseModel):
+    """All fields optional — only the keys present in the request are touched."""
+    display_name: Optional[str] = Field(default=None, max_length=60)
+    headline: Optional[str] = Field(default=None, max_length=120)
+    bio: Optional[str] = Field(default=None, max_length=600)
+    github_url: Optional[str] = Field(default=None, max_length=300)
+    website_url: Optional[str] = Field(default=None, max_length=300)
+    linkedin_url: Optional[str] = Field(default=None, max_length=300)
+    # data:image/(png|jpeg|webp|gif);base64,<...>  — send "" to clear.
+    avatar_data: Optional[str] = Field(default=None, max_length=400_000)
+    complete_onboarding: bool = False
 
 class Token(BaseModel):
     access_token: str
@@ -194,4 +229,76 @@ async def update_major(
     db.add(current_user)
     await db.commit()
     await db.refresh(current_user)
+    return UserResponse.model_validate(current_user)
+
+
+_AVATAR_PREFIXES = (
+    "data:image/png;base64,",
+    "data:image/jpeg;base64,",
+    "data:image/webp;base64,",
+    "data:image/gif;base64,",
+)
+_MAX_AVATAR_BYTES = 200 * 1024  # generous headroom over a ~256px cropped square
+
+
+def _validate_avatar(value: str) -> str:
+    if not value.startswith(_AVATAR_PREFIXES):
+        raise HTTPException(status_code=400, detail="Avatar must be a PNG, JPEG, WebP or GIF image.")
+    try:
+        raw = base64.b64decode(value.split(",", 1)[1], validate=True)
+    except (binascii.Error, IndexError, ValueError):
+        raise HTTPException(status_code=400, detail="Avatar image data is not valid base64.")
+    if len(raw) > _MAX_AVATAR_BYTES:
+        raise HTTPException(status_code=400, detail="Avatar image is too large — crop/resize it first.")
+    return value
+
+
+def _clean_url(value: Optional[str]) -> Optional[str]:
+    value = (value or "").strip()
+    if not value:
+        return None
+    if not re.match(r"^https?://", value, re.IGNORECASE):
+        raise HTTPException(status_code=400, detail="Links must start with http:// or https://")
+    return value[:300]
+
+
+@router.patch("/profile", response_model=UserResponse)
+async def update_profile(
+    body: ProfileUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    data = body.model_dump(exclude_unset=True)
+
+    if "avatar_data" in data:
+        av = (data["avatar_data"] or "").strip()
+        current_user.avatar_data = _validate_avatar(av) if av else None
+
+    for field in ("display_name", "headline", "bio"):
+        if field in data:
+            setattr(current_user, field, ((data[field] or "").strip() or None))
+
+    for field in ("github_url", "website_url", "linkedin_url"):
+        if field in data:
+            setattr(current_user, field, _clean_url(data[field]))
+
+    if body.complete_onboarding and current_user.onboarded_at is None:
+        current_user.onboarded_at = datetime.utcnow()
+
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    return UserResponse.model_validate(current_user)
+
+
+@router.post("/onboarding/skip", response_model=UserResponse)
+async def skip_onboarding(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.onboarded_at is None:
+        current_user.onboarded_at = datetime.utcnow()
+        db.add(current_user)
+        await db.commit()
+        await db.refresh(current_user)
     return UserResponse.model_validate(current_user)

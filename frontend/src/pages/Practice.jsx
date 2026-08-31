@@ -129,7 +129,8 @@ function Practice() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        {/* lg:pr-14 reserves the top-right corner for the global notification bell */}
+        <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-14">
           <div>
             <span className="mono-label">// practice</span>
             <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
@@ -378,7 +379,7 @@ function Practice() {
                 </button>
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline font-mono text-[10px] text-cs-text-muted">⌘/Ctrl+↵</span>
-                  <button onClick={runQuickfire} disabled={running} className="btn btn-primary btn-sm">
+                  <button onClick={runQuickfire} disabled={running} title="Run (Ctrl+Enter)" className="btn btn-primary btn-sm">
                     <FiPlay /> {running ? 'Running…' : 'Run'}
                   </button>
                   <button onClick={nextQuickfire} className="btn btn-ghost btn-sm">

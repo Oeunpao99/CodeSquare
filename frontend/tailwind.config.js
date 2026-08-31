@@ -72,7 +72,10 @@ export default {
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-main': 'linear-gradient(135deg, rgb(var(--cs-green)) 0%, rgb(var(--cs-deep-teal)) 100%)',
+        // End on --cs-teal (a vivid mid-tone in every theme), NOT --cs-deep-teal
+        // which is a near-black "faint border" colour and made the gradient fade
+        // to black on most dark themes.
+        'gradient-main': 'linear-gradient(135deg, rgb(var(--cs-green)) 0%, rgb(var(--cs-teal)) 100%)',
         'gradient-dev': 'linear-gradient(120deg, rgb(var(--cs-primary)) 0%, rgb(var(--cs-blue)) 45%, rgb(var(--cs-violet)) 100%)',
       },
     },

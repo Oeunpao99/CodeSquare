@@ -196,7 +196,7 @@ function ChallengeView() {
                     <FiRotateCcw /> Reset
                   </button>
                   <div className="flex-1" />
-                  <button onClick={run} disabled={running} className="btn btn-primary btn-sm">
+                  <button onClick={run} disabled={running} title="Run (Ctrl+Enter)" className="btn btn-primary btn-sm">
                     <FiPlay /> {running ? 'Running…' : 'Run tests'}
                   </button>
                 </div>

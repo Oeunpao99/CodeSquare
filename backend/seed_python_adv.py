@@ -364,5 +364,10 @@ async def seed_python_intermediate():
 
 if __name__ == "__main__":
     import asyncio
+    from backfill_exercises import ensure_every_lesson_has_exercise
 
-    asyncio.run(seed_python_intermediate())
+    async def _run():
+        await seed_python_intermediate()
+        await ensure_every_lesson_has_exercise()
+
+    asyncio.run(_run())

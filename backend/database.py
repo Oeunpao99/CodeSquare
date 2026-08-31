@@ -7,7 +7,11 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://codesphere:codesphere@localhost:5432/codesphere")
 
-engine = create_async_engine(DATABASE_URL, echo=True, pool_pre_ping=True)
+# Chatty SQL logging is handy in dev but noisy/expensive in production.
+# Enable it explicitly with SQL_ECHO=true.
+SQL_ECHO = os.getenv("SQL_ECHO", "false").strip().lower() in {"1", "true", "yes", "on"}
+
+engine = create_async_engine(DATABASE_URL, echo=SQL_ECHO, pool_pre_ping=True)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 class Base(DeclarativeBase):

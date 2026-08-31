@@ -192,11 +192,30 @@ async def _completed_lesson_ids(db: AsyncSession, user_id: int) -> set:
 async def _shelf_stats(
     db: AsyncSession, collections: List[DocCollection], user_id: int
 ) -> dict:
-    """{collection_id: ShelfStats} — learners, finishers, and rating aggregate."""
+    """{collection_id: ShelfStats} — learners, finishers, and rating aggregate.
+
+    A "learner" is anyone who has either opened a topic here *or* completed a
+    lesson that a topic on this shelf mirrors — finishing the lesson is the same
+    material, so it counts. "finished" means every topic read, or every mirrored
+    lesson completed.
+    """
     coll_topics = {c.id: {t.id for t in c.topics} for c in collections}
     topic_to_coll = {tid: cid for cid, tids in coll_topics.items() for tid in tids}
 
-    # reading activity → learners / finishers
+    # topics that mirror a lesson: lesson_id -> collection_id, and the set of
+    # mirrored lesson ids per collection (the bar for "finished via lessons").
+    lesson_to_coll: dict = {}
+    coll_lessons: dict = {}
+    for c in collections:
+        for t in c.topics:
+            if t.related_lesson_id is not None:
+                lesson_to_coll[t.related_lesson_id] = c.id
+                coll_lessons.setdefault(c.id, set()).add(t.related_lesson_id)
+
+    any_users: dict = {}   # cid -> set(user_id)
+    read_pairs: dict = {}  # cid -> set((user_id, topic_id)) where read
+
+    # reading activity in the Library itself
     rows = (
         await db.execute(
             select(
@@ -204,8 +223,6 @@ async def _shelf_stats(
             )
         )
     ).all()
-    any_users: dict = {}   # cid -> set(user_id)
-    read_pairs: dict = {}  # cid -> set((user_id, topic_id)) where read
     for tid, uid, is_read in rows:
         cid = topic_to_coll.get(tid)
         if cid is None:
@@ -213,6 +230,23 @@ async def _shelf_stats(
         any_users.setdefault(cid, set()).add(uid)
         if is_read:
             read_pairs.setdefault(cid, set()).add((uid, tid))
+
+    # completed lessons that a shelf mirrors count as activity on that shelf
+    lessons_done: dict = {}  # cid -> {user_id -> set(lesson_id)}
+    if lesson_to_coll:
+        lrows = (
+            await db.execute(
+                select(UserProgress.user_id, UserProgress.lesson_id)
+                .where(UserProgress.completed == True)  # noqa: E712
+                .where(UserProgress.lesson_id.in_(list(lesson_to_coll.keys())))
+            )
+        ).all()
+        for uid, lid in lrows:
+            cid = lesson_to_coll.get(lid)
+            if cid is None:
+                continue
+            any_users.setdefault(cid, set()).add(uid)
+            lessons_done.setdefault(cid, {}).setdefault(uid, set()).add(lid)
 
     # ratings
     rating_rows = (
@@ -237,12 +271,18 @@ async def _shelf_stats(
 
     out = {}
     for cid, tids in coll_topics.items():
-        finished = 0
-        if tids:
-            per_user: dict = {}
-            for uid, tid in read_pairs.get(cid, ()):
-                per_user.setdefault(uid, set()).add(tid)
-            finished = sum(1 for read_set in per_user.values() if tids <= read_set)
+        per_user: dict = {}
+        for uid, tid in read_pairs.get(cid, ()):
+            per_user.setdefault(uid, set()).add(tid)
+
+        needed_lessons = coll_lessons.get(cid) or set()
+        finishers = set()
+        for uid in any_users.get(cid, ()):
+            read_all = bool(tids) and tids <= per_user.get(uid, set())
+            lessons_all = bool(needed_lessons) and needed_lessons <= lessons_done.get(cid, {}).get(uid, set())
+            if read_all or lessons_all:
+                finishers.add(uid)
+        finished = len(finishers)
         avg, cnt = rating_map.get(cid, (0.0, 0))
         out[cid] = ShelfStats(
             learners=len(any_users.get(cid, ())),

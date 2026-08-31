@@ -333,4 +333,10 @@ async def seed_database():
 
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(seed_database())
+    from backfill_exercises import ensure_every_lesson_has_exercise
+
+    async def _run():
+        await seed_database()
+        await ensure_every_lesson_has_exercise()
+
+    asyncio.run(_run())

@@ -474,5 +474,10 @@ async def seed_react_track():
 
 if __name__ == "__main__":
     import asyncio
+    from backfill_exercises import ensure_every_lesson_has_exercise
 
-    asyncio.run(seed_react_track())
+    async def _run():
+        await seed_react_track()
+        await ensure_every_lesson_has_exercise()
+
+    asyncio.run(_run())

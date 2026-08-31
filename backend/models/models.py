@@ -1,7 +1,14 @@
+import secrets
+
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
+
+
+def _public_id() -> str:
+    """Opaque, non-sequential id for content that lives at a public URL."""
+    return secrets.token_urlsafe(9)  # ~12 url-safe chars, 72 bits
 
 class User(Base):
     __tablename__ = "users"
@@ -11,9 +18,19 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     google_id = Column(String, unique=True, nullable=True)
-    avatar_url = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)          # OAuth-provided picture URL
+    avatar_data = Column(String, nullable=True)         # user-uploaded image as a data: URI
+    display_name = Column(String, nullable=True)        # shown instead of the login handle
+    headline = Column(String, nullable=True)            # one-line "what I'm about"
+    bio = Column(String, nullable=True)
+    github_url = Column(String, nullable=True)
+    website_url = Column(String, nullable=True)
+    linkedin_url = Column(String, nullable=True)
     major = Column(String, nullable=True)  # chosen career track slug, e.g. "ai-engineer"
     plan = Column(String, default="free")  # billing/usage plan key — see backend/plans.py
+    is_staff = Column(Boolean, default=False)           # can moderate community content
+    verified = Column(Boolean, default=True)            # shown as a verified badge on public profiles
+    onboarded_at = Column(DateTime, nullable=True)      # set once the first-run flow is done/skipped
     created_at = Column(DateTime, default=datetime.utcnow)
     
     progress = relationship("UserProgress", back_populates="user")
@@ -382,3 +399,81 @@ class AiUsage(Base):
     output_tokens = Column(Integer, default=0)
     model = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+# --------------------------------------------------------------------------- #
+#  Community feed — learners post ideas / progress / questions / showcases.    #
+# --------------------------------------------------------------------------- #
+
+class Post(Base):
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    # Opaque public id used in URLs / the API — so posts can't be enumerated.
+    public_id = Column(String, unique=True, index=True, default=_public_id)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    kind = Column(String, default="idea")          # idea | progress | question | showcase
+    body = Column(String)                          # markdown
+    tags = Column(JSON, default=list)              # ["python", "sql"]
+    link_url = Column(String, nullable=True)
+    flagged_count = Column(Integer, default=0)
+    hidden = Column(Boolean, default=False)        # auto-hidden past the flag threshold, or by staff
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, nullable=True)   # set only on an actual edit
+
+    author = relationship("User")
+    reactions = relationship("PostReaction", back_populates="post", cascade="all, delete-orphan")
+    comments = relationship(
+        "PostComment",
+        back_populates="post",
+        order_by="PostComment.created_at",
+        cascade="all, delete-orphan",
+    )
+
+
+class PostReaction(Base):
+    """One row per (post, user) — a like. Presence = liked."""
+    __tablename__ = "post_reactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("posts.id"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    post = relationship("Post", back_populates="reactions")
+
+
+class PostComment(Base):
+    __tablename__ = "post_comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("posts.id"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    body = Column(String)
+    flagged_count = Column(Integer, default=0)
+    hidden = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    post = relationship("Post", back_populates="comments")
+    author = relationship("User")
+
+
+# --------------------------------------------------------------------------- #
+#  Notifications — dev team watch. Created when a staff member likes or         #
+#  comments on someone else's community post.                                   #
+# --------------------------------------------------------------------------- #
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)    # recipient
+    actor_id = Column(Integer, ForeignKey("users.id"), index=True)   # dev team member who acted
+    kind = Column(String)              # "like" | "comment"
+    post_id = Column(Integer, ForeignKey("posts.id"), index=True)
+    read = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    recipient = relationship("User", foreign_keys=[user_id])
+    actor = relationship("User", foreign_keys=[actor_id])
+    post = relationship("Post")

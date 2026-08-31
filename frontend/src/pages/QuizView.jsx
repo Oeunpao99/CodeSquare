@@ -22,13 +22,13 @@ const fileExt = (lang) =>
 function QuestionText({ text }) {
   const at = text.indexOf('\n\n');
   if (at === -1) {
-    return <p className="font-semibold text-cs-text text-[15px] leading-relaxed">{text}</p>;
+    return <p className="font-semibold text-cs-text text-base leading-relaxed">{text}</p>;
   }
   const head = text.slice(0, at);
   const code = text.slice(at + 2).replace(/^\n+/, '');
   return (
     <>
-      <p className="font-semibold text-cs-text text-[15px] leading-relaxed">{head}</p>
+      <p className="font-semibold text-cs-text text-base leading-relaxed">{head}</p>
       <pre className="mt-3 rounded-lg bg-cs-darkest/70 border border-cs-line/10 p-3 font-mono text-[13px] leading-6 text-cs-mint overflow-x-auto whitespace-pre">
         {code}
       </pre>
@@ -69,10 +69,6 @@ function QuizView() {
   const pick = (qi, oi) => {
     if (result) return;                 // locked after submit
     setAnswers((prev) => prev.map((a, i) => (i === qi ? oi : a)));
-  };
-
-  const scrollToQ = (i) => {
-    qRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   const submit = async () => {
@@ -146,12 +142,6 @@ function QuizView() {
   }
 
   const ext = fileExt(quiz.language);
-  const chipState = (i) => {
-    if (result) {
-      return rows[i].isCorrect ? 'correct' : 'wrong';
-    }
-    return answers[i] >= 0 ? 'answered' : 'empty';
-  };
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
@@ -187,96 +177,9 @@ function QuizView() {
       {/* Score banner */}
       {result && <ScoreBanner result={result} />}
 
-      {/* Full-width two-pane layout: nav rail + questions.
-          The aside cell stretches to the full row height (default `stretch`);
-          the sticky wrapper *inside* it then has room to travel while the
-          questions scroll past. Sticky on the grid item itself is unreliable
-          once the item is shrink-wrapped, so we pin the inner div instead. */}
-      <div className="grid lg:grid-cols-[240px_minmax(0,1fr)] gap-8 xl:gap-12">
-        {/* Left — question map + actions, pinned while the questions scroll */}
-        <aside className="mb-6 lg:mb-0">
-          <div className="lg:sticky lg:top-36 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto lg:pr-1 terminal">
-            <div className="terminal-bar">
-              <span className="terminal-dot bg-cs-red/80" />
-              <span className="terminal-dot bg-cs-orange/80" />
-              <span className="terminal-dot bg-cs-green/80" />
-              <span className="ml-2 font-mono text-[11px] text-cs-text-muted">map.json</span>
-            </div>
-            <div className="p-4">
-              <div className="flex items-center justify-between font-mono text-[11px] text-cs-text-muted mb-2">
-                <span>// {result ? 'results' : 'progress'}</span>
-                <span className={result ? (result.passed ? 'text-cs-green' : 'text-cs-red') : 'text-cs-primary'}>
-                  {result ? `${result.score}%` : `${pct}%`}
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-cs-overlay/10 overflow-hidden mb-4">
-                <div
-                  className="h-full rounded-full transition-[width] duration-500"
-                  style={{
-                    width: `${result ? result.score : pct}%`,
-                    background: result
-                      ? result.passed
-                        ? 'linear-gradient(90deg, rgb(var(--cs-green)/0.4), rgb(var(--cs-green)))'
-                        : 'linear-gradient(90deg, rgb(var(--cs-red)/0.4), rgb(var(--cs-red)))'
-                      : 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-5 lg:grid-cols-4 gap-1.5">
-                {rows.map((_, i) => {
-                  const st = chipState(i);
-                  const cls = {
-                    empty: 'border-cs-line/15 text-cs-text-muted hover:border-cs-primary/40',
-                    answered: 'border-cs-primary/60 text-cs-primary bg-cs-primary/10',
-                    correct: 'border-cs-green/50 text-cs-green bg-cs-green/10',
-                    wrong: 'border-cs-red/50 text-cs-red bg-cs-red/10',
-                  }[st];
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => scrollToQ(i)}
-                      className={`aspect-square rounded-md border font-mono text-xs font-bold transition-colors ${cls}`}
-                      title={`Question ${i + 1}`}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-cs-line/10">
-                {!result ? (
-                  <>
-                    <p className="font-mono text-[11px] text-cs-text-muted mb-2">
-                      {answeredCount} / {total} answered
-                    </p>
-                    <button
-                      onClick={submit}
-                      disabled={!allAnswered || submitting}
-                      className="btn btn-primary btn-sm w-full justify-center disabled:opacity-40"
-                    >
-                      {submitting ? 'Submitting…' : 'Submit'} <FiArrowRight />
-                    </button>
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <button onClick={retake} className="btn btn-secondary btn-sm w-full justify-center">
-                      <FiRotateCcw /> Retake
-                    </button>
-                    <Link to="/quizzes" className="btn btn-ghost btn-sm w-full justify-center">
-                      Done <FiArrowRight />
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Right — questions */}
-        <div className="space-y-5 min-w-0">
-          {rows.map((row, qi) => {
+      {/* Questions */}
+      <div className="space-y-5 min-w-0">
+        {rows.map((row, qi) => {
             const ring = row.graded
               ? row.isCorrect
                 ? 'border-cs-green/30 shadow-[0_0_40px_-24px_rgb(var(--cs-green)/0.7)]'
@@ -310,11 +213,22 @@ function QuizView() {
                 </div>
 
                 <div className="p-5 lg:p-6">
-                  <div className="flex items-start gap-3 mb-4">
-                    <span className="font-mono text-lg text-cs-mint/70 leading-none select-none mt-0.5">❯</span>
+                  <div className="flex items-start gap-3 mb-5">
+                    <span className="shrink-0 w-8 h-8 rounded-lg grid place-items-center font-mono text-sm font-bold bg-cs-primary/10 border border-cs-primary/30 text-cs-primary select-none">
+                      {String(qi + 1).padStart(2, '0')}
+                    </span>
                     <div className="min-w-0 flex-1">
                       <QuestionText text={row.q} />
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="text-[11px] font-mono uppercase tracking-wide text-cs-text-muted">select one</span>
+                    {!row.graded && row.chosen >= 0 && (
+                      <span className="text-[11px] font-mono text-cs-primary inline-flex items-center gap-1">
+                        <FiCheckCircle className="text-[11px]" /> answered
+                      </span>
+                    )}
                   </div>
 
                   {/* options — 2-up grid uses the full width */}
@@ -400,9 +314,8 @@ function QuizView() {
             )}
           </div>
         </div>
-      </div>
-    </main>
-  );
+      </main>
+    );
 }
 
 function ScoreBanner({ result }) {

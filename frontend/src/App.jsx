@@ -10,6 +10,7 @@ import TopProgressBar from './components/TopProgressBar';
 import AppLayout from './components/AppLayout';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
+import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import LanguageView from './pages/LanguageView';
 import LessonView from './pages/LessonView';
@@ -22,6 +23,9 @@ import Roadmap from './pages/Roadmap';
 import Progress from './pages/Progress';
 import Career from './pages/Career';
 import Leaderboard from './pages/Leaderboard';
+import Community from './pages/Community';
+import CommunityPost from './pages/CommunityPost';
+import UserProfile from './pages/UserProfile';
 import Usage from './pages/Usage';
 import Practice from './pages/Practice';
 import ChallengeView from './pages/ChallengeView';
@@ -48,6 +52,13 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/auth" />;
 }
 
+// New accounts land here until they finish (or skip) the first-run flow.
+function RequireOnboarded({ children }) {
+  const { user } = useAuth();
+  if (user && !user.onboarded) return <Navigate to="/onboarding" replace />;
+  return children;
+}
+
 function AppRoutes() {
   const location = useLocation();
 
@@ -61,7 +72,8 @@ function AppRoutes() {
       <Routes location={location} key={isPublic ? location.pathname : 'app'}>
         <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
-        <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        <Route element={<ProtectedRoute><RequireOnboarded><AppLayout /></RequireOnboarded></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/learn/:slug" element={<LanguageView />} />
           <Route path="/learn/:slug/module/:moduleId/lesson/:lessonId" element={<LessonView />} />
@@ -71,10 +83,14 @@ function AppRoutes() {
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/usage" element={<Usage />} />
+          <Route path="/u/:username" element={<UserProfile />} />
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/career" element={<Career />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/community/:id" element={<CommunityPost />} />
+
           <Route path="/library" element={<Library />} />
           <Route path="/library/:collection" element={<LibraryCollection />} />
           <Route path="/library/:collection/:topic" element={<LibraryArticle />} />

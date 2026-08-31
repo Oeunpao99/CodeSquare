@@ -89,9 +89,9 @@ function Auth() {
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        <Link to="/" className="flex items-center justify-center gap-2 text-3xl font-bold mb-8">
-          <span className="text-cs-primary font-mono">⟨/⟩</span>
-          <span>CodeSphere</span>
+        <Link to="/" className="flex items-center justify-center gap-3 mb-8">
+          <img src="/logo.png" alt="CodeSphere" className="h-12 w-auto object-contain" />
+          <span className="text-3xl font-bold">CodeSphere</span>
         </Link>
 
         <div className="glass rounded-3xl p-10 animate-slide-up">

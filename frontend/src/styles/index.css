@@ -40,7 +40,10 @@
   body {
     @apply font-sans font-medium bg-cs-dark text-cs-text leading-relaxed min-h-screen;
     overflow-x: clip;
-    font-size: 11px;
+    /* Inherited base for the few elements without an explicit text-* class.
+       Tailwind's text-xs/sm/… are rem-based and unaffected by this. Keep it
+       readable — 9px made unsized headings (e.g. lesson titles) tiny. */
+    font-size: 13px;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -159,7 +162,8 @@
 
   .card-code {
     @apply rounded-xl bg-cs-darkest border border-cs-line/10;
-    box-shadow: 0 20px 40px -25px rgb(var(--cs-primary) / 0.25), inset 0 1px 0 rgb(var(--cs-line) / 0.06);
+    /* subtle top-edge highlight only — no tinted drop shadow */
+    box-shadow: inset 0 1px 0 rgb(var(--cs-line) / 0.06);
   }
 
   .code-tab {
@@ -368,6 +372,32 @@
   }
   .lesson-article pre .doc-copy:hover {
     @apply text-cs-text border-cs-line/25;
+  }
+
+  /* syntax highlighting tokens — follow the active theme via cs- vars */
+  .tok-comment {
+    @apply text-cs-text-muted italic;
+  }
+  .tok-string {
+    @apply text-cs-green;
+  }
+  .tok-keyword {
+    @apply text-cs-violet font-semibold;
+  }
+  .tok-number {
+    @apply text-cs-orange;
+  }
+  .tok-builtin {
+    @apply text-cs-mint;
+  }
+  .tok-decorator {
+    @apply text-cs-cyan;
+  }
+  .tok-var {
+    @apply text-cs-text-dim;
+  }
+  .tok-tag {
+    @apply text-cs-cyan;
   }
 
   .lesson-article ul {

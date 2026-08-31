@@ -409,5 +409,10 @@ async def seed_tracks():
 
 if __name__ == "__main__":
     import asyncio
+    from backfill_exercises import ensure_every_lesson_has_exercise
 
-    asyncio.run(seed_tracks())
+    async def _run():
+        await seed_tracks()
+        await ensure_every_lesson_has_exercise()
+
+    asyncio.run(_run())
