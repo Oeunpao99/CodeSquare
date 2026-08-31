@@ -39,3 +39,9 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/
+
+# design canvas scratch files
+/Main.dc.html
+/canvas.json
+/codesquare-admin-users.html
+*.dc.html

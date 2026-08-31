@@ -4,6 +4,10 @@
 #   cp .env.prod.example .env.prod   &&   edit .env.prod
 #   docker compose --env-file .env.prod -f docker/docker-compose.prod.yml up -d --build
 #
+# Schema migrations run automatically (the `migrate` one-shot). Learning content
+# is NOT seeded automatically — run it once after the first `up`:
+#   docker compose --env-file .env.prod -f docker/docker-compose.prod.yml --profile seed run --rm seed
+#
 # Only the `frontend` container publishes a port (HTTP_PORT). Put a TLS
 # terminator (Caddy / Traefik / cloud LB) in front of it for HTTPS.
 
@@ -47,6 +51,38 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  # One-shot content seed. Profile-gated, so it never runs on a plain `up`.
+  # Invoke after the first deploy (and safe to re-run — every script is idempotent):
+  #   docker compose --env-file .env.prod -f docker/docker-compose.prod.yml --profile seed run --rm seed
+  # Order matters: track seeds → retag_curriculum → backfill_exercises → seed_docs
+  # (the Library mirrors the tracks), then the standalone practice banks.
+  seed:
+    image: codesquare-backend:latest
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    profiles: ["seed"]
+    env_file:
+      - ../.env.prod
+    environment:
+      <<: *db-env
+    restart: "no"
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        for s in seed_data seed_bases seed_python_adv seed_react seed_linux seed_tracks seed_fullstack \
+                 retag_curriculum backfill_exercises seed_docs \
+                 seed_challenges seed_debug_challenges seed_quizzes ; do
+          echo "=== $$s ===" ; python "$$s.py" ;
+        done
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   backend:
     image: codesquare-backend:latest

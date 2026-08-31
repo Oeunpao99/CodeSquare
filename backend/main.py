@@ -3,12 +3,15 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from routers import auth, lessons, ai, progress, roadmap, docs, projects, challenges, quizzes, career, community, notes, notifications
+from routers import auth, lessons, ai, progress, roadmap, docs, projects, challenges, quizzes, career, community, notes, notifications, admin, billing
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Tables are managed by Alembic migrations.
     # Run `alembic upgrade head` before starting the app.
+    from routers.admin import ensure_admin_from_env
+
+    await ensure_admin_from_env()  # bootstraps an admin from ADMIN_EMAIL/ADMIN_PASSWORD (no-op if unset)
     yield
 
 app = FastAPI(title="CodeSphere AI Learning Platform", lifespan=lifespan)
@@ -39,6 +42,8 @@ app.include_router(career.router, prefix="/api/career", tags=["Career"])
 app.include_router(community.router, prefix="/api/community", tags=["Community"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 app.include_router(notes.router, prefix="/api/notes", tags=["CodeSquareNote"])
+app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+app.include_router(billing.router, prefix="/api/billing", tags=["Billing"])
 
 @app.get("/")
 async def root():

@@ -6,6 +6,8 @@ routers/progress.get_progress_summary. Heavier social features (discussions, pee
 reviews) are intentionally not here yet.
 """
 import re
+import base64
+import binascii
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -171,6 +173,9 @@ POSTS_PER_HOUR = 8
 COMMENTS_PER_HOUR = 30
 BODY_MAX = 4000
 COMMENT_MAX = 1000
+MAX_IMAGES = 6
+_IMG_PREFIXES = ("data:image/png;base64,", "data:image/jpeg;base64,", "data:image/webp;base64,", "data:image/gif;base64,")
+_MAX_IMG_BYTES = 4 * 1024 * 1024  # 4 MB per image
 
 
 class PostAuthor(BaseModel):
@@ -197,6 +202,7 @@ class PostOut(BaseModel):
     kind: str
     body: str
     tags: List[str] = []
+    images: List[str] = []
     link_url: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -222,12 +228,14 @@ class PostCreate(BaseModel):
     kind: str = "idea"
     body: str = Field(min_length=1, max_length=BODY_MAX + 200)
     tags: List[str] = []
+    images: List[str] = []
     link_url: Optional[str] = None
 
 
 class PostUpdate(BaseModel):
     body: Optional[str] = None
     tags: Optional[List[str]] = None
+    images: Optional[List[str]] = None
     link_url: Optional[str] = None
 
 
@@ -247,10 +255,8 @@ def _author(u: User) -> PostAuthor:
     )
 
 
-async def _notify_staff_activity(db: AsyncSession, actor: User, post: Post, kind: str) -> None:
-    """Notify a post's owner when a dev team member liked / commented on it."""
-    if not actor.is_staff:
-        return
+async def _notify_post_owner(db: AsyncSession, actor: User, post: Post, kind: str) -> None:
+    """Notify a post's owner when another user liked / commented on it."""
     owner_id = post.user_id
     if not owner_id or owner_id == actor.id:
         return
@@ -297,6 +303,26 @@ def _clean_link(url: Optional[str]) -> Optional[str]:
     return u[:300]
 
 
+def _clean_images(images) -> List[str]:
+    """Validate a list of post images (data-URI or https URL). Up to MAX_IMAGES."""
+    out: List[str] = []
+    for raw in (images or [])[:MAX_IMAGES]:
+        src = str(raw or "").strip()
+        if not src:
+            continue
+        if src.startswith(_IMG_PREFIXES):
+            try:
+                raw_bytes = base64.b64decode(src.split(",", 1)[1], validate=True)
+            except (binascii.Error, IndexError, ValueError):
+                raise HTTPException(status_code=400, detail="Post image data is not valid base64.")
+            if len(raw_bytes) > _MAX_IMG_BYTES:
+                raise HTTPException(status_code=400, detail="Post image is too large (max 4 MB per image).")
+        elif not re.match(r"^https?://", src, re.IGNORECASE):
+            raise HTTPException(status_code=400, detail="Post images must be images or https:// URLs.")
+        out.append(src)
+    return out
+
+
 async def _within_rate(db: AsyncSession, user_id: int, model, per_hour: int) -> bool:
     since = datetime.utcnow() - timedelta(hours=1)
     n = (
@@ -316,6 +342,7 @@ def _post_out(p: Post, like_count: int, comment_count: int, liked: bool, me: Use
         kind=p.kind,
         body=p.body,
         tags=p.tags or [],
+        images=p.images or [],
         link_url=p.link_url,
         created_at=p.created_at,
         updated_at=p.updated_at,
@@ -425,6 +452,7 @@ async def create_post(
         kind=body.kind,
         body=_clean_body(body.body, 2, BODY_MAX, "Post"),
         tags=_clean_tags(body.tags),
+        images=_clean_images(body.images),
         link_url=_clean_link(body.link_url),
     )
     db.add(p)
@@ -483,6 +511,8 @@ async def update_post(
         p.body = _clean_body(body.body, 2, BODY_MAX, "Post")
     if body.tags is not None:
         p.tags = _clean_tags(body.tags)
+    if body.images is not None:
+        p.images = _clean_images(body.images)
     if body.link_url is not None:
         p.link_url = _clean_link(body.link_url)
     p.updated_at = datetime.utcnow()
@@ -546,7 +576,7 @@ async def toggle_like(
     else:
         db.add(PostReaction(post_id=post_id, user_id=current_user.id))
         liked = True
-        await _notify_staff_activity(db, current_user, post, "like")
+        await _notify_post_owner(db, current_user, post, "like")
     await db.commit()
     like_count = (
         await db.execute(select(func.count()).select_from(PostReaction).where(PostReaction.post_id == post_id))
@@ -571,7 +601,7 @@ async def add_comment(
     )
     db.add(c)
     await db.commit()
-    await _notify_staff_activity(db, current_user, p, "comment")
+    await _notify_post_owner(db, current_user, p, "comment")
     await db.commit()
     c = (
         await db.execute(

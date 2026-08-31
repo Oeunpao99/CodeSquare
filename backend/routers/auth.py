@@ -47,6 +47,8 @@ class UserResponse(BaseModel):
     website_url: Optional[str] = None
     linkedin_url: Optional[str] = None
     major: Optional[str] = None
+    plan: Optional[str] = "free"
+    plan_expires_at: Optional[datetime] = None
     onboarded_at: Optional[datetime] = Field(default=None, exclude=True)
     created_at: datetime
 

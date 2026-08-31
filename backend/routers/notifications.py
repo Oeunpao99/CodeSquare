@@ -1,8 +1,8 @@
-"""Notifications — dev team activity on your community posts.
+"""Notifications — post-owner activity on your community posts.
 
-A lightweight inbox: when a staff member (dev team) likes or comments on one of
-your posts, a Notification row is created for you. The bell in the top bar
-polls this for an unread count and lists recent items.
+A lightweight inbox: when another user likes or comments on one of your posts,
+a Notification row is created for you. The bell in the top bar polls this for an
+unread count and lists recent items.
 """
 from datetime import datetime
 from typing import List, Optional

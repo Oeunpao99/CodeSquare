@@ -7,10 +7,15 @@ Two rolling windows are metered against every AI call's token count:
 Limits are soft today (the UI shows the bars; nothing is blocked yet) so tune
 them freely.
 """
-from typing import Any, Dict
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 SESSION_WINDOW_HOURS = 5
 WEEKLY_WINDOW_DAYS = 7
+
+# One paid Pro purchase buys this many days (prepaid — KHQR/Bakong can't
+# auto-charge, so Pro is a renewable pass, not a subscription).
+PRO_PERIOD_DAYS = 30
 
 PLANS: Dict[str, Dict[str, Any]] = {
     "free": {
@@ -48,3 +53,13 @@ DEFAULT_PLAN = "free"
 
 def get_plan(key: str | None) -> Dict[str, Any]:
     return PLANS.get((key or "").strip() or DEFAULT_PLAN, PLANS[DEFAULT_PLAN])
+
+
+def effective_plan(key: str | None, expires_at: Optional[datetime] = None) -> Dict[str, Any]:
+    """The plan a user actually has right now. A paid plan whose `expires_at` has
+    passed reads as the default (free) plan — callers should also lazily reset
+    the stored key so admin views stay consistent."""
+    k = (key or "").strip() or DEFAULT_PLAN
+    if k != DEFAULT_PLAN and expires_at is not None and datetime.utcnow() >= expires_at:
+        k = DEFAULT_PLAN
+    return PLANS.get(k, PLANS[DEFAULT_PLAN])

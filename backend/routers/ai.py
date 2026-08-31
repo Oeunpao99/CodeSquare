@@ -358,6 +358,7 @@ class UsageWindow(BaseModel):
 class UsageResponse(BaseModel):
     plan: str
     plan_label: str
+    plan_expires_at: Optional[datetime] = None   # set while on a paid plan
     session: UsageWindow
     weekly: UsageWindow
     by_kind: Dict[str, int]          # tokens per surface, this week
@@ -414,7 +415,14 @@ async def get_usage(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    plan = plans_cfg.get_plan(current_user.plan)
+    plan = plans_cfg.effective_plan(current_user.plan, current_user.plan_expires_at)
+    # Self-heal a Pro pass that has lapsed, so the meters, the admin portal and
+    # billing all agree on the same plan.
+    if current_user.plan and current_user.plan != plan["key"]:
+        current_user.plan = plan["key"]
+        current_user.plan_expires_at = None
+        db.add(current_user)
+        await db.commit()
     now = datetime.utcnow()
     session_since = now - timedelta(hours=plans_cfg.SESSION_WINDOW_HOURS)
     weekly_since = now - timedelta(days=plans_cfg.WEEKLY_WINDOW_DAYS)
@@ -439,6 +447,7 @@ async def get_usage(
     return UsageResponse(
         plan=plan["key"],
         plan_label=plan["label"],
+        plan_expires_at=current_user.plan_expires_at if plan["key"] != plans_cfg.DEFAULT_PLAN else None,
         session=_window(
             f"{plans_cfg.SESSION_WINDOW_HOURS}-hour session",
             session_used,
@@ -460,7 +469,7 @@ async def get_usage(
 
 @router.get("/plans", response_model=List[PlanCard])
 async def list_plans(current_user: User = Depends(get_current_user)):
-    current = (current_user.plan or plans_cfg.DEFAULT_PLAN)
+    current = plans_cfg.effective_plan(current_user.plan, current_user.plan_expires_at)["key"]
     return [
         PlanCard(**{k: p[k] for k in (
             "key", "label", "blurb", "price", "features",
@@ -478,7 +487,16 @@ async def set_plan(
 ):
     if body.plan not in plans_cfg.PLANS:
         raise HTTPException(status_code=400, detail="Unknown plan")
+    if body.plan != plans_cfg.DEFAULT_PLAN:
+        eff = plans_cfg.effective_plan(current_user.plan, current_user.plan_expires_at)
+        if eff["key"] != body.plan:
+            raise HTTPException(
+                status_code=402,
+                detail="This plan requires payment — use the Upgrade flow.",
+            )
     current_user.plan = body.plan
+    if body.plan == plans_cfg.DEFAULT_PLAN:
+        current_user.plan_expires_at = None
     db.add(current_user)
     await db.commit()
     await db.refresh(current_user)

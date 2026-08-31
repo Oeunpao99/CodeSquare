@@ -317,6 +317,45 @@ OPENAI_API_KEY=sk-...
 
 ---
 
+## 🚢 Production (Docker)
+
+`docker/docker-compose.prod.yml` builds `backend` + `frontend` images and runs
+them with Postgres. Only `frontend` publishes a port (`HTTP_PORT`, default
+`8084`); put TLS (Caddy / Cloudflare Tunnel / cloud LB) in front.
+
+```bash
+cp .env.prod.example .env.prod        # then set real POSTGRES_PASSWORD, SECRET_KEY,
+                                      # NOTE_SECRET_KEY, CORS_ORIGINS, AI keys, HTTP_PORT
+docker compose --env-file .env.prod -f docker/docker-compose.prod.yml up -d --build
+```
+
+Schema migrations run automatically (the `migrate` one-shot). **Content is not**
+— seed it once after the first deploy (idempotent, safe to re-run after updates):
+
+```bash
+docker compose --env-file .env.prod -f docker/docker-compose.prod.yml --profile seed run --rm seed
+```
+
+That runs the full chain in order (track seeds → `retag_curriculum` →
+`backfill_exercises` → `seed_docs` → challenge/quiz banks). For the demo
+community feed as well:
+
+```bash
+docker compose --env-file .env.prod -f docker/docker-compose.prod.yml run --rm --no-deps backend python seed_community.py
+```
+
+Redeploy after a `git pull`: re-run the `up -d --build` line (migrations re-apply
+automatically); re-run the `seed` profile if content changed.
+
+**Admin console** (`/admin-portal`) — a separate email+password login gated by
+`users.is_admin`. Set `ADMIN_EMAIL` + `ADMIN_PASSWORD` in `.env.prod` and the
+backend provisions that admin on startup (creates the account if new, else just
+grants admin; the password is left alone unless `ADMIN_RESET_PASSWORD=true`).
+Or manage admins by hand: `python backend/make_admin.py <email>` (grant/`--off`)
+and `python backend/set_admin_password.py <email> <password>` (reset + grant).
+
+---
+
 ## 🛠️ Troubleshooting
 
 - **Port 5432 already in use** — an existing local PostgreSQL may be running. Either stop it, or change the published port in `docker-compose.dev.yml` (e.g. `"5433:5432"`) and update `DATABASE_URL`.

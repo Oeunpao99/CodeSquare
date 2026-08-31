@@ -28,7 +28,9 @@ class User(Base):
     linkedin_url = Column(String, nullable=True)
     major = Column(String, nullable=True)  # chosen career track slug, e.g. "ai-engineer"
     plan = Column(String, default="free")  # billing/usage plan key — see backend/plans.py
+    plan_expires_at = Column(DateTime, nullable=True)   # when a paid plan lapses back to free
     is_staff = Column(Boolean, default=False)           # can moderate community content
+    is_admin = Column(Boolean, default=False)           # can sign in to the /admin-portal console
     verified = Column(Boolean, default=True)            # shown as a verified badge on public profiles
     onboarded_at = Column(DateTime, nullable=True)      # set once the first-run flow is done/skipped
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -415,6 +417,7 @@ class Post(Base):
     kind = Column(String, default="idea")          # idea | progress | question | showcase
     body = Column(String)                          # markdown
     tags = Column(JSON, default=list)              # ["python", "sql"]
+    images = Column(JSON, default=list)            # list of data-URI / image URLs
     link_url = Column(String, nullable=True)
     flagged_count = Column(Integer, default=0)
     hidden = Column(Boolean, default=False)        # auto-hidden past the flag threshold, or by staff
@@ -459,7 +462,7 @@ class PostComment(Base):
 
 
 # --------------------------------------------------------------------------- #
-#  Notifications — dev team watch. Created when a staff member likes or         #
+#  Notifications — post-owner watch. Created when another user likes or         #
 #  comments on someone else's community post.                                   #
 # --------------------------------------------------------------------------- #
 
@@ -468,7 +471,7 @@ class Notification(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)    # recipient
-    actor_id = Column(Integer, ForeignKey("users.id"), index=True)   # dev team member who acted
+    actor_id = Column(Integer, ForeignKey("users.id"), index=True)   # the user who acted
     kind = Column(String)              # "like" | "comment"
     post_id = Column(Integer, ForeignKey("posts.id"), index=True)
     read = Column(Boolean, default=False, index=True)
@@ -477,3 +480,22 @@ class Notification(Base):
     recipient = relationship("User", foreign_keys=[user_id])
     actor = relationship("User", foreign_keys=[actor_id])
     post = relationship("Post")
+
+
+class Payment(Base):
+    """A subscription payment. `provider` is "mock" until a real gateway (ABA
+    PayWay / Bakong KHQR) is wired; a row that reaches status "paid" extends the
+    buyer's `User.plan_expires_at` by one Pro period.
+    """
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    provider = Column(String, default="mock")
+    provider_ref = Column(String, nullable=True)      # gateway transaction id
+    plan = Column(String)                             # plan being purchased
+    amount_cents = Column(Integer)
+    currency = Column(String, default="USD")
+    status = Column(String, default="pending")        # pending | paid | failed | expired
+    created_at = Column(DateTime, default=datetime.utcnow)
+    paid_at = Column(DateTime, nullable=True)
