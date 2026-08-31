@@ -5,6 +5,10 @@ import {
   FiTerminal, FiZap, FiCpu, FiCode, FiFileText, FiCheckCircle, FiArrowRight,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
+import UpgradeModal from '../components/UpgradeModal';
+
+const fmtDate = (iso) =>
+  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : null;
 
 const KIND_META = {
   chat: { label: 'Tutor chat', icon: FiCpu },
@@ -78,6 +82,7 @@ function Usage() {
   const [planList, setPlanList] = useState([]);
   const [busy, setBusy] = useState(false);
   const [tick, setTick] = useState(0);        // seconds since last fetch, for the countdown
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const timer = useRef(null);
 
   const load = () => {
@@ -142,6 +147,19 @@ function Usage() {
                 <span className="px-3 py-1.5 rounded-full text-xs font-mono font-semibold uppercase tracking-wider border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
                   {data.plan_label} plan
                 </span>
+                {data.plan_expires_at && (
+                  <p className="font-mono text-[11px] text-cs-primary/80 mt-2">
+                    active until {fmtDate(data.plan_expires_at)}
+                  </p>
+                )}
+                {data.plan === 'free' && (
+                  <button
+                    onClick={() => setShowUpgrade(true)}
+                    className="btn btn-primary btn-sm w-full mt-3 font-mono"
+                  >
+                    <FiZap /> Upgrade to Pro
+                  </button>
+                )}
                 <p className="font-mono text-[11px] text-cs-text-muted mt-3">
                   {data.calls_this_week} AI call{data.calls_this_week === 1 ? '' : 's'} this week · limits soft — nothing blocked
                 </p>
@@ -203,19 +221,41 @@ function Usage() {
                       </li>
                     ))}
                   </ul>
-                  <button
-                    onClick={() => choosePlan(p.key)}
-                    disabled={busy || p.current}
-                    className={`btn btn-sm w-full mt-5 font-mono ${p.current ? 'btn-ghost' : 'btn-primary'}`}
-                  >
-                    {p.current ? 'Current plan' : <>Switch to {p.label} <FiArrowRight /></>}
-                  </button>
+                  {p.current ? (
+                    <button disabled className="btn btn-sm btn-ghost w-full mt-5 font-mono">
+                      Current plan
+                    </button>
+                  ) : p.key === 'pro' ? (
+                    <button
+                      onClick={() => setShowUpgrade(true)}
+                      className="btn btn-sm btn-primary w-full mt-5 font-mono"
+                    >
+                      <FiZap /> Upgrade to {p.label}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => choosePlan(p.key)}
+                      disabled={busy}
+                      className="btn btn-sm btn-ghost w-full mt-5 font-mono"
+                    >
+                      Switch to {p.label} <FiArrowRight />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         </div>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        onUpgraded={(r) => {
+          load();
+          if (r?.plan_label) toast.success('Welcome to Pro', `Active until ${fmtDate(r.plan_expires_at)}.`);
+        }}
+      />
     </main>
   );
 }

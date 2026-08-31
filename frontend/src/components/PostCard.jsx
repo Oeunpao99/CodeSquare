@@ -102,6 +102,21 @@ function PostCard({ post, full = false, onChange, onDelete }) {
   const body = (
     <div className={full ? '' : 'max-h-64 overflow-hidden relative'}>
       <Markdown text={p.body} size="text-sm" className="text-cs-text-dim" />
+      {p.images?.length > 0 && (
+        <div className={p.images.length === 1 ? 'mt-3' : 'mt-3 grid grid-cols-2 gap-2'}>
+          {p.images.map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt=""
+              loading="lazy"
+              className={p.images.length === 1
+                ? 'w-full max-h-[28rem] object-contain rounded-xl border border-cs-line/10 bg-cs-darkest'
+                : 'w-full h-40 object-cover rounded-xl border border-cs-line/10 bg-cs-darkest'}
+            />
+          ))}
+        </div>
+      )}
       {!full && p.body.length > 400 && (
         <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-cs-darkest to-transparent" />
       )}

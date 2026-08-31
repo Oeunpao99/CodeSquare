@@ -36,6 +36,7 @@ import Library from './pages/Library';
 import Notes from './pages/Notes';
 import LibraryCollection from './pages/LibraryCollection';
 import LibraryArticle from './pages/LibraryArticle';
+import AdminPortal from './pages/admin/AdminPortal';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -72,6 +73,8 @@ function AppRoutes() {
       <Routes location={location} key={isPublic ? location.pathname : 'app'}>
         <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
+        {/* Separate admin console — its own login, outside the learner app shell. */}
+        <Route path="/admin-portal/*" element={<AdminPortal />} />
         <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
         <Route element={<ProtectedRoute><RequireOnboarded><AppLayout /></RequireOnboarded></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />

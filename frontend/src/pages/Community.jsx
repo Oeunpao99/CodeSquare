@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { FiUsers, FiSend, FiX, FiLink, FiAward } from 'react-icons/fi';
+import { FiUsers, FiSend, FiX, FiLink, FiAward, FiImage } from 'react-icons/fi';
 import { communityService } from '../services/api';
 import { toast } from '../utils/toast';
 import PostCard, { KIND_META } from '../components/PostCard';
@@ -18,23 +18,44 @@ function Composer({ onPosted }) {
   const [kind, setKind] = useState('idea');
   const [body, setBody] = useState('');
   const [tags, setTags] = useState('');
+  const [images, setImages] = useState([]);
   const [link, setLink] = useState('');
   const [showLink, setShowLink] = useState(false);
   const [posting, setPosting] = useState(false);
+
+  const MAX_IMAGES = 6;
+
+  const addFiles = (files) => {
+    const list = Array.from(files || []).filter((f) => f.type.startsWith('image/'));
+    setImages((prev) => [...prev, ...list].slice(0, MAX_IMAGES));
+  };
+
+  const removeImage = (i) => setImages((prev) => prev.filter((_, idx) => idx !== i));
 
   const submit = async (e) => {
     e.preventDefault();
     if (posting || body.trim().length < 2) return;
     setPosting(true);
     try {
+      const imageData = [];
+      for (const f of images) {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(f);
+        });
+        imageData.push(dataUrl);
+      }
       const r = await communityService.createPost({
         kind,
         body: body.trim(),
         tags: tags.split(/[,\s]+/).map((t) => t.trim()).filter(Boolean).slice(0, 5),
+        images: imageData,
         link_url: link.trim() || null,
       });
       onPosted(r.data);
-      setBody(''); setTags(''); setLink(''); setShowLink(false); setKind('idea');
+      setBody(''); setTags(''); setLink(''); setImages([]); setShowLink(false); setKind('idea');
       toast.success('Posted to the community');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Could not post.');
@@ -73,7 +94,33 @@ function Composer({ onPosted }) {
         className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/50 resize-y leading-relaxed"
       />
 
+      {images.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          {images.map((f, i) => (
+            <div key={i} className="relative group rounded-lg overflow-hidden border border-cs-line/15 bg-cs-darkest">
+              <img
+                src={URL.createObjectURL(f)}
+                alt=""
+                className="w-full h-24 object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(i)}
+                className="absolute top-1 right-1 p-1 rounded-full bg-cs-darkest/80 text-cs-text-muted hover:text-cs-red"
+                title="Remove"
+              >
+                <FiX className="text-xs" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2 mt-2">
+        <label className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 text-xs font-mono cursor-pointer">
+          <FiImage /> {images.length ? `+ image (${images.length}/${MAX_IMAGES})` : 'add image'}
+          <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
+        </label>
         <input
           value={tags}
           onChange={(e) => setTags(e.target.value)}

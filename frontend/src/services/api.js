@@ -75,6 +75,12 @@ export const usageService = {
   setPlan: (plan) => api.post('/ai/plan', { plan }),
 };
 
+export const billingService = {
+  status: () => api.get('/billing/status'),
+  checkout: (plan = 'pro') => api.post('/billing/checkout', { plan }),
+  confirm: (paymentId) => api.post(`/billing/checkout/${paymentId}/confirm`),
+};
+
 export const tutorService = {
   sessions: () => api.get('/ai/sessions'),
   createSession: () => api.post('/ai/sessions'),
