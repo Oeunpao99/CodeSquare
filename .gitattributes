@@ -1,6 +1,7 @@
-# Keep line endings sane across Windows/Linux. Shell scripts and Dockerfiles
-# must be LF so they run inside Linux containers; .bat stays CRLF for Windows.
-* text=auto
+# Keep line endings sane across Windows/Linux. Everything is LF in the working
+# tree on every platform (eol=lf overrides core.autocrlf), so Docker build
+# contexts hash identically and there is no CRLF<->LF churn. .bat/.cmd stay CRLF.
+* text=auto eol=lf
 
 *.sh    text eol=lf
 *.bash  text eol=lf
