@@ -264,7 +264,6 @@ function MonthTimeline({ months, total, max, active, onPick }) {
 
   return (
     <div className="mb-6">
-      <p className="mono-label text-cs-text-muted mb-2 px-1">// created</p>
       <div className="flex snap-x gap-2 overflow-x-auto pb-1">
         <Tile
           id="all"
@@ -991,6 +990,7 @@ function Notes() {
   const [activeId, setActiveId] = useState(null);
   const [pad, setPad] = useState("all");
   const [month, setMonth] = useState("all"); // "all" | "YYYY-MM" of created_at
+  const [sort, setSort] = useState("recent"); // "recent" | "oldest" by created_at
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1184,10 +1184,14 @@ function Notes() {
   }));
   const maxMonthCount = Math.max(1, ...monthMeta.map((m) => m.count));
   const activeMonth = monthOptions.includes(month) ? month : "all";
-  const visible =
+  const monthMatch =
     activeMonth === "all"
       ? list
       : list.filter((n) => monthKey(n.created_at) === activeMonth);
+  const visible = [...monthMatch].sort((a, b) => {
+    const cmp = (a.created_at || "").localeCompare(b.created_at || "");
+    return sort === "recent" ? -cmp : cmp;
+  });
 
   const inPad = (n) => pad === "all" || (n.kind || "note") === pad;
   const kindGroups =
@@ -1263,6 +1267,24 @@ function Notes() {
                 {p.label}
               </button>
             ))}
+            <div className="ml-auto flex items-center gap-1 rounded-lg bg-cs-overlay/[0.04] p-0.5 font-mono text-xs">
+              {[
+                { id: "recent", label: "recent" },
+                { id: "oldest", label: "oldest" },
+              ].map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setSort(s.id)}
+                  className={`rounded-md px-2.5 py-1 transition-colors ${
+                    sort === s.id
+                      ? "bg-cs-primary/15 text-cs-primary"
+                      : "text-cs-text-muted hover:text-cs-text"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {monthOptions.length > 0 && (
