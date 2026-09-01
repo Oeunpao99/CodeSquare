@@ -5,7 +5,7 @@ import { challengeService, lessonService } from '../services/api';
 import CodeEditor from '../components/CodeEditor';
 import {
   FiArrowRight, FiPlay, FiRefreshCw, FiZap, FiTarget, FiChevronRight,
-  FiCheckCircle, FiXCircle, FiHelpCircle, FiCalendar, FiAward,
+  FiCheckCircle, FiXCircle, FiHelpCircle, FiCalendar, FiAward, FiX,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 
@@ -151,140 +151,145 @@ function Practice() {
             ))}
           </div>
         </div>
-
-        {/* Filter bar — part of the same locked header block. */}
-        {mode === 'browse' && (
-          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-cs-line/10">
-            <span className="mono-label text-cs-text-dim px-1"> filter</span>
-            <FilterTabs label="type" value={fKind} onChange={setFKind}
-              options={[['', 'all'], ['solve', 'solve'], ['debug', 'debug 🐛']]} />
-            <FilterTabs label="lang" value={fLang} onChange={setFLang}
-              options={[['', 'all'], ...LANGS.map((s) => [s, langLabel(s)])]} />
-            <FilterTabs label="level" value={fDiff} onChange={setFDiff}
-              options={[['', 'all'], ...DIFFS.map((d) => [d, d])]} />
-            {topics.length > 0 && (
-              <FilterTabs label="topic" value={fTopic} onChange={setFTopic}
-                options={[['', 'all'], ...topics.map((t) => [t, t])]} />
-            )}
-            {(fLang || fDiff || fTopic || fKind) && (
-              <button
-                onClick={() => { setFLang(''); setFDiff(''); setFTopic(''); setFKind(''); }}
-                className="font-mono text-[10px] text-cs-primary hover:text-cs-mint transition-colors ml-auto px-1"
-              >
-                clear ✕
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
       {mode === 'browse' && (
         <div className="space-y-5">
-          {/* Content */}
-          <div className="min-w-0 space-y-5">
-            {/* Daily challenge */}
-            {daily === undefined && (
-              <div className="card animate-pulse h-24" />
-            )}
-            {daily && (
-              <button
-                onClick={() => navigate(`/practice/c/${daily.slug}`)}
-                className="card w-full text-left border-cs-primary/25 hover:border-cs-primary/50 transition-colors group"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <span className="mono-label text-cs-primary flex items-center gap-1.5">
-                      <FiCalendar className="text-[11px]" /> today’s challenge
-                    </span>
-                    <h2 className="text-lg font-bold mt-1 truncate">{daily.title}</h2>
-                    <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                      <span className={`badge ${DIFF_BADGE[daily.difficulty] || 'badge-cyan'}`}>
-                        {daily.difficulty}
-                      </span>
-                      {daily.topic && <span className="badge">{daily.topic}</span>}
-                      <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-1">
-                        <FiZap className="text-[11px]" /> {daily.xp_reward} XP
-                      </span>
-                      {daily.solved && (
-                        <span className="font-mono text-xs text-cs-green inline-flex items-center gap-1">
-                          <FiCheckCircle className="text-[11px]" /> solved
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <FiChevronRight className="text-cs-text-muted group-hover:text-cs-primary shrink-0 text-xl" />
-                </div>
-              </button>
-            )}
-
-            {/* Stats */}
-            {stats && DIFFS.filter((d) => stats.by_difficulty?.[d]).slice(0, 2).map((d) => (
-              <div key={d} className="grid grid-cols-3 gap-3">
-                <Stat icon={FiCheckCircle} cls="text-cs-green" label="Solved" value={`${stats.solved}/${stats.total}`} />
-                <Stat icon={FiAward} cls="text-cs-primary" label="Day streak" value={stats.daily_streak} />
-                <Stat
-                  icon={FiZap}
-                  cls="text-cs-cyan"
-                  label={d}
-                  value={`${stats.by_difficulty[d].solved}/${stats.by_difficulty[d].total}`}
-                />
-              </div>
-            ))}
-
-            {/* List */}
-            {list === null && <p className="text-cs-text-muted font-mono text-sm">Loading challenges…</p>}
-            {list && list.length === 0 && (
-              <div className="card text-center py-14">
-                <p className="text-4xl mb-3">🗂️</p>
-                <p className="text-cs-text-dim mb-4">No challenges match these filters.</p>
+          {/* Filter bar */}
+          <div className="card">
+            <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
+              <FilterGroup label="type" value={fKind} onChange={setFKind}
+                options={[['', 'all'], ['solve', 'solve'], ['debug', 'debug']]} />
+              <FilterGroup label="lang" value={fLang} onChange={setFLang}
+                options={[['', 'all'], ...LANGS.map((s) => [s, langLabel(s)])]} />
+              <FilterGroup label="level" value={fDiff} onChange={setFDiff}
+                options={[['', 'all'], ...DIFFS.map((d) => [d, d])]} />
+              {topics.length > 0 && (
+                <FilterGroup label="topic" value={fTopic} onChange={setFTopic}
+                  options={[['', 'all'], ...topics.map((t) => [t, t])]} />
+              )}
+              {(fLang || fDiff || fTopic || fKind) && (
                 <button
                   onClick={() => { setFLang(''); setFDiff(''); setFTopic(''); setFKind(''); }}
-                  className="btn btn-ghost btn-sm"
+                  className="ml-auto font-mono text-[11px] text-cs-primary hover:text-cs-mint transition-colors inline-flex items-center gap-1"
                 >
-                  Clear filters
+                  clear <FiX />
                 </button>
+              )}
+            </div>
+          </div>
+
+          {/* Daily challenge */}
+          {daily === undefined && (
+            <div className="card animate-pulse h-24" />
+          )}
+          {daily && (
+            <button
+              onClick={() => navigate(`/practice/c/${daily.slug}`)}
+              className="card w-full text-left border-cs-primary/25 hover:border-cs-primary/50 transition-colors group"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <span className="mono-label text-cs-primary flex items-center gap-1.5">
+                    <FiCalendar className="text-[11px]" /> today’s challenge
+                  </span>
+                  <h2 className="text-lg font-bold mt-1 truncate">{daily.title}</h2>
+                  <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                    <span className={`badge ${DIFF_BADGE[daily.difficulty] || 'badge-cyan'}`}>
+                      {daily.difficulty}
+                    </span>
+                    {daily.topic && <span className="badge">{daily.topic}</span>}
+                    <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-1">
+                      <FiZap className="text-[11px]" /> {daily.xp_reward} XP
+                    </span>
+                    {daily.solved && (
+                      <span className="font-mono text-xs text-cs-green inline-flex items-center gap-1">
+                        <FiCheckCircle className="text-[11px]" /> solved
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <FiChevronRight className="text-cs-text-muted group-hover:text-cs-primary shrink-0 text-xl" />
               </div>
-            )}
-            {list && list.length > 0 && (
-              <div className="rounded-xl border border-cs-line/10 bg-cs-darker/40 overflow-hidden">
-                {list.map((c, i) => (
-                  <Link
-                    key={c.slug}
-                    to={`/practice/c/${c.slug}`}
-                    className={`flex items-center gap-3 px-4 py-3 hover:bg-cs-overlay/[0.06] transition-colors group ${
-                      i > 0 ? 'border-t border-cs-line/10' : ''
-                    }`}
-                  >
+            </button>
+          )}
+
+          {/* Stats — one clean row */}
+          {stats && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Stat icon={FiCheckCircle} cls="text-cs-green" label="Solved" value={`${stats.solved}/${stats.total}`} />
+              <Stat icon={FiAward} cls="text-cs-primary" label="Day streak" value={stats.daily_streak} />
+              {DIFFS.slice(0, 2).map((d) => (
+                stats.by_difficulty?.[d] && (
+                  <Stat
+                    key={d}
+                    icon={FiZap}
+                    cls={d === 'beginner' ? 'text-cs-cyan' : 'text-cs-orange'}
+                    label={d}
+                    value={`${stats.by_difficulty[d].solved}/${stats.by_difficulty[d].total}`}
+                  />
+                )
+              ))}
+            </div>
+          )}
+
+          {/* List */}
+          {list === null && <p className="text-cs-text-muted font-mono text-sm">Loading challenges…</p>}
+          {list && list.length === 0 && (
+            <div className="card text-center py-14">
+              <p className="text-4xl mb-3">🗂️</p>
+              <p className="text-cs-text-dim mb-4">No challenges match these filters.</p>
+              <button
+                onClick={() => { setFLang(''); setFDiff(''); setFTopic(''); setFKind(''); }}
+                className="btn btn-ghost btn-sm"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+          {list && list.length > 0 && (
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {list.map((c) => (
+                <Link
+                  key={c.slug}
+                  to={`/practice/c/${c.slug}`}
+                  className="group relative rounded-2xl border border-cs-line/10 bg-cs-darker/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-cs-primary/30 hover:bg-cs-darker flex flex-col gap-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
                     <span className={`badge-outline ${DIFF_BADGE[c.difficulty] || 'badge-outline-cyan'} shrink-0`}>
                       {c.difficulty}
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate group-hover:text-cs-primary transition-colors">
-                        {c.title}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-                        {c.kind === 'debug' && (
-                          <span className="font-mono text-[11px] text-cs-orange inline-flex items-center gap-1">
-                            🐛 debug
-                          </span>
-                        )}
-                        {c.topic && <span className="font-mono text-[11px] text-cs-text-muted">{c.topic}</span>}
-                        <span className="font-mono text-[11px] text-cs-text-dim inline-flex items-center gap-1">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-cs-cyan/70" /> {c.language}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-0.5 shrink-0">
-                      <FiZap className="text-[10px]" /> {c.xp_reward}
-                    </span>
-                    {c.solved
-                      ? <FiCheckCircle className="text-cs-green shrink-0" />
-                      : <FiChevronRight className="text-cs-text-muted group-hover:text-cs-primary shrink-0" />}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+                    {c.solved ? (
+                      <span className="font-mono text-[11px] text-cs-green inline-flex items-center gap-1 shrink-0">
+                        <FiCheckCircle className="text-xs" /> done
+                      </span>
+                    ) : (
+                      <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-0.5 shrink-0">
+                        <FiZap className="text-[10px]" /> {c.xp_reward}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="font-semibold leading-snug line-clamp-1 group-hover:text-cs-primary transition-colors">
+                    {c.title}
+                  </p>
+
+                  <div className="mt-auto pt-2 border-t border-cs-line/8 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]">
+                    {c.kind === 'debug' && (
+                      <span className="text-cs-orange">🐛 debug</span>
+                    )}
+                    {c.topic && (
+                      <span className="text-cs-text-dim inline-flex items-center gap-1.5">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-cs-cyan/70" />
+                        {c.topic}
+                      </span>
+                    )}
+                    <span className="text-cs-text-muted ml-auto">{c.language}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -425,23 +430,23 @@ function Stat({ icon: Icon, cls, label, value }) {
   );
 }
 
-function FilterTabs({ label, value, onChange, options }) {
+function FilterGroup({ label, value, onChange, options }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.03] px-1.5 py-1">
-      <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-cs-text-muted px-1">
+    <div className="flex items-center gap-2 min-w-0">
+      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted shrink-0">
         {label}
       </span>
-      <div className="flex gap-0.5">
+      <div className="flex flex-wrap items-center gap-1">
         {options.map(([val, text]) => {
           const active = value === val;
           return (
             <button
               key={val}
               onClick={() => onChange(val)}
-              className={`px-2 py-0.5 rounded-md font-mono text-xs transition-all ${
+              className={`px-2.5 py-1 rounded-full font-mono text-xs border transition-all ${
                 active
-                  ? 'bg-cs-primary/15 text-cs-primary shadow-[0_0_12px_-6px_rgb(var(--cs-primary)/0.6)]'
-                  : 'text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/10'
+                  ? 'border-cs-primary/60 bg-cs-primary/15 text-cs-primary shadow-[0_0_12px_-6px_rgb(var(--cs-primary)/0.7)]'
+                  : 'border-cs-line/15 text-cs-text-dim hover:text-cs-text hover:border-cs-primary/30'
               }`}
             >
               {text}

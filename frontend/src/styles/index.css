@@ -72,7 +72,8 @@
     @apply text-cs-primary no-underline transition-all duration-300;
   }
 
-  a:hover {
+  /* Exclude .btn links: buttons style their own hover fill/label. */
+  a:not(.btn):hover {
     @apply text-cs-mint;
     text-shadow: 0 0 20px rgb(var(--cs-primary) / 0.4);
   }
@@ -105,7 +106,7 @@
 
   /* Clean modern dev primary — solid accent fill, crisp edge, gentle lift */
   .btn-primary {
-    @apply bg-cs-primary text-cs-dark border border-cs-primary;
+    @apply bg-cs-primary text-[#0b0c0e] border border-cs-primary;
     box-shadow: 0 1px 2px rgb(var(--cs-dark) / 0.35), inset 0 1px 0 rgb(var(--cs-line) / 0.25);
   }
 
@@ -120,7 +121,7 @@
   }
 
   .btn-danger {
-    @apply bg-cs-red text-cs-dark border border-cs-red;
+    @apply bg-cs-red text-[#0b0c0e] border border-cs-red;
     box-shadow: 0 1px 2px rgb(var(--cs-dark) / 0.35), inset 0 1px 0 rgb(var(--cs-line) / 0.25);
   }
 

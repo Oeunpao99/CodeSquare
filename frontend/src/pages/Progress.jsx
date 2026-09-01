@@ -91,9 +91,9 @@ function Progress() {
               <p className="text-sm text-cs-text-dim font-mono">no data — complete a lesson or challenge to start building your skill profile.</p>
             )}
             {skills && skills.skills?.length > 0 && (
-              <div className="rounded-lg border border-cs-line/10 overflow-hidden">
-                {skills.skills.map((sk, i) => (
-                  <div key={sk.key} className={`px-4 py-3 ${i > 0 ? 'border-t border-cs-line/10' : ''}`}>
+              <div className="divide-y divide-cs-line/10">
+                {skills.skills.map((sk) => (
+                  <div key={sk.key} className="py-3">
                     <div className="flex items-center justify-between gap-3 mb-1.5">
                       <span className="font-mono text-sm font-semibold text-cs-text truncate">{sk.label}</span>
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wide border shrink-0 ${LEVEL_CLS[sk.level] || LEVEL_CLS.Novice}`}>
