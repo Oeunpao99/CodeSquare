@@ -332,7 +332,7 @@ function Landing() {
       {/* STACK STRIP */}
       <section className="border-y border-cs-line/10 bg-cs-darker/40">
         <div className="max-w-6xl mx-auto px-6 py-5 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="mono-label text-cs-text-muted mr-2">// stack</span>
+          <span className="mono-label text-cs-text-muted mr-2"> stack</span>
           {stack.map((s) => (
             <span key={s} className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md glass text-cs-text-dim">
               <LangLogo name={s} className="text-sm" />
@@ -344,7 +344,7 @@ function Landing() {
 
       {/* FEATURES */}
       <section className="max-w-6xl mx-auto px-6 py-24">
-        <span className="mono-label">// capabilities</span>
+        <span className="mono-label"> capabilities</span>
         <h2 className="text-4xl font-extrabold mt-3 mb-3">Four ways the AI actually helps</h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
           Not a chatbot bolted on. Four distinct roles — teacher, reviewer, architect, debugger —
@@ -362,7 +362,7 @@ function Landing() {
                   {f.icon}
                 </div>
                 <span className="font-mono text-xs text-cs-text-muted group-hover:text-cs-cyan transition-colors">
-                  // {f.tag}
+                  {f.tag}
                 </span>
               </div>
               <h3 className="text-lg font-bold mb-2">{f.title}</h3>
@@ -374,7 +374,7 @@ function Landing() {
 
       {/* FULL JOURNEY — every shipped feature, by stage */}
       <section className="max-w-6xl mx-auto px-6 py-24">
-        <span className="mono-label">// the full path</span>
+        <span className="mono-label"> the full path</span>
         <h2 className="text-4xl font-extrabold mt-3 mb-3">
           From <span className="font-mono text-cs-mint">"what's a variable?"</span> to job-ready
         </h2>
@@ -396,7 +396,7 @@ function Landing() {
                   </span>
                   <h3 className="text-lg font-bold">{col.stage}</h3>
                 </div>
-                <span className="font-mono text-xs text-cs-text-muted">// {col.tag}</span>
+                <span className="font-mono text-xs text-cs-text-muted"> {col.tag}</span>
               </div>
               <ul className="space-y-2.5">
                 {col.items.map((it, i) => (
@@ -416,7 +416,7 @@ function Landing() {
 
       {/* LANGUAGES */}
       <section className="max-w-6xl mx-auto px-6 py-24">
-        <span className="mono-label">// choose your path</span>
+        <span className="mono-label"> choose your path</span>
         <h2 className="text-4xl font-extrabold mt-3 mb-3">Pick a language, open the file</h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
           Start with whichever one excites you. You can switch tracks any time.
@@ -456,7 +456,7 @@ function Landing() {
       <section className="max-w-6xl mx-auto px-6 py-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="mono-label">// beyond the basics</span>
+            <span className="mono-label"> beyond the basics</span>
             <h2 className="text-4xl font-extrabold mt-3 mb-4">Backend &amp; DevOps track</h2>
             <p className="text-cs-text-dim mb-6 max-w-xl">
               Once the fundamentals click, keep going. CodeSquareAgent walks you through the
@@ -484,7 +484,7 @@ function Landing() {
             <div className="p-5 bg-cs-dark/60 font-mono text-sm">
               <div className="flex items-center gap-2 mb-2">
                 <span style={{ color: SYN.keyword }}>backend-foundations/</span>
-                <span className="text-cs-text-muted text-xs">// track</span>
+                <span className="text-cs-text-muted text-xs"> track</span>
               </div>
               {backendTree.map((row, i) => {
                 const last = i === backendTree.length - 1;
@@ -506,7 +506,7 @@ function Landing() {
 
       {/* HOW IT WORKS */}
       <section className="max-w-4xl mx-auto px-6 py-24">
-        <span className="mono-label">// getting started</span>
+        <span className="mono-label"> getting started</span>
         <h2 className="text-4xl font-extrabold mt-3 mb-14">Four commands to your first project</h2>
 
         <div className="terminal relative overflow-hidden">
@@ -562,7 +562,7 @@ function Landing() {
         <div className="terminal dev-dots glass-hover relative overflow-hidden">
           <div className="scanlines absolute inset-0 pointer-events-none opacity-40" aria-hidden="true" />
           <div className="p-10 md:p-14 text-center bg-cs-dark/70">
-            <span className="mono-label">// ready?</span>
+            <span className="mono-label"> ready?</span>
             <h2 className="text-3xl md:text-4xl font-extrabold mt-3 mb-4">
               Start your coding journey today
             </h2>

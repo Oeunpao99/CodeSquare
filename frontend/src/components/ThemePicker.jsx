@@ -57,7 +57,7 @@ function ThemePicker() {
 
       {['dark', 'light'].map((mode) => (
         <div key={mode} className="mb-6 last:mb-0">
-          <p className="mono-label text-cs-text-muted mb-3">// {mode} themes</p>
+          <p className="mono-label text-cs-text-muted mb-3"> {mode} themes</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {themeKeys
               .filter((key) => themes[key].mode === mode)

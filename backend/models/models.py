@@ -421,6 +421,9 @@ class Post(Base):
     link_url = Column(String, nullable=True)
     flagged_count = Column(Integer, default=0)
     hidden = Column(Boolean, default=False)        # auto-hidden past the flag threshold, or by staff
+    quality_score = Column(Integer, nullable=True)        # 0..100 — heuristic on create, AI on review
+    quality_note = Column(String, nullable=True)          # one-line verdict + improvement tip
+    quality_ai = Column(Boolean, default=False)           # True when graded by the AI, False = heuristic
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, nullable=True)   # set only on an actual edit
 
@@ -452,6 +455,7 @@ class PostComment(Base):
     id = Column(Integer, primary_key=True, index=True)
     post_id = Column(Integer, ForeignKey("posts.id"), index=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    parent_id = Column(Integer, ForeignKey("post_comments.id"), index=True, nullable=True)
     body = Column(String)
     flagged_count = Column(Integer, default=0)
     hidden = Column(Boolean, default=False)
@@ -480,6 +484,19 @@ class Notification(Base):
     recipient = relationship("User", foreign_keys=[user_id])
     actor = relationship("User", foreign_keys=[actor_id])
     post = relationship("Post")
+
+
+class Follow(Base):
+    """One row per (follower, following) pair. Presence = followed."""
+    __tablename__ = "follows"
+
+    id = Column(Integer, primary_key=True, index=True)
+    follower_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    following_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    follower = relationship("User", foreign_keys=[follower_id])
+    following = relationship("User", foreign_keys=[following_id])
 
 
 class Payment(Base):

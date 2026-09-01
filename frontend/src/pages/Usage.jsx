@@ -5,10 +5,10 @@ import {
   FiTerminal, FiZap, FiCpu, FiCode, FiFileText, FiCheckCircle, FiArrowRight,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
+import { formatDate } from '../utils/datetime';
 import UpgradeModal from '../components/UpgradeModal';
 
-const fmtDate = (iso) =>
-  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : null;
+const fmtDate = (iso) => (iso ? formatDate(iso) : null);
 
 const KIND_META = {
   chat: { label: 'Tutor chat', icon: FiCpu },
@@ -115,7 +115,7 @@ function Usage() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary">// account</span>
+        <span className="mono-label text-cs-primary"> account</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
           <FiTerminal className="text-cs-primary" /> Usage
         </h1>
@@ -176,7 +176,7 @@ function Usage() {
           {/* Per-kind */}
           {Object.keys(data.by_kind || {}).length > 0 && (
             <div className="card">
-              <span className="mono-label text-cs-text-dim">// tokens this week, by surface</span>
+              <span className="mono-label text-cs-text-dim"> tokens this week, by surface</span>
               <div className="mt-3 rounded-lg border border-cs-line/10 overflow-hidden">
                 {Object.entries(data.by_kind)
                   .sort((a, b) => b[1] - a[1])
@@ -200,7 +200,7 @@ function Usage() {
 
           {/* Plans */}
           <div>
-            <span className="mono-label text-cs-text-dim">// plans</span>
+            <span className="mono-label text-cs-text-dim"> plans</span>
             <div className="grid sm:grid-cols-2 gap-4 mt-3">
               {planList.map((p) => (
                 <div

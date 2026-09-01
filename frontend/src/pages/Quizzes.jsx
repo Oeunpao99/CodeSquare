@@ -47,13 +47,13 @@ function Quizzes() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label">// practice</span>
+        <span className="mono-label"> practice</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
           <FiHelpCircle className="text-cs-primary" /> Quizzes
         </h1>
 
         <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-cs-line/10">
-          <span className="mono-label text-cs-text-dim px-1">// filter</span>
+          <span className="mono-label text-cs-text-dim px-1"> filter</span>
           <FilterTabs label="lang" value={fLang} onChange={setFLang}
             options={[['', 'all'], ...LANGS.map((s) => [s, langLabel(s)])]} />
           <FilterTabs label="level" value={fDiff} onChange={setFDiff}

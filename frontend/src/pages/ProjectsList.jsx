@@ -9,19 +9,12 @@ import { useMajor } from '../context/MajorContext';
 import LangLogo from '../components/LangLogo';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { stacksForMajor } from '../projectStacks';
+import { timeAgo } from '../utils/datetime';
 
 const STATUS = {
   active: { label: 'Active', cls: 'text-cs-primary bg-cs-primary/10' },
   done: { label: 'Done', cls: 'text-cs-green bg-cs-green/10' },
   archived: { label: 'Archived', cls: 'text-cs-text-muted bg-cs-overlay/10' },
-};
-
-const timeAgo = (iso) => {
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
 };
 
 function NewProjectModal({ onClose, onCreated, languageOptions, tracks }) {
@@ -65,7 +58,7 @@ function NewProjectModal({ onClose, onCreated, languageOptions, tracks }) {
           autoFocus
         />
 
-        <p className="mono-label mb-2">// language</p>
+        <p className="mono-label mb-2"> language</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {languageOptions.map((o) => (
             <button
@@ -84,7 +77,7 @@ function NewProjectModal({ onClose, onCreated, languageOptions, tracks }) {
 
         {tracks.length > 0 && (
           <>
-            <p className="mono-label mb-2">// link to a track (optional)</p>
+            <p className="mono-label mb-2"> link to a track (optional)</p>
             <select
               value={trackSlug}
               onChange={(e) => setTrackSlug(e.target.value)}
@@ -169,7 +162,7 @@ function ProjectsList() {
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 lg:pr-14 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <span className="mono-label">// workspace</span>
+          <span className="mono-label"> workspace</span>
           <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
             <FiCode className="text-cs-primary" /> Projects
           </h1>

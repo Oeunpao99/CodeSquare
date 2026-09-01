@@ -55,7 +55,7 @@ function Career() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary">// career</span>
+        <span className="mono-label text-cs-primary"> career</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
           <FiTerminal className="text-cs-primary" /> Job Readiness
         </h1>
@@ -101,7 +101,7 @@ function Career() {
 
             {/* Target skills — terminal table */}
             <div className="card">
-              <span className="mono-label text-cs-text-dim">// skills that make you job-ready</span>
+              <span className="mono-label text-cs-text-dim"> skills that make you job-ready</span>
               <div className="mt-3 rounded-lg border border-cs-line/10 overflow-hidden">
                 {data.target_skills.map((sk, i) => (
                   <div key={sk.key} className={`px-4 py-3 ${i > 0 ? 'border-t border-cs-line/10' : ''}`}>
@@ -130,7 +130,7 @@ function Career() {
           <div className="space-y-6">
             {/* Components */}
             <div className="card">
-              <span className="mono-label text-cs-text-dim">// readiness breakdown</span>
+              <span className="mono-label text-cs-text-dim"> readiness breakdown</span>
               <div className="mt-3 grid grid-cols-1 gap-3">
                 {data.components.map((c) => (
                   <div key={c.key} className="rounded-lg border border-cs-line/10 bg-cs-overlay/[0.03] p-3">
@@ -147,7 +147,7 @@ function Career() {
             {/* Focus next */}
             {data.focus?.length > 0 && (
               <div className="card">
-                <span className="mono-label text-cs-text-dim">// focus next on</span>
+                <span className="mono-label text-cs-text-dim"> focus next on</span>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {data.focus.map((f) => (
                     <span key={f} className="px-2.5 py-1 rounded-md text-xs font-mono text-cs-orange bg-cs-orange/10 border border-cs-orange/30">
@@ -161,7 +161,7 @@ function Career() {
             {/* Plan */}
             {data.next_steps?.length > 0 && (
               <div className="card border-cs-primary/25">
-                <span className="mono-label text-cs-primary">// your plan</span>
+                <span className="mono-label text-cs-primary"> your plan</span>
                 <div className="mt-3 rounded-lg bg-cs-darkest/60 border border-cs-line/10 p-3 space-y-1.5">
                   {data.next_steps.map((s, i) => {
                     const action = /(finish|solve|build|keep)/i.test(s);

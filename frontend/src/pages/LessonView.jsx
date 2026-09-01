@@ -260,7 +260,7 @@ function LessonView() {
                   <FiBook className="text-cs-dark" />
                 </div>
                 <div>
-                  <p className="mono-label text-[10px]">// concepts</p>
+                  <p className="mono-label text-[10px]"> concepts</p>
                   <h2 className="text-lg font-bold leading-tight">Lesson {lesson.order}</h2>
                 </div>
               </div>

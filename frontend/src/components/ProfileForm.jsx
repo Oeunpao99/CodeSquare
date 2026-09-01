@@ -67,7 +67,7 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
 
       <div className="grid sm:grid-cols-2 gap-4">
         <label className="block">
-          <span className="mono-label text-cs-text-muted">// display name</span>
+          <span className="mono-label text-cs-text-muted"> display name</span>
           <input
             type="text" value={form.display_name} onChange={set('display_name')} maxLength={60}
             placeholder={user?.username}
@@ -75,7 +75,7 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
           />
         </label>
         <label className="block">
-          <span className="mono-label text-cs-text-muted">// headline</span>
+          <span className="mono-label text-cs-text-muted"> headline</span>
           <input
             type="text" value={form.headline} onChange={set('headline')} maxLength={120}
             placeholder="Aspiring AI engineer · learning in public"
@@ -85,7 +85,7 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
       </div>
 
       <label className="block">
-        <span className="mono-label text-cs-text-muted">// bio</span>
+        <span className="mono-label text-cs-text-muted"> bio</span>
         <textarea
           value={form.bio} onChange={set('bio')} maxLength={600} rows={3}
           placeholder="A couple of sentences about what you're working toward."
@@ -95,7 +95,7 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
       </label>
 
       <div className="space-y-3">
-        <span className="mono-label text-cs-text-muted">// links — shown on your portfolio</span>
+        <span className="mono-label text-cs-text-muted"> links — shown on your portfolio</span>
         {LINKS.map((l) => (
           <div key={l.key} className="flex items-center gap-2.5">
             <span className="w-9 h-9 rounded-lg glass flex items-center justify-center text-cs-text-dim shrink-0">{l.icon}</span>

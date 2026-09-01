@@ -9,7 +9,7 @@ import {
   FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
   FiUser, FiSettings, FiLayers, FiCircle, FiActivity, FiChevronRight, FiChevronUp,
   FiChevronsLeft, FiChevronsRight, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
-  FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers,
+  FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers, FiMessageSquare,
 } from 'react-icons/fi';
 import MajorIcon from './MajorIcon';
 import NotificationBell from './NotificationBell';
@@ -52,7 +52,8 @@ const NAV_GROUPS = [
   {
     id: 'community',
     items: [
-      { to: '/community', label: 'Dev Community', icon: FiUsers },
+      { to: '/devs', label: 'Dev Directory', icon: FiUsers },
+      { to: '/community', label: 'Dev Community', icon: FiMessageSquare },
       { to: '/leaderboard', label: 'Leaderboard', icon: FiAward },
     ],
   },
@@ -127,6 +128,16 @@ function AppLayout() {
   const [navGroups, setNavGroups] = useState(readNavGroups);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // First two path segments — keys the content wrapper so navigating *within*
+  // a section (lesson ↔ lesson) swaps instantly while section/detail changes
+  // (e.g. clicking "read more" on a post card) get a smooth fade-in.
+  const contentKey = location.pathname.split('/').slice(0, 3).join('/') || '/';
+
+  // Reset scroll smoothly whenever the visible section actually changes.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [contentKey]);
 
   const close = () => setOpen(false);
 
@@ -522,13 +533,12 @@ function AppLayout() {
           Keyed by the first two path segments so navigating *within* a section
           (article ↔ article, lesson ↔ lesson) swaps instantly without a fade. */}
       <main className={`${collapsed ? 'lg:pl-20' : 'lg:pl-80'} transition-[padding] duration-300`}>
-        {/* Plain (non-motion) wrapper so no ancestor transform/will-change breaks
-            position:sticky on pages — sticky headers/sidebars need a clean
-            containing block rooted at the window scroll. Keyed by the first two
-            path segments so within-section navigations swap without a remount. */}
+        {/* Fade-only (opacity, no transform) so position:sticky stays attached to
+            the window scroll. Keyed by the first two path segments so
+            within-section navigations swap without a remount. */}
         <div
-          key={location.pathname.split('/').slice(0, 3).join('/') || '/'}
-          className="min-h-[calc(100vh-60px)] lg:min-h-screen"
+          key={contentKey}
+          className="min-h-[calc(100vh-60px)] lg:min-h-screen animate-route-fade"
         >
           <Outlet />
         </div>
@@ -596,7 +606,7 @@ function AppLayout() {
                 >
               {tab === 'activity' && (
                 <div>
-                  <p className="mono-label text-cs-text-muted mb-4">// your recent activity</p>
+                  <p className="mono-label text-cs-text-muted mb-4"> your recent activity</p>
                   {activity ? (
                     <div className="grid grid-cols-2 gap-3">
                       {[
@@ -621,7 +631,7 @@ function AppLayout() {
               {tab === 'usage' && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <p className="mono-label text-cs-text-muted">// ai token usage</p>
+                    <p className="mono-label text-cs-text-muted"> ai token usage</p>
                     {usage && (
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wide border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
                         {usage.plan_label}
@@ -652,7 +662,7 @@ function AppLayout() {
               {tab === 'settings' && (
                 <div className="space-y-4">
                   <div>
-                    <p className="mono-label text-cs-text-muted mb-2">// settings</p>
+                    <p className="mono-label text-cs-text-muted mb-2"> settings</p>
                     <Link
                       to="/profile"
                       onClick={() => setPopup(false)}
@@ -665,7 +675,7 @@ function AppLayout() {
                   </div>
 
                   <div>
-                    <p className="mono-label text-cs-text-muted mb-2">// major</p>
+                    <p className="mono-label text-cs-text-muted mb-2"> major</p>
                     {majorData ? (
                       <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-cs-line/10">
                         <div className="flex items-center gap-3 min-w-0">
@@ -705,7 +715,7 @@ function AppLayout() {
 
               {tab === 'theme' && (
                 <div>
-                  <p className="mono-label text-cs-text-muted mb-3">// themes</p>
+                  <p className="mono-label text-cs-text-muted mb-3"> themes</p>
                   {['dark', 'light'].map((mode) => (
                     <div key={mode} className="mb-4 last:mb-0">
                       <p className="text-xs uppercase tracking-wider text-cs-text-muted mb-2">{mode}</p>

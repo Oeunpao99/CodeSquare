@@ -111,11 +111,11 @@ export default function NotificationBell() {
         createPortal(
           <div
             ref={panelRef}
-            className="fixed w-80 max-w-[calc(100vw-2rem)] z-[80] rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl shadow-2xl overflow-hidden"
+            className="fixed w-80 max-w-[calc(100vw-2rem)] z-[80] rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl overflow-hidden"
             style={{ top: pos.top, right: pos.right }}
           >
           <div className="px-4 py-3 border-b border-cs-line/10 flex items-center justify-between">
-            <span className="mono-label text-cs-text-dim">// notifications</span>
+            <span className="mono-label text-cs-text-dim"> notifications</span>
             {items.some((n) => !n.read) && (
               <button
                 onClick={() => {

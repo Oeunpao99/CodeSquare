@@ -3,6 +3,7 @@ import {
   FiShield, FiSearch, FiCheck, FiChevronRight, FiChevronDown, FiExternalLink,
 } from 'react-icons/fi';
 import { adminService } from '../../services/adminApi';
+import { formatDate, timeAgo } from '../../utils/datetime';
 
 const COLS = '2.4fr 96px 120px 90px 128px 168px 34px';
 
@@ -12,15 +13,8 @@ const fmtTok = (n) => {
   if (n >= 1e3) return Math.round(n / 1e3) + 'K';
   return String(n);
 };
-const fmtDate = (iso) =>
-  iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
-const fmtAgo = (iso) => {
-  if (!iso) return 'never';
-  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
-};
+const fmtDate = (iso) => (iso ? formatDate(iso) : '—');
+const fmtAgo = (iso) => (iso ? timeAgo(iso) : 'never');
 
 const AVATAR_TINT = ['#2dd4bf', '#8b5cf6', '#22d3ee', '#4ade80', '#fb923c', '#f87171'];
 const tintFor = (id) => AVATAR_TINT[id % AVATAR_TINT.length];
@@ -156,7 +150,7 @@ export default function AdminUsers() {
     <div>
       {/* header */}
       <header className="sticky top-0 z-10 px-10 py-4 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="mono-label text-cs-cyan">// admin</div>
+        <div className="mono-label text-cs-cyan"> admin</div>
         <h1 className="mt-2 text-3xl font-bold flex items-center gap-3">
           <FiShield className="text-cs-primary" /> Users
           {stats && (

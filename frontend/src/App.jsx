@@ -23,6 +23,7 @@ import Roadmap from './pages/Roadmap';
 import Progress from './pages/Progress';
 import Career from './pages/Career';
 import Leaderboard from './pages/Leaderboard';
+import Devs from './pages/Devs';
 import Community from './pages/Community';
 import CommunityPost from './pages/CommunityPost';
 import UserProfile from './pages/UserProfile';
@@ -91,6 +92,7 @@ function AppRoutes() {
           <Route path="/progress" element={<Progress />} />
           <Route path="/career" element={<Career />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/devs" element={<Devs />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/:id" element={<CommunityPost />} />
 

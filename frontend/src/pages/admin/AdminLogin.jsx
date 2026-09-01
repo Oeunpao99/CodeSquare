@@ -37,7 +37,7 @@ export default function AdminLogin({ onAuthed }) {
       >
         <div className="flex items-center gap-2.5 text-cs-primary mb-1">
           <FiShield className="text-lg" />
-          <span className="mono-label text-cs-primary">// admin portal</span>
+          <span className="mono-label text-cs-primary"> admin portal</span>
         </div>
         <h1 className="font-mono text-2xl font-bold mb-1">Sign in</h1>
         <p className="text-sm text-cs-text-muted mb-6">

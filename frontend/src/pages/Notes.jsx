@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 import { noteService } from '../services/api';
+import { formatDateTime } from '../utils/datetime';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 // How long a revealed secret stays on screen before it auto-hides.
@@ -67,7 +68,7 @@ function VaultBanner() {
         <FiAlertTriangle />
       </span>
       <div className="min-w-0">
-        <div className="font-bold font-mono text-sm">// credential vault not configured</div>
+        <div className="font-bold font-mono text-sm"> credential vault not configured</div>
         <p className="text-xs text-cs-text-dim mt-1">
           Storing credential values is disabled until the server has a dedicated{' '}
           <span className="font-mono text-cs-orange">NOTE_SECRET_KEY</span> (≥ 32 random chars, not the
@@ -152,7 +153,7 @@ function AiStructure({ suggestion }) {
   return (
     <div className="card mt-4">
       <div className="flex items-center gap-2 font-mono text-xs tracking-[0.18em] uppercase text-cs-cyan mb-3">
-        <FiCpu /> // ai_project_plan
+        <FiCpu /> ai_project_plan
       </div>
       <div className="mb-3">
         <div className="mono-label mb-1.5">stack</div>
@@ -259,9 +260,9 @@ function Editor({
       <div className="card p-5">
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {[
-            { id: 'note', label: '// note' },
-            { id: 'project', label: '// project' },
-            { id: 'credential', label: '// credential', disabled: !vaultOk },
+            { id: 'note', label: 'note' },
+            { id: 'project', label: 'project' },
+            { id: 'credential', label: 'credential', disabled: !vaultOk },
           ].map((opt) => (
             <button
               key={opt.id}
@@ -288,7 +289,7 @@ function Editor({
         {isCred ? (
           <div className="space-y-3">
             <div>
-              <div className="mono-label mb-1.5">// username / host (plaintext)</div>
+              <div className="mono-label mb-1.5"> username / host (plaintext)</div>
               <input
                 value={form.content}
                 onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
@@ -299,7 +300,7 @@ function Editor({
 
             {note.has_secret && (
               <div>
-                <div className="mono-label mb-1.5">// stored secret</div>
+                <div className="mono-label mb-1.5"> stored secret</div>
                 {isRevealed ? (
                   <div className="flex items-center gap-2 border border-cs-orange/30 bg-cs-orange/10 rounded-lg px-3 py-2.5">
                     <span className="font-mono text-sm text-cs-orange break-all flex-grow min-w-0">{revealedValue}</span>
@@ -315,7 +316,7 @@ function Editor({
                 )}
                 {note.revealed_at && !isRevealed && (
                   <p className="text-[11px] text-cs-text-muted mt-1">
-                    last revealed {new Date(note.revealed_at).toLocaleString()}
+                    last revealed {formatDateTime(note.revealed_at)}
                   </p>
                 )}
               </div>
@@ -323,7 +324,7 @@ function Editor({
 
             <div>
               <div className="mono-label mb-1.5">
-                // {note.has_secret ? 'replace secret' : 'secret value'}
+                {note.has_secret ? 'replace secret' : 'secret value'}
                 <span className="text-cs-text-muted"> — encrypted with the server vault key</span>
               </div>
               <SecretInput
@@ -345,7 +346,7 @@ function Editor({
           </div>
         ) : (
           <div>
-            <div className="mono-label mb-1.5">// markdown</div>
+            <div className="mono-label mb-1.5"> markdown</div>
             <textarea
               value={form.content}
               onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
@@ -500,7 +501,7 @@ function Notes() {
       <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-5 -mt-8 mb-6">
         <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-14">
           <div>
-            <span className="mono-label">// codesquare_note</span>
+            <span className="mono-label"> codesquare_note</span>
             <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
               <FiFileText className="text-cs-primary" /> Notes
             </h1>
@@ -528,7 +529,7 @@ function Notes() {
 
       <div className="grid lg:grid-cols-[minmax(0,340px)_1.4fr] gap-6 items-start">
         <div className="lg:sticky lg:top-36 self-start lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto pr-1">
-          <p className="mono-label text-cs-text-muted mb-2 px-1">// recent activity</p>
+          <p className="mono-label text-cs-text-muted mb-2 px-1"> recent activity</p>
           <div className="space-y-2">
             {loading ? (
               <div className="card p-6 text-cs-text-dim">loading…</div>

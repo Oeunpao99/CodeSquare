@@ -93,55 +93,64 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-mono text-[13px] font-medium tracking-wide transition-all duration-200 relative overflow-hidden backdrop-blur-md;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-mono text-[13px] font-medium tracking-wide transition-all duration-200 select-none;
   }
 
-  /* Tech/terminal core — subtle prompt glyph on the left, neon glow ring */
-  .btn::before {
-    content: '❯';
-    @apply inline-block text-[10px] opacity-70;
-  }
-
+  /* Clean modern dev primary — solid accent fill, crisp edge, gentle lift */
   .btn-primary {
-    @apply bg-cs-overlay/10 text-cs-primary border border-cs-primary/50;
-    box-shadow: 0 0 0 1px rgb(var(--cs-primary) / 0.15), 0 4px 18px -8px rgb(var(--cs-primary) / 0.6), inset 0 1px 0 rgb(var(--cs-line) / 0.08);
+    @apply bg-cs-primary text-cs-dark border border-cs-primary;
+    box-shadow: 0 1px 2px rgb(var(--cs-dark) / 0.35), inset 0 1px 0 rgb(var(--cs-line) / 0.25);
   }
 
   .btn-primary:hover {
-    @apply -translate-y-0.5 bg-cs-primary/15;
-    box-shadow: 0 0 0 1px rgb(var(--cs-primary) / 0.4), 0 8px 26px -8px rgb(var(--cs-primary) / 0.7), inset 0 1px 0 rgb(var(--cs-line) / 0.1), inset 0 0 18px -12px rgb(var(--cs-primary) / 0.8);
+    @apply -translate-y-0.5 bg-cs-mint border-cs-mint;
+    box-shadow: 0 6px 20px -10px rgb(var(--cs-primary) / 0.6), inset 0 1px 0 rgb(var(--cs-line) / 0.3);
+  }
+
+  .btn-primary:active {
+    @apply translate-y-0;
+    box-shadow: 0 1px 2px rgb(var(--cs-dark) / 0.35), inset 0 1px 0 rgb(var(--cs-line) / 0.25);
   }
 
   .btn-danger {
-    @apply bg-cs-red/10 text-cs-red border border-cs-red/50;
-    box-shadow: 0 0 0 1px rgb(var(--cs-red) / 0.15), 0 4px 18px -8px rgb(var(--cs-red) / 0.6), inset 0 1px 0 rgb(var(--cs-line) / 0.08);
+    @apply bg-cs-red text-cs-dark border border-cs-red;
+    box-shadow: 0 1px 2px rgb(var(--cs-dark) / 0.35), inset 0 1px 0 rgb(var(--cs-line) / 0.25);
   }
 
   .btn-danger:hover {
-    @apply -translate-y-0.5 bg-cs-red/15;
-    box-shadow: 0 0 0 1px rgb(var(--cs-red) / 0.4), 0 8px 26px -8px rgb(var(--cs-red) / 0.7), inset 0 1px 0 rgb(var(--cs-line) / 0.1), inset 0 0 18px -12px rgb(var(--cs-red) / 0.8);
+    @apply -translate-y-0.5;
+    box-shadow: 0 6px 20px -10px rgb(var(--cs-red) / 0.6), inset 0 1px 0 rgb(var(--cs-line) / 0.3);
+  }
+
+  .btn-danger:active {
+    @apply translate-y-0;
+    box-shadow: 0 1px 2px rgb(var(--cs-dark) / 0.35), inset 0 1px 0 rgb(var(--cs-line) / 0.25);
   }
 
   .btn-secondary {
-    @apply bg-cs-overlay/5 text-cs-primary border border-cs-primary/60 backdrop-blur-md;
-    box-shadow: inset 0 1px 0 rgb(var(--cs-line) / 0.06);
+    @apply bg-transparent text-cs-primary border border-cs-primary/50;
+    box-shadow: inset 0 0 0 1px rgb(var(--cs-primary) / 0.08);
   }
 
   .btn-secondary:hover {
-    background: rgb(var(--cs-primary) / 0.12);
-    box-shadow: 0 0 20px rgb(var(--cs-primary) / 0.3), inset 0 1px 0 rgb(var(--cs-line) / 0.08), inset 0 0 14px -12px rgb(var(--cs-primary) / 0.6);
-    text-shadow: 0 0 8px rgb(var(--cs-primary) / 0.5);
+    @apply -translate-y-0.5 bg-cs-primary/10 border-cs-primary;
+    box-shadow: 0 6px 20px -12px rgb(var(--cs-primary) / 0.5), inset 0 1px 0 rgb(var(--cs-line) / 0.06);
+  }
+
+  .btn-secondary:active {
+    @apply translate-y-0;
   }
 
   .btn-ghost {
-    @apply bg-cs-overlay/5 text-cs-text-dim border border-cs-line/15 backdrop-blur-md;
-    box-shadow: inset 0 1px 0 rgb(var(--cs-line) / 0.05);
+    @apply bg-transparent text-cs-text-dim border border-transparent;
   }
 
   .btn-ghost:hover {
-    @apply text-cs-text border-cs-primary/35;
-    background: rgb(var(--cs-primary) / 0.1);
-    box-shadow: 0 0 16px -8px rgb(var(--cs-primary) / 0.5), inset 0 1px 0 rgb(var(--cs-line) / 0.07);
+    @apply -translate-y-0.5 text-cs-text bg-cs-overlay/5 border-cs-line/15;
+  }
+
+  .btn-ghost:active {
+    @apply translate-y-0;
   }
 
   .btn-lg {
@@ -261,6 +270,23 @@
 
   .card-dev {
     @apply relative rounded-2xl border border-cs-line border-opacity-10 bg-cs-darker bg-opacity-60 p-6 transition-colors duration-300;
+  }
+
+  .post-card {
+    @apply relative rounded-2xl border border-cs-line/10 bg-cs-darker p-5 transition-all duration-200;
+  }
+  .post-card:hover {
+    border-color: rgb(var(--cs-line) / 0.18);
+    background: color-mix(in srgb, rgb(var(--cs-darker)) 95%, rgb(var(--cs-primary)) 5%);
+  }
+
+  .post-image-frame {
+    @apply relative rounded-xl overflow-hidden border border-cs-line/10;
+    background: linear-gradient(135deg, rgb(var(--cs-darkest) / 0.8), rgb(var(--cs-darker) / 0.6));
+    box-shadow:
+      inset 0 1px 0 rgb(var(--cs-line) / 0.05),
+      inset 0 -1px 0 rgb(var(--cs-line) / 0.03),
+      0 2px 8px -4px rgba(0,0,0,0.3);
   }
 
   /* Rendered HTML body of a Library article (Tailwind base strips defaults). */
@@ -623,5 +649,32 @@
   @keyframes terminal-blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
+  }
+
+  /* Soft fade-in when switching sections / opening a detail view (e.g. clicking
+     "read more" on a community post). Opacity only — no transform — so sticky
+     headers keep working against the window scroll. */
+  .animate-route-fade {
+    animation: route-fade 0.25s ease-out;
+  }
+  @keyframes route-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Landing highlight for freshly posted items (feed cards + comments). */
+  .animate-post-land {
+    animation: post-land 1.5s ease-out both;
+  }
+  @keyframes post-land {
+    0%   { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.45); }
+    100% { box-shadow: 0 0 0 18px rgba(45, 212, 191, 0); }
+  }
+
+  /* Expanding ring emitted where the flying send icon lands. */
+  @keyframes land-ping {
+    0%   { transform: scale(0.3); opacity: 0; }
+    25%  { opacity: 0.9; }
+    100% { transform: scale(2.4); opacity: 0; }
   }
 }

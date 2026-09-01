@@ -80,7 +80,7 @@ function Onboarding() {
           </div>
         ) : (
           <div>
-            <span className="mono-label">// almost there</span>
+            <span className="mono-label"> almost there</span>
             <h1 className="text-3xl md:text-4xl font-extrabold mt-3 mb-3">Set up your profile</h1>
             <p className="text-cs-text-dim max-w-2xl mb-8">
               This is what shows on your portfolio and the leaderboard. All optional — you can

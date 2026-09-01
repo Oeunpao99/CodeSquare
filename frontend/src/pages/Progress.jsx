@@ -62,7 +62,7 @@ function Progress() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary">// progress</span>
+        <span className="mono-label text-cs-primary"> progress</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
           <FiActivity className="text-cs-primary" /> Progress
         </h1>
@@ -84,7 +84,7 @@ function Progress() {
       <div className="max-w-none grid lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
         {/* Skills */}
         <div className="card">
-          <span className="mono-label text-cs-text-dim">// skills</span>
+          <span className="mono-label text-cs-text-dim"> skills</span>
           <div className="mt-3">
             {skills === null && <p className="text-cs-text-muted font-mono text-sm">loading skill profile…</p>}
             {skills && skills.skills?.length === 0 && (
@@ -123,7 +123,7 @@ function Progress() {
         <div className="space-y-6">
           {summary && summary.weak_concepts?.length > 0 && (
             <div className="card border-cs-orange/25">
-              <span className="mono-label text-cs-orange">// worth another look</span>
+              <span className="mono-label text-cs-orange"> worth another look</span>
               <div className="mt-3 rounded-lg bg-cs-darkest/60 border border-cs-line/10 p-3 space-y-1.5">
                 {summary.weak_concepts.map((w, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm font-mono">
@@ -138,7 +138,7 @@ function Progress() {
           {summary && summary.recommended_action && (
             <div className="card border-cs-primary/25">
               <span className="mono-label text-cs-primary flex items-center gap-1.5">
-                <FiRefreshCw className="text-[10px]" /> // next
+                <FiRefreshCw className="text-[10px]" /> next
               </span>
               <p className="text-sm mt-3 font-mono text-cs-text-dim">{summary.recommended_action}</p>
               <div className="flex mt-4">

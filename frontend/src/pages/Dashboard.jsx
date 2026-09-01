@@ -94,7 +94,7 @@ function Dashboard() {
                 <MajorIcon major={major} />
               </span>
               <div className="flex-grow">
-                <p className="mono-label text-cs-text-muted mb-1">// your major</p>
+                <p className="mono-label text-cs-text-muted mb-1"> your major</p>
                 <h2 className="text-xl font-bold">{majorData.label}</h2>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {majorData.focus.map((f) => (
@@ -125,7 +125,7 @@ function Dashboard() {
               <FiPlayCircle />
             </span>
             <div className="flex-grow min-w-0">
-              <p className="mono-label text-cs-primary mb-1">// pick up where you left off</p>
+              <p className="mono-label text-cs-primary mb-1"> pick up where you left off</p>
               <h2 className="text-xl font-bold truncate">{resume.lesson_title}</h2>
               <p className="text-sm text-cs-text-dim font-mono truncate">
                 {resume.track_name} <span className="text-cs-text-muted">›</span> {resume.module_title}

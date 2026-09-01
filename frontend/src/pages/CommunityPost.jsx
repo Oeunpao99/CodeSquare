@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiSend, FiTrash2 } from 'react-icons/fi';
+import { FiArrowLeft, FiCornerUpLeft, FiSend, FiTrash2 } from 'react-icons/fi';
 import { communityService } from '../services/api';
 import { toast } from '../utils/toast';
 import PostCard, { Avatar, AuthorName, timeAgo } from '../components/PostCard';
+import ConfirmDialog from '../components/ConfirmDialog';
+import FlyIcon from '../components/FlyIcon';
+import PublishTerminal from '../components/PublishTerminal';
 
 function EditForm({ post, onSaved, onCancel }) {
   const [body, setBody] = useState(post.body);
@@ -48,6 +51,28 @@ function EditForm({ post, onSaved, onCancel }) {
   );
 }
 
+// Insert an added reply under its parent (any depth).
+const insertReply = (comments, parentId, reply) =>
+  comments.map((c) => {
+    if (c.id === parentId) return { ...c, replies: [...(c.replies || []), reply] };
+    if (c.replies && c.replies.length) return { ...c, replies: insertReply(c.replies, parentId, reply) };
+    return c;
+  });
+
+const removeThread = (comments, cid) =>
+  comments
+    .filter((c) => c.id !== cid)
+    .map((c) => (c.replies && c.replies.length ? { ...c, replies: removeThread(c.replies, cid) } : c));
+
+const threadSize = (comments, cid) => {
+  for (const c of comments) {
+    if (c.id === cid) return 1 + (c.replies ? c.replies.length : 0);
+    const n = threadSize(c.replies || [], cid);
+    if (n) return n;
+  }
+  return 0;
+};
+
 function CommunityPost() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -55,6 +80,28 @@ function CommunityPost() {
   const [editing, setEditing] = useState(false);
   const [comment, setComment] = useState('');
   const [sending, setSending] = useState(false);
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [replySending, setReplySending] = useState(false);
+  const [fly, setFly] = useState(null);
+  const [term, setTerm] = useState(null);
+  const [landed, setLanded] = useState(null);
+  const [pending, setPending] = useState(null); // { data, parentId } awaiting reveal
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const commentRef = useRef(null);
+  const commentSendRef = useRef(null);
+  const commentListRef = useRef(null);
+  const replyRef = useRef(null);
+  const replySendRef = useRef(null);
+  const commentEls = useRef({});
+
+  const grow = (el) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  };
+  const growComment = () => grow(commentRef.current);
+  const growReply = () => grow(replyRef.current);
 
   useEffect(() => {
     setPost(null);
@@ -68,14 +115,58 @@ function CommunityPost() {
     setPost((p) => ({ ...p, ...next }));
   };
 
+  const launchReply = (pid) => {
+    setReplyTo(replyTo === pid ? null : pid);
+    if (replyTo !== pid) setReplyText('');
+  };
+
+  const termDone = () => {
+    const t = term;
+    setTerm(null);
+    if (!t) return;
+    let tr = null;
+    if (t.kind === 'reply') {
+      tr = commentEls.current[t.parentId]?.getBoundingClientRect();
+    }
+    if (!tr) {
+      tr = commentListRef.current?.getBoundingClientRect();
+    }
+    if (!tr) return;
+    setFly({ from: t.anchor, to: { x: tr.left + tr.width / 2, y: tr.top + 8 } });
+  };
+
+  const flyDone = () => {
+    setFly(null);
+    if (!pending) return;
+    const d = pending;
+    setPending(null);
+    if (d.parentId) {
+      setPost((p) => ({
+        ...p,
+        comments: insertReply(p.comments, d.parentId, d.data),
+        comment_count: (p.comment_count || 0) + 1,
+      }));
+    } else {
+      setPost((p) => ({ ...p, comments: [...p.comments, d.data], comment_count: (p.comment_count || 0) + 1 }));
+    }
+    setLanded(d.data.id);
+    window.setTimeout(() => setLanded((cid) => (cid === d.data.id ? null : cid)), 1600);
+  };
+
   const addComment = async (e) => {
     e.preventDefault();
     if (sending || !comment.trim()) return;
     setSending(true);
     try {
       const r = await communityService.addComment(id, comment.trim());
-      setPost((p) => ({ ...p, comments: [...p.comments, r.data], comment_count: (p.comment_count || 0) + 1 }));
+      setPending({ data: r.data, parentId: null });
       setComment('');
+      const el = commentRef.current;
+      if (el) el.style.height = 'auto';
+      const fr = commentSendRef.current?.getBoundingClientRect();
+      if (fr) {
+        setTerm({ anchor: { x: fr.left + fr.width / 2, y: fr.top + fr.height / 2 }, kind: 'top', id: r.data.id, parentId: null });
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Could not comment.');
     } finally {
@@ -83,19 +174,104 @@ function CommunityPost() {
     }
   };
 
+  const submitReply = async (e, parentId) => {
+    e.preventDefault();
+    if (replySending || !replyText.trim()) return;
+    setReplySending(true);
+    try {
+      const r = await communityService.addComment(id, replyText.trim(), parentId);
+      setPending({ data: r.data, parentId });
+      const fr = replySendRef.current?.getBoundingClientRect();
+      if (fr) {
+        setTerm({ anchor: { x: fr.left + fr.width / 2, y: fr.top + fr.height / 2 }, kind: 'reply', id: r.data.id, parentId });
+      }
+      setReplyTo(null);
+      setReplyText('');
+      const el = replyRef.current;
+      if (el) el.style.height = 'auto';
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not reply.');
+    } finally {
+      setReplySending(false);
+    }
+  };
+
   const removeComment = async (cid) => {
-    if (!confirm('Delete this comment?')) return;
+    setConfirmDelete(null);
     try {
       await communityService.deleteComment(cid);
       setPost((p) => ({
         ...p,
-        comments: p.comments.filter((c) => c.id !== cid),
-        comment_count: Math.max(0, (p.comment_count || 1) - 1),
+        comments: removeThread(p.comments, cid),
+        comment_count: Math.max(0, (p.comment_count || 0) - threadSize(p.comments, cid)),
       }));
     } catch {
       toast.error('Could not delete.');
     }
   };
+
+  const renderThread = (c, depth) => (
+    <div
+      key={c.id}
+      ref={(el) => {
+        commentEls.current[c.id] = el;
+      }}
+      className={`rounded-xl border border-cs-line/10 bg-cs-darker/50 p-3.5 ${landed === c.id ? 'animate-post-land' : ''}`}
+    >
+      <div className="flex items-center gap-2.5 mb-1.5">
+        <Avatar author={c.author} size="w-7 h-7" />
+        <span className="flex items-center gap-1 font-mono text-sm font-semibold min-w-0">
+          <AuthorName author={c.author} to={`/u/${c.author.username}`} className="text-sm font-semibold" />
+          {c.is_mine && <span className="text-cs-primary font-normal whitespace-nowrap">· you</span>}
+        </span>
+        <span className="font-mono text-[10px] text-cs-text-muted">{timeAgo(c.created_at)}</span>
+        <span className="flex-grow" />
+        {c.can_delete && (
+          <button onClick={() => setConfirmDelete(c.id)} className="text-cs-text-muted hover:text-cs-red p-1" title="Delete">
+            <FiTrash2 className="text-xs" />
+          </button>
+        )}
+      </div>
+      <p className="text-sm text-cs-text-dim whitespace-pre-line pl-9">{c.body}</p>
+
+      <div className="pl-9 mt-1.5">
+        <button
+          type="button"
+          onClick={() => launchReply(c.id)}
+          className="inline-flex items-center gap-1 text-[11px] font-mono text-cs-text-muted hover:text-cs-primary transition-colors"
+        >
+          <FiCornerUpLeft className="text-xs" /> {replyTo === c.id ? 'Cancel reply' : 'Reply'}
+        </button>
+      </div>
+
+      {replyTo === c.id && (
+        <form onSubmit={(e) => submitReply(e, c.id)} className="mt-2 pl-9">
+          <textarea
+            ref={replyRef}
+            value={replyText}
+            onChange={(e) => { setReplyText(e.target.value); growReply(); }}
+            rows={1}
+            maxLength={1000}
+            placeholder="Reply to this comment…"
+            autoFocus
+            className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-sm font-mono outline-none focus:border-cs-primary/50 resize-none overflow-hidden"
+          />
+          <div className="flex justify-end gap-2 mt-1.5">
+            <button type="button" onClick={() => { setReplyTo(null); setReplyText(''); }} className="btn btn-ghost btn-sm">Cancel</button>
+            <button ref={replySendRef} type="submit" disabled={replySending || !replyText.trim()} className="btn btn-primary btn-sm disabled:opacity-40">
+              <FiSend /> {replySending ? 'Sending…' : 'Reply'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {c.replies && c.replies.length > 0 && (
+        <div className="mt-3 space-y-3 border-l border-cs-line/12 pl-3 ml-1">
+          {c.replies.map((r) => renderThread(r, depth + 1))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
@@ -138,44 +314,54 @@ function CommunityPost() {
 
             <form onSubmit={addComment} className="card mb-4">
               <textarea
+                ref={commentRef}
                 value={comment}
-                onChange={(e) => setComment(e.target.value)}
+                onChange={(e) => { setComment(e.target.value); growComment(); }}
                 rows={2}
                 maxLength={1000}
                 placeholder="Add a comment…"
-                className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/50 resize-y"
+                className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/50 resize-none overflow-hidden"
               />
               <div className="flex justify-end mt-2">
-                <button type="submit" disabled={sending || !comment.trim()} className="btn btn-primary btn-sm disabled:opacity-40">
+                <button ref={commentSendRef} type="submit" disabled={sending || !comment.trim()} className="btn btn-primary btn-sm disabled:opacity-40">
                   <FiSend /> {sending ? 'Sending…' : 'Comment'}
                 </button>
               </div>
             </form>
 
-            <div className="space-y-3">
-              {post.comments.map((c) => (
-                <div key={c.id} className="rounded-xl border border-cs-line/10 bg-cs-darker/50 p-3.5">
-                  <div className="flex items-center gap-2.5 mb-1.5">
-                    <Avatar author={c.author} size="w-7 h-7" />
-                    <span className="flex items-center gap-1 font-mono text-sm font-semibold min-w-0">
-                      <AuthorName author={c.author} to={`/u/${c.author.username}`} className="text-sm font-semibold" />
-                      {c.is_mine && <span className="text-cs-primary font-normal whitespace-nowrap">· you</span>}
-                    </span>
-                    <span className="font-mono text-[10px] text-cs-text-muted">{timeAgo(c.created_at)}</span>
-                    <span className="flex-grow" />
-                    {c.can_delete && (
-                      <button onClick={() => removeComment(c.id)} className="text-cs-text-muted hover:text-cs-red p-1" title="Delete">
-                        <FiTrash2 className="text-xs" />
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-sm text-cs-text-dim whitespace-pre-line pl-9">{c.body}</p>
+            {term && (
+              <PublishTerminal
+                anchor={term.anchor}
+                verb="post"
+                noun="comment"
+                onDone={termDone}
+              />
+            )}
+
+            {fly && (
+              <FlyIcon from={fly.from} to={fly.to} onDone={flyDone}>
+                <div className="w-8 h-8 rounded-full bg-cs-primary flex items-center justify-center text-cs-dark shadow-[0_4px_16px_rgba(45,212,191,.5)]">
+                  <FiSend className="text-sm" />
                 </div>
-              ))}
+              </FlyIcon>
+            )}
+
+            <div ref={commentListRef} className="space-y-3">
+              {post.comments.map((c) => renderThread(c, 0))}
               {post.comments.length === 0 && (
                 <p className="text-cs-text-muted font-mono text-xs">No comments yet — start the thread.</p>
               )}
             </div>
+
+            <ConfirmDialog
+              open={confirmDelete != null}
+              title="Delete comment"
+              message="Delete this comment? If it has replies, they’ll be removed too."
+              confirmLabel="Delete"
+              confirmClass="btn-danger"
+              onConfirm={() => removeComment(confirmDelete)}
+              onCancel={() => setConfirmDelete(null)}
+            />
           </section>
         </>
       )}

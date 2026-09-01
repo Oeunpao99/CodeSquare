@@ -236,7 +236,7 @@ function ChallengeView() {
               {passed && review && (
                 <div className="card border-cs-primary/25">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="mono-label text-cs-primary">// ai review</span>
+                    <span className="mono-label text-cs-primary"> ai review</span>
                     {typeof review.score === 'number' && (
                       <span className="font-mono text-sm text-cs-text-dim">score {Math.round(review.score)}/100</span>
                     )}

@@ -118,6 +118,12 @@ export const careerService = {
 export const communityService = {
   leaderboard: (limit = 50) => api.get('/community/leaderboard', { params: { limit } }),
   profile: (username) => api.get(`/community/users/${username}`),
+  devs: (params = {}) => api.get('/community/devs', { params }),
+
+  // --- follow ---
+  follow: (username) => api.post(`/community/users/${username}/follow`),
+  unfollow: (username) => api.delete(`/community/users/${username}/follow`),
+  userPosts: (username, params = {}) => api.get(`/community/users/${username}/posts`, { params }),
 
   // --- community feed ---
   posts: (params = {}) => api.get('/community/posts', { params }),
@@ -127,8 +133,10 @@ export const communityService = {
   deletePost: (id) => api.delete(`/community/posts/${id}`),
   likePost: (id) => api.post(`/community/posts/${id}/like`),
   flagPost: (id) => api.post(`/community/posts/${id}/flag`),
-  addComment: (id, body) => api.post(`/community/posts/${id}/comments`, { body }),
+  addComment: (id, body, parentId) => api.post(`/community/posts/${id}/comments`, { body, parent_id: parentId || null }),
   deleteComment: (id) => api.delete(`/community/comments/${id}`),
+  reviewQuality: (id) => api.post(`/community/posts/${id}/quality`),
+  explainCode: (id) => api.post(`/community/posts/${id}/explain`),
 };
 
 export const notificationService = {

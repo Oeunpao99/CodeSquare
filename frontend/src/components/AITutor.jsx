@@ -3,6 +3,7 @@ import { FiSend, FiPlus, FiTrash2, FiX, FiClock, FiMessageSquare } from 'react-i
 import AiIcon from './AiIcon';
 import Markdown from './Markdown';
 import { aiService, usageService, tutorService } from '../services/api';
+import { timeAgo } from '../utils/datetime';
 
 /* --------------------------------- chat --------------------------------- */
 
@@ -62,14 +63,6 @@ function ContextDonut({ pct, onClick, busy, compact: dense = false }) {
       </svg>
     </button>
   );
-}
-
-function timeAgo(iso) {
-  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
 }
 
 const findSlash = (name) =>
@@ -539,7 +532,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
             <div key={index} className="flex justify-start">
               <div className="max-w-full w-full text-sm rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] px-4 py-3">
                 <div className="flex items-center gap-1.5 mb-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted">
-                  <span>// system</span>
+                  <span> system</span>
                 </div>
                 <Markdown text={msg.content} className="space-y-1 text-cs-text-dim" />
               </div>
@@ -548,7 +541,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
             <div key={index} className="flex justify-start">
               <div className="max-w-full w-full text-sm">
                 <div className="flex items-center gap-1.5 mb-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-cs-cyan">
-                  <AiIcon className="text-xs" /> <span>// codesquare_agent</span>
+                  <AiIcon className="text-xs" /> <span> codesquare_agent</span>
                 </div>
                 <>
                   <Markdown text={msg.content} size="text-[13px]" className="space-y-1 leading-6 text-cs-text-dim" />

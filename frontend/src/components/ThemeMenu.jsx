@@ -55,7 +55,7 @@ function ThemeMenu({ className = '' }) {
         >
           {['dark', 'light'].map((mode) => (
             <div key={mode}>
-              <p className="px-3 pt-2 pb-1 mono-label text-cs-text-muted">// {mode}</p>
+              <p className="px-3 pt-2 pb-1 mono-label text-cs-text-muted"> {mode}</p>
               {themeKeys
                 .filter((key) => themes[key].mode === mode)
                 .map((key) => {

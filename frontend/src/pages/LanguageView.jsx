@@ -74,7 +74,7 @@ function LanguageView() {
       {/* Info strip — progress + what you'll learn + agent (scrolls away) */}
       <div className="mb-8 grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-stretch">
           <div className="rounded-xl border border-cs-line/10 bg-cs-darker/60 p-3">
-            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted mb-2">// course progress</h3>
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted mb-2"> course progress</h3>
             <p className="text-sm text-cs-text">
               <span className="font-mono font-bold text-cs-primary">{completedLessons}</span>
               <span className="text-cs-text-muted"> / {totalLessons} lessons completed</span>
@@ -85,7 +85,7 @@ function LanguageView() {
           </div>
 
           <div className="rounded-xl border border-cs-line/10 bg-cs-darker/60 p-3">
-            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted mb-2">// what you'll learn</h3>
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted mb-2"> what you'll learn</h3>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {language.modules?.map((module, index) => (
                 <span key={index} className="flex items-center gap-1.5 text-sm text-cs-text-dim">

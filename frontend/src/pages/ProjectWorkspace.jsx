@@ -289,7 +289,7 @@ function ProjectWorkspace() {
                 )}
                 {brief.requirements?.length > 0 && (
                   <>
-                    <h3 className="mono-label mb-2">// requirements</h3>
+                    <h3 className="mono-label mb-2"> requirements</h3>
                     <ul className="space-y-1.5 mb-5">
                       {brief.requirements.map((r, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-cs-text-dim">
@@ -301,7 +301,7 @@ function ProjectWorkspace() {
                 )}
                 {brief.hints?.length > 0 && (
                   <>
-                    <h3 className="mono-label text-cs-orange mb-2">// hints</h3>
+                    <h3 className="mono-label text-cs-orange mb-2"> hints</h3>
                     <ul className="space-y-1 text-sm text-cs-text-dim">
                       {brief.hints.map((h, i) => <li key={i}>• {h}</li>)}
                     </ul>
@@ -382,7 +382,7 @@ function ProjectWorkspace() {
                 <p className="text-sm text-cs-text-dim mb-5 whitespace-pre-wrap">{review.feedback}</p>
                 {review.suggestions?.length > 0 && (
                   <>
-                    <h4 className="mono-label text-cs-orange mb-2">// improve</h4>
+                    <h4 className="mono-label text-cs-orange mb-2"> improve</h4>
                     <ul className="space-y-1 text-sm text-cs-text-dim mb-4">
                       {review.suggestions.map((s, i) => <li key={i}>• {s}</li>)}
                     </ul>
@@ -390,7 +390,7 @@ function ProjectWorkspace() {
                 )}
                 {review.improvements?.length > 0 && (
                   <>
-                    <h4 className="mono-label text-cs-green mb-2">// nailed it</h4>
+                    <h4 className="mono-label text-cs-green mb-2"> nailed it</h4>
                     <ul className="space-y-1 text-sm text-cs-text-dim">
                       {review.improvements.map((s, i) => <li key={i}>• {s}</li>)}
                     </ul>

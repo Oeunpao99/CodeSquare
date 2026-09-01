@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiX, FiCheckCircle, FiLoader, FiZap } from 'react-icons/fi';
 import { billingService } from '../services/api';
+import { formatDate } from '../utils/datetime';
 
 // Mock KHQR checkout. Real gateway (ABA PayWay / Bakong) later plugs into the
 // same `billingService.confirm` -> the backend already extends the plan there.
@@ -55,9 +56,7 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
   };
 
   const until = result?.plan_expires_at
-    ? new Date(result.plan_expires_at).toLocaleDateString(undefined, {
-        year: 'numeric', month: 'short', day: 'numeric',
-      })
+    ? formatDate(result.plan_expires_at)
     : null;
 
   return (
@@ -72,7 +71,7 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
         {/* header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-cs-line/10">
           <span className="mono-label text-cs-primary flex items-center gap-2">
-            <FiZap /> // upgrade to pro
+            <FiZap /> upgrade to pro
           </span>
           {phase !== 'verifying' && (
             <button onClick={onClose} className="p-1.5 text-cs-text-muted hover:text-cs-text rounded-lg">

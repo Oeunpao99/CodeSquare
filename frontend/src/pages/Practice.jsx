@@ -132,7 +132,7 @@ function Practice() {
         {/* lg:pr-14 reserves the top-right corner for the global notification bell */}
         <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-14">
           <div>
-            <span className="mono-label">// practice</span>
+            <span className="mono-label"> practice</span>
             <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
               <FiTarget className="text-cs-primary" /> Practice
             </h1>
@@ -155,7 +155,7 @@ function Practice() {
         {/* Filter bar — part of the same locked header block. */}
         {mode === 'browse' && (
           <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-cs-line/10">
-            <span className="mono-label text-cs-text-dim px-1">// filter</span>
+            <span className="mono-label text-cs-text-dim px-1"> filter</span>
             <FilterTabs label="type" value={fKind} onChange={setFKind}
               options={[['', 'all'], ['solve', 'solve'], ['debug', 'debug 🐛']]} />
             <FilterTabs label="lang" value={fLang} onChange={setFLang}

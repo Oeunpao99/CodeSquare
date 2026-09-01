@@ -17,7 +17,7 @@ function MajorPicker({ onboarding = false, onPicked }) {
     <div>
       {onboarding ? (
         <div className="mb-8">
-          <span className="mono-label">// choose your path</span>
+          <span className="mono-label"> choose your path</span>
           <h1 className="text-3xl md:text-4xl font-extrabold mt-3 mb-3">
             What do you want to become?
           </h1>

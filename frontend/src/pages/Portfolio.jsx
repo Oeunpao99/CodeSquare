@@ -33,7 +33,7 @@ function Portfolio() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary">// portfolio</span>
+        <span className="mono-label text-cs-primary"> portfolio</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
           <FiGlobe className="text-cs-primary" /> Portfolio
         </h1>
@@ -80,7 +80,7 @@ function Portfolio() {
             <span className="inline-block w-2 h-4 bg-cs-primary/70 animate-blink" />
             <span>$ ls --done</span>
           </div>
-          <p className="font-mono text-3xl mb-3 text-cs-text-muted select-none">// empty: 0 files</p>
+          <p className="font-mono text-3xl mb-3 text-cs-text-muted select-none"> empty: 0 files</p>
           <p className="text-cs-text-dim mb-6 max-w-sm mx-auto font-mono text-sm">
             Finish a project and set its status to <span className="text-cs-green">done</span> in the
             workspace — it auto-appears here.

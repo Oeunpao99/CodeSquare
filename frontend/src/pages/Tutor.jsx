@@ -11,7 +11,7 @@ function Tutor() {
   return (
     <div className="h-[calc(100vh-60px)] lg:h-screen flex flex-col overflow-hidden px-6 lg:px-10 py-6">
       <div className="shrink-0 mb-4">
-        <span className="mono-label text-cs-primary">// tutor</span>
+        <span className="mono-label text-cs-primary"> tutor</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
           <FiTerminal className="text-cs-primary" /> CodeSquareAgent
         </h1>

@@ -10,6 +10,7 @@ from models.models import (
     Challenge, ChallengeAttempt, Quiz, QuizAttempt, Language, Module,
 )
 from routers.auth import get_current_user
+from common.cambodia import khmer_date, khmer_day_range, khmer_today
 from skills import compute_skills
 from majors import MAJOR_TRACKS
 from datetime import datetime, timedelta
@@ -363,14 +364,15 @@ async def calculate_streak(user_id: int, db: AsyncSession) -> int:
         return 0
     
     streak = 0
-    today = datetime.utcnow().date()
+    today = khmer_today()
     
-    for date in completion_dates:
-        if date and date.date() == today:
+    for item in completion_dates:
+        cday = khmer_date(item)
+        if cday == today:
             streak += 1
             today -= timedelta(days=1)
-        elif date and date.date() == today - timedelta(days=1):
-            today = date.date()
+        elif cday == today - timedelta(days=1):
+            today = cday
             streak += 1
         else:
             break
@@ -439,14 +441,13 @@ async def get_detailed_progress(
 
 async def get_weekly_activity(user_id: int, db: AsyncSession) -> List[WeeklyActivity]:
     days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    today = datetime.utcnow().date()
+    today = khmer_today()
     start_of_week = today - timedelta(days=today.weekday())
     
     weekly = []
     for i, day in enumerate(days):
         day_date = start_of_week + timedelta(days=i)
-        day_start = datetime.combine(day_date, datetime.min.time())
-        day_end = datetime.combine(day_date, datetime.max.time())
+        day_start, day_end = khmer_day_range(day_date)
         
         result = await db.execute(
             select(func.count(UserProgress.id), func.sum(UserProgress.time_spent))

@@ -135,7 +135,7 @@ function Profile() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="mono-label">// profile</span>
+            <span className="mono-label"> profile</span>
             <h1 className="text-2xl md:text-3xl font-bold truncate flex items-center gap-3">
               {user?.display_name || user?.username} <span className="text-cs-primary animate-blink">▍</span>
             </h1>
@@ -148,8 +148,8 @@ function Profile() {
         {/* Tab switcher */}
         <div className="flex items-center gap-1 mt-4 pb-2 -mb-px">
           {[
-            { id: 'overview', label: '// overview', icon: <FiUser /> },
-            { id: 'settings', label: '// settings', icon: <FiSettings /> },
+            { id: 'overview', label: 'overview', icon: <FiUser /> },
+            { id: 'settings', label: 'settings', icon: <FiSettings /> },
           ].map((t) => (
             <button
               key={t.id}
@@ -169,21 +169,21 @@ function Profile() {
       {tab === 'settings' ? (
         <div className="space-y-10">
           <div>
-            <span className="mono-label mb-4 block">// profile details</span>
+            <span className="mono-label mb-4 block"> profile details</span>
             <div className="card p-6">
               <ProfileForm />
             </div>
           </div>
 
           <div>
-            <span className="mono-label mb-4 block">// choose path</span>
+            <span className="mono-label mb-4 block"> choose path</span>
             <div className="card p-6">
               <MajorPicker />
             </div>
           </div>
 
           <div>
-            <span className="mono-label mb-4 block">// editor theme</span>
+            <span className="mono-label mb-4 block"> editor theme</span>
             <div className="card p-6">
               <ThemePicker />
             </div>

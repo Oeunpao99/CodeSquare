@@ -157,7 +157,7 @@ function Library() {
       {/* Sticky header — the whole thing (title, description, search and category
           filters) stays locked while the collections scroll beneath it. */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label">// knowledge library</span>
+        <span className="mono-label"> knowledge library</span>
         <h1 className="text-3xl font-bold mt-3 mb-2 flex items-center gap-3">
           <FiBookOpen className="text-cs-primary" /> Library
         </h1>
@@ -213,7 +213,7 @@ function Library() {
           </span>
           <div className="flex-grow min-w-0">
             <p className="mono-label text-cs-primary mb-1">
-              {resume.resuming ? '// continue reading' : '// jump back in'}
+              {resume.resuming ? 'continue reading' : 'jump back in'}
             </p>
             <h2 className="text-xl font-bold truncate">{resume.title}</h2>
             <p className="text-sm text-cs-text-dim font-mono truncate">
