@@ -22,7 +22,7 @@ from ai.tutor import AITutor
 from common.cambodia import khmer_date, khmer_today
 from database import get_db
 from models.models import (
-    Challenge, ChallengeAttempt, Follow, Notification, Post, PostComment, PostReaction, Quiz,
+    Challenge, ChallengeAttempt, Follow, Notification, Post, PostComment, PostCommentLike, PostReaction, Quiz,
     QuizAttempt, User, UserProgress, UserProject,
 )
 from routers.auth import get_current_user
@@ -201,6 +201,8 @@ class CommentOut(BaseModel):
     is_mine: bool = False
     can_delete: bool = False
     parent_id: Optional[int] = None
+    like_count: int = 0
+    liked_by_me: bool = False
     replies: List["CommentOut"] = []
 
 
@@ -308,12 +310,41 @@ async def _notify_comment_replied(db: AsyncSession, actor: User, post: Post, tar
     db.add(Notification(user_id=target_user_id, actor_id=actor.id, kind="comment", post_id=post.id))
 
 
-def _comments_tree(rows, me: User) -> List[CommentOut]:
+async def _comment_like_info(db: AsyncSession, rows, me: User):
+    """One-shot like stats for a comment list: ({id: count}, {id} for the viewer's likes)."""
+    ids = [c.id for c in rows]
+    if not ids:
+        return {}, set()
+    counts = {
+        cid: int(n) for cid, n in (
+            await db.execute(
+                select(PostCommentLike.comment_id, func.count())
+                .where(PostCommentLike.comment_id.in_(ids))
+                .group_by(PostCommentLike.comment_id)
+            )
+        ).all()
+    }
+    liked_ids = set(
+        (
+            await db.execute(
+                select(PostCommentLike.comment_id).where(
+                    PostCommentLike.user_id == me.id,
+                    PostCommentLike.comment_id.in_(ids),
+                )
+            )
+        ).scalars().all()
+    )
+    return counts, liked_ids
+
+
+def _comments_tree(rows, me: User, like_counts=None, liked_ids=None) -> List[CommentOut]:
     """Build a nested reply tree from a flat (chronological) comment list.
 
     Hidden entries are dropped for everyone except staff / the author, and a
     reply whose parent is hidden is promoted to a top-level child.
     """
+    counts = like_counts or {}
+    liked = liked_ids or set()
     visible: Dict[int, CommentOut] = {}
     for c in rows:
         if c.hidden and c.user_id != me.id and not me.is_staff:
@@ -326,6 +357,8 @@ def _comments_tree(rows, me: User) -> List[CommentOut]:
             is_mine=(c.user_id == me.id),
             can_delete=(c.user_id == me.id or bool(me.is_staff)),
             parent_id=c.parent_id,
+            like_count=counts.get(c.id, 0),
+            liked_by_me=(c.id in liked),
             replies=[],
         )
     tops: List[CommentOut] = []
@@ -879,7 +912,8 @@ async def get_post(
         c for c in p.comments
         if not c.hidden or current_user.is_staff or c.user_id == current_user.id
     ])
-    comments = _comments_tree(p.comments, current_user)
+    like_counts, liked_ids = await _comment_like_info(db, p.comments, current_user)
+    comments = _comments_tree(p.comments, current_user, like_counts, liked_ids)
     base = _post_out(p, like_count, total_comments, liked, current_user)
     return PostDetailOut(**base.model_dump(), comments=comments)
 
@@ -970,6 +1004,48 @@ async def toggle_like(
     await db.commit()
     like_count = (
         await db.execute(select(func.count()).select_from(PostReaction).where(PostReaction.post_id == post_id))
+    ).scalar() or 0
+    return {"liked": liked, "like_count": int(like_count)}
+
+
+@router.post("/posts/{public_id}/comments/{comment_id}/like")
+async def toggle_comment_like(
+    public_id: str,
+    comment_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    post = (await db.execute(select(Post).where(Post.public_id == public_id))).scalar_one_or_none()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found.")
+    c = (
+        await db.execute(
+            select(PostComment).where(
+                PostComment.id == comment_id, PostComment.post_id == post.id
+            )
+        )
+    ).scalar_one_or_none()
+    if not c:
+        raise HTTPException(status_code=404, detail="Comment not found.")
+    row = (
+        await db.execute(
+            select(PostCommentLike).where(
+                PostCommentLike.comment_id == c.id,
+                PostCommentLike.user_id == current_user.id,
+            )
+        )
+    ).scalar_one_or_none()
+    if row:
+        await db.delete(row)
+        liked = False
+    else:
+        db.add(PostCommentLike(comment_id=c.id, user_id=current_user.id))
+        liked = True
+    await db.commit()
+    like_count = (
+        await db.execute(
+            select(func.count()).select_from(PostCommentLike).where(PostCommentLike.comment_id == c.id)
+        )
     ).scalar() or 0
     return {"liked": liked, "like_count": int(like_count)}
 

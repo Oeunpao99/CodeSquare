@@ -6,6 +6,7 @@ import CodeEditor from '../components/CodeEditor';
 import {
   FiArrowRight, FiPlay, FiRefreshCw, FiZap, FiTarget, FiChevronRight,
   FiCheckCircle, FiXCircle, FiHelpCircle, FiCalendar, FiAward, FiX,
+  FiChevronDown, FiCheck,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 
@@ -26,18 +27,14 @@ function Practice() {
   // ------------------------------------------------------------------ browse
   const [daily, setDaily] = useState(undefined);   // undefined = loading, null = none
   const [stats, setStats] = useState(null);
-  const [topics, setTopics] = useState([]);
   const [list, setList] = useState(null);          // null = loading
   const [fLang, setFLang] = useState('');
   const [fDiff, setFDiff] = useState('');
-  const [fTopic, setFTopic] = useState('');
-  const [fKind, setFKind] = useState('');
   const [langNames, setLangNames] = useState({});
 
   useEffect(() => {
     challengeService.daily().then((r) => setDaily(r.data)).catch(() => setDaily(null));
     challengeService.myStats().then((r) => setStats(r.data)).catch(() => {});
-    challengeService.topics().then((r) => setTopics(r.data || [])).catch(() => {});
     lessonService.getLanguages()
       .then((r) => setLangNames(Object.fromEntries(r.data.map((l) => [l.slug, l.name]))))
       .catch(() => {});
@@ -48,12 +45,10 @@ function Practice() {
     const params = {};
     if (fLang) params.language = fLang;
     if (fDiff) params.difficulty = fDiff;
-    if (fTopic) params.topic = fTopic;
-    if (fKind) params.kind = fKind;
     challengeService.list(params)
       .then((r) => setList(r.data))
       .catch(() => { setList([]); toast.error('Could not load challenges.'); });
-  }, [fLang, fDiff, fTopic, fKind]);
+  }, [fLang, fDiff]);
 
   const langLabel = (slug) => langNames[slug] || slug;
 
@@ -137,51 +132,50 @@ function Practice() {
               <FiTarget className="text-cs-primary" /> Practice
             </h1>
           </div>
-          <div className="flex gap-1 p-1 rounded-xl border border-cs-line/15 bg-cs-overlay/[0.04]">
-            {[['browse', 'Challenges'], ['quickfire', 'Quick-fire']].map(([m, label]) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-mono transition-all ${
-                  mode === m ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex gap-1 p-1 rounded-xl border border-cs-line/15 bg-cs-overlay/[0.04]">
+              {[['browse', 'Challenges'], ['quickfire', 'Quick-fire']].map(([m, label]) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-mono transition-all ${
+                    mode === m ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {mode === 'browse' && (
+              <div className="flex items-center gap-2">
+                <FilterDropdown label="lang" value={fLang} onChange={setFLang}
+                  options={[['', 'all'], ...LANGS.map((s) => [s, langLabel(s)])]} />
+                <FilterDropdown label="level" value={fDiff} onChange={setFDiff}
+                  options={[['', 'all'], ...DIFFS.map((d) => [d, d])]} />
+                {(fLang || fDiff) && (
+                  <button
+                    onClick={() => { setFLang(''); setFDiff(''); }}
+                    className="font-mono text-[11px] text-cs-primary hover:text-cs-mint transition-colors inline-flex items-center gap-1"
+                  >
+                    clear <FiX />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {mode === 'browse' && (
         <div className="space-y-5">
-          {/* Filter bar */}
-          <div className="card">
-            <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
-              <FilterGroup label="type" value={fKind} onChange={setFKind}
-                options={[['', 'all'], ['solve', 'solve'], ['debug', 'debug']]} />
-              <FilterGroup label="lang" value={fLang} onChange={setFLang}
-                options={[['', 'all'], ...LANGS.map((s) => [s, langLabel(s)])]} />
-              <FilterGroup label="level" value={fDiff} onChange={setFDiff}
-                options={[['', 'all'], ...DIFFS.map((d) => [d, d])]} />
-              {topics.length > 0 && (
-                <FilterGroup label="topic" value={fTopic} onChange={setFTopic}
-                  options={[['', 'all'], ...topics.map((t) => [t, t])]} />
-              )}
-              {(fLang || fDiff || fTopic || fKind) && (
-                <button
-                  onClick={() => { setFLang(''); setFDiff(''); setFTopic(''); setFKind(''); }}
-                  className="ml-auto font-mono text-[11px] text-cs-primary hover:text-cs-mint transition-colors inline-flex items-center gap-1"
-                >
-                  clear <FiX />
-                </button>
-              )}
-            </div>
-          </div>
-
           {/* Daily challenge */}
           {daily === undefined && (
-            <div className="card animate-pulse h-24" />
+            <div className="rounded-2xl border border-cs-line/10 bg-cs-darker/60 p-5 flex flex-col gap-3">
+              <span className="skeleton h-3 w-28 rounded" />
+              <span className="skeleton h-5 w-2/3 rounded" />
+              <span className="skeleton h-4 w-40 rounded" />
+            </div>
           )}
           {daily && (
             <button
@@ -234,13 +228,30 @@ function Practice() {
           )}
 
           {/* List */}
-          {list === null && <p className="text-cs-text-muted font-mono text-sm">Loading challenges…</p>}
+          {/* Loading skeletons */}
+          {list === null && (
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-2xl border border-cs-line/10 bg-cs-darker/60 p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="skeleton h-5 w-16 rounded-full" />
+                    <span className="skeleton h-4 w-8 rounded" />
+                  </div>
+                  <span className="skeleton h-4 w-3/4 rounded" />
+                  <span className="skeleton h-3 w-1/2 rounded" />
+                  <div className="mt-auto pt-2 border-t border-cs-line/8">
+                    <span className="skeleton h-3 w-24 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {list && list.length === 0 && (
             <div className="card text-center py-14">
               <p className="text-4xl mb-3">🗂️</p>
               <p className="text-cs-text-dim mb-4">No challenges match these filters.</p>
               <button
-                onClick={() => { setFLang(''); setFDiff(''); setFTopic(''); setFKind(''); }}
+                onClick={() => { setFLang(''); setFDiff(''); }}
                 className="btn btn-ghost btn-sm"
               >
                 Clear filters
@@ -430,30 +441,51 @@ function Stat({ icon: Icon, cls, label, value }) {
   );
 }
 
-function FilterGroup({ label, value, onChange, options }) {
+function FilterDropdown({ label, value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const current = options.find(([v]) => v === value)?.[1] || options[0]?.[1] || 'all';
+  const active = value !== '';
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted shrink-0">
-        {label}
-      </span>
-      <div className="flex flex-wrap items-center gap-1">
-        {options.map(([val, text]) => {
-          const active = value === val;
-          return (
-            <button
-              key={val}
-              onClick={() => onChange(val)}
-              className={`px-2.5 py-1 rounded-full font-mono text-xs border transition-all ${
-                active
-                  ? 'border-cs-primary/60 bg-cs-primary/15 text-cs-primary shadow-[0_0_12px_-6px_rgb(var(--cs-primary)/0.7)]'
-                  : 'border-cs-line/15 text-cs-text-dim hover:text-cs-text hover:border-cs-primary/30'
-              }`}
-            >
-              {text}
-            </button>
-          );
-        })}
-      </div>
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-mono text-xs transition-all ${
+          active
+            ? 'border-cs-primary/50 bg-cs-primary/10 text-cs-primary'
+            : 'border-cs-line/15 bg-cs-overlay/[0.04] text-cs-text-dim hover:text-cs-text hover:border-cs-primary/30'
+        }`}
+      >
+        <span className="uppercase tracking-[0.18em] text-[10px] text-cs-text-muted">{label}</span>
+        <span className="font-medium">{current}</span>
+        <FiChevronDown className={`text-xs transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-[calc(100%+6px)] z-50 w-52 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5">
+            {options.map(([val, text]) => {
+              const selected = value === val;
+              return (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => { onChange(val); setOpen(false); }}
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg font-mono text-xs transition-all ${
+                    selected
+                      ? 'bg-cs-primary/15 text-cs-primary'
+                      : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
+                  }`}
+                >
+                  <span>{text}</span>
+                  {selected && <FiCheck className="text-xs shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

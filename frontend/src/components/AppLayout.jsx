@@ -553,9 +553,9 @@ function AppLayout() {
         >
           <div className="absolute inset-0 bg-cs-dark/70 backdrop-blur-sm" onClick={() => setPopup(false)} />
 
-          <div className="relative w-[60vw] h-[90vh] bg-cs-darkest border border-cs-line/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+          <div className="relative flex w-[94vw] max-w-4xl h-[88vh] max-h-[720px] flex-col overflow-hidden rounded-2xl border border-cs-line/10 bg-cs-darkest shadow-2xl sm:w-[82vw] lg:w-[62vw]">
             {/* header */}
-            <div className="px-6 py-4 border-b border-cs-line/10 flex items-center gap-4">
+            <div className="px-4 sm:px-6 py-4 border-b border-cs-line/10 flex items-center gap-3 sm:gap-4">
               <span className="w-12 h-12 rounded-full bg-gradient-main flex items-center justify-center font-bold overflow-hidden text-cs-dark shrink-0">
                 {user?.avatar ? (
                   <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
@@ -577,25 +577,25 @@ function AppLayout() {
             </div>
 
             {/* tabs */}
-            <div className="flex border-b border-cs-line/10">
+            <div className="flex overflow-x-auto border-b border-cs-line/10">
               {popupTabs.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-sm font-medium transition-colors ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 sm:px-3 py-3 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors ${
                     tab === t.id
                       ? 'text-cs-primary border-b-2 border-cs-primary'
                       : 'text-cs-text-dim hover:text-cs-text'
                   }`}
                 >
-                  <t.icon className="text-sm" />
-                  {t.label}
+                  <t.icon className="text-sm shrink-0" />
+                  <span className="hidden sm:inline">{t.label}</span>
                 </button>
               ))}
             </div>
 
             {/* body */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5">
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-5">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={tab}
@@ -768,7 +768,7 @@ function AppLayout() {
                   <p className="mono-label text-cs-text-muted mb-3">
                     // accent color {accentName ? `· ${accentName}` : ''}
                   </p>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {ACCENTS.map((a) => (
                       <button
                         key={a.name}

@@ -126,6 +126,11 @@ class NoteUpdate(BaseModel):
     content: Optional[str] = None
     secret: Optional[str] = None
     clear_secret: Optional[bool] = False
+    favorite: Optional[bool] = None
+
+
+class FavoriteRequest(BaseModel):
+    favorite: bool
 
 
 class NoteCard(BaseModel):
@@ -135,6 +140,8 @@ class NoteCard(BaseModel):
     snippet: str
     has_secret: bool
     has_suggestion: bool
+    favorite: bool
+    created_at: datetime
     updated_at: datetime
 
 
@@ -145,6 +152,7 @@ class NoteDetail(BaseModel):
     content: str
     ai_suggestion: Optional[Dict[str, Any]] = None
     has_secret: bool
+    favorite: bool
     revealed_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
@@ -188,6 +196,8 @@ def _card(n: UserNote) -> NoteCard:
         snippet=(n.content or "").strip()[:120],
         has_secret=bool(n.secret),
         has_suggestion=n.ai_suggestion is not None,
+        favorite=bool(getattr(n, "favorite", False)),
+        created_at=n.created_at,
         updated_at=n.updated_at,
     )
 
@@ -200,6 +210,7 @@ def _detail(n: UserNote) -> NoteDetail:
         content=n.content or "",
         ai_suggestion=n.ai_suggestion,
         has_secret=bool(n.secret),
+        favorite=bool(getattr(n, "favorite", False)),
         revealed_at=getattr(n, "revealed_at", None),
         created_at=n.created_at,
         updated_at=n.updated_at,
@@ -223,7 +234,7 @@ async def list_notes(
     rows = await db.execute(
         select(UserNote)
         .where(UserNote.user_id == current_user.id)
-        .order_by(UserNote.updated_at.desc())
+        .order_by(UserNote.favorite.desc(), UserNote.updated_at.desc())
     )
     return [_card(n) for n in rows.scalars().all()]
 
@@ -294,15 +305,53 @@ async def update_note(
     return _detail(note)
 
 
+async def _delete_owned_note(db: AsyncSession, note_id: int, user_id: int) -> None:
+    row = await db.execute(
+        select(UserNote).where(UserNote.id == note_id, UserNote.user_id == user_id)
+    )
+    note = row.scalar_one_or_none()
+    if note is None:
+        # Idempotent: gone (or never yours) reads the same as a successful delete.
+        return
+    await db.delete(note)
+    await db.commit()
+
+
 @router.delete("/{note_id}", status_code=204)
 async def delete_note(
     note_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    await _delete_owned_note(db, note_id, current_user.id)
+
+
+# POST alias for clients / proxies that block the DELETE verb or its preflight.
+# Returns a JSON body (not 204) so every HTTP layer treats it as an ordinary
+# response. Idempotent — deleting an already-gone note still succeeds.
+@router.post("/{note_id}/delete")
+async def delete_note_via_post(
+    note_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await _delete_owned_note(db, note_id, current_user.id)
+    return {"ok": True, "id": note_id}
+
+
+@router.post("/{note_id}/favorite", response_model=NoteCard)
+async def set_favorite(
+    note_id: int,
+    body: FavoriteRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Star / unstar a note. Favourites sort to the top of the list."""
     note = await _own(db, note_id, current_user.id)
-    await db.delete(note)
+    note.favorite = bool(body.favorite)
     await db.commit()
+    await db.refresh(note)
+    return _card(note)
 
 
 # The secret is never in list/detail. Revealing it needs the account password

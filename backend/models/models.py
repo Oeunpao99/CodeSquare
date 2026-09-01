@@ -171,6 +171,8 @@ class UserNote(Base):
     secret = Column(String, nullable=True)
     # Last time the secret was decrypted+shown (audit); cleared when secret changes.
     revealed_at = Column(DateTime, nullable=True)
+    # User-starred — favourites float to the top of the list.
+    favorite = Column(Boolean, default=False, nullable=False, server_default="false")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 
@@ -463,6 +465,21 @@ class PostComment(Base):
 
     post = relationship("Post", back_populates="comments")
     author = relationship("User")
+    likes = relationship(
+        "PostCommentLike", back_populates="comment", cascade="all, delete-orphan"
+    )
+
+
+class PostCommentLike(Base):
+    """One row per (comment, user) — a like. Presence = liked."""
+    __tablename__ = "post_comment_likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    comment_id = Column(Integer, ForeignKey("post_comments.id"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    comment = relationship("PostComment", back_populates="likes")
 
 
 # --------------------------------------------------------------------------- #

@@ -169,6 +169,33 @@
     @apply px-4 py-2 text-sm;
   }
 
+  /* Skeleton loading block — shimmer sweep across a quiet fill. */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--cs-overlay) / 0.06);
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(var(--cs-text) / 0.06) 50%,
+      transparent 100%
+    );
+    animation: cs-shimmer 1.6s ease-in-out infinite;
+  }
+
+  @keyframes cs-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
   .card {
     @apply bg-cs-darker border border-cs-line border-opacity-10 rounded-2xl p-6 transition-colors duration-300;
   }
@@ -684,5 +711,19 @@
     0%   { transform: scale(0.3); opacity: 0; }
     25%  { opacity: 0.9; }
     100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  /* Little stars that fly out when a note is favourited. Direction/spin come
+     from --dx / --dy / --rot set per-spark inline. */
+  .fav-spark {
+    animation: fav-spark 0.55s ease-out forwards;
+  }
+  @keyframes fav-spark {
+    0%   { opacity: 0; transform: translate(0, 0) scale(0.2) rotate(0deg); }
+    20%  { opacity: 1; }
+    100% {
+      opacity: 0;
+      transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot));
+    }
   }
 }

@@ -241,14 +241,14 @@ function QuizView() {
                       let cls = 'border-cs-line/15 bg-cs-overlay/[0.02] hover:border-cs-primary/40 hover:bg-cs-overlay/[0.06]';
                       let chip = 'border-cs-line/25 text-cs-text-muted';
                       if (isRight) {
-                        cls = 'border-cs-green/50 bg-cs-green/[0.08]';
-                        chip = 'border-cs-green/60 text-cs-green bg-cs-green/10';
+                        cls = 'border-cs-green/80 bg-cs-green/[0.22]';
+                        chip = 'border-cs-green bg-cs-green/25 text-cs-green';
                       } else if (isWrongPick) {
-                        cls = 'border-cs-red/50 bg-cs-red/[0.08]';
-                        chip = 'border-cs-red/60 text-cs-red bg-cs-red/10';
+                        cls = 'border-cs-red/80 bg-cs-red/[0.22]';
+                        chip = 'border-cs-red bg-cs-red/25 text-cs-red';
                       } else if (chosen && !row.graded) {
-                        cls = 'border-cs-primary/60 bg-cs-primary/[0.10] shadow-[0_0_22px_-10px_rgb(var(--cs-primary)/0.7)]';
-                        chip = 'border-cs-primary text-cs-primary bg-cs-primary/10';
+                        cls = 'border-cs-primary/80 bg-cs-primary/[0.22]';
+                        chip = 'border-cs-primary bg-cs-primary/25 text-cs-primary';
                       }
 
                       return (

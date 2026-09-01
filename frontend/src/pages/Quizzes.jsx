@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { quizService, lessonService } from '../services/api';
 import {
-  FiHelpCircle, FiChevronRight, FiCheckCircle, FiZap, FiAward, FiBarChart2,
+  FiHelpCircle, FiCheckCircle, FiZap, FiAward, FiBarChart2,
+  FiChevronDown, FiCheck, FiX,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 
@@ -52,22 +53,22 @@ function Quizzes() {
           <FiHelpCircle className="text-cs-primary" /> Quizzes
         </h1>
 
-        <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-cs-line/10">
+        <div className="flex flex-wrap items-center gap-3 mt-4 pt-3 border-t border-cs-line/10">
           <span className="mono-label text-cs-text-dim px-1"> filter</span>
-          <FilterTabs label="lang" value={fLang} onChange={setFLang}
+          <FilterDropdown label="lang" value={fLang} onChange={setFLang}
             options={[['', 'all'], ...LANGS.map((s) => [s, langLabel(s)])]} />
-          <FilterTabs label="level" value={fDiff} onChange={setFDiff}
+          <FilterDropdown label="level" value={fDiff} onChange={setFDiff}
             options={[['', 'all'], ...DIFFS.map((d) => [d, d])]} />
           {topics.length > 0 && (
-            <FilterTabs label="topic" value={fTopic} onChange={setFTopic}
+            <FilterDropdown label="topic" value={fTopic} onChange={setFTopic}
               options={[['', 'all'], ...topics.map((t) => [t, t])]} />
           )}
           {(fLang || fDiff || fTopic) && (
             <button
               onClick={() => { setFLang(''); setFDiff(''); setFTopic(''); }}
-              className="font-mono text-[10px] text-cs-primary hover:text-cs-mint transition-colors ml-auto px-1"
+              className="font-mono text-[11px] text-cs-primary hover:text-cs-mint transition-colors ml-auto inline-flex items-center gap-1"
             >
-              clear ✕
+              clear <FiX className="text-xs" />
             </button>
           )}
         </div>
@@ -81,7 +82,23 @@ function Quizzes() {
         </div>
       )}
 
-      {list === null && <p className="text-cs-text-muted font-mono text-sm">Loading quizzes…</p>}
+      {list === null && (
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-cs-line/10 bg-cs-darker/60 p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="skeleton h-5 w-16 rounded-full" />
+                <span className="skeleton h-4 w-8 rounded" />
+              </div>
+              <span className="skeleton h-4 w-3/4 rounded" />
+              <span className="skeleton h-3 w-1/2 rounded" />
+              <div className="mt-auto pt-2 border-t border-cs-line/8">
+                <span className="skeleton h-3 w-24 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {list && list.length === 0 && (
         <div className="card text-center py-14">
@@ -97,43 +114,50 @@ function Quizzes() {
       )}
 
       {list && list.length > 0 && (
-        <div className="rounded-xl border border-cs-line/10 bg-cs-darker/40 overflow-hidden">
-          {list.map((z, i) => (
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {list.map((z) => (
             <Link
               key={z.slug}
               to={`/quizzes/${z.slug}`}
-              className={`flex items-center gap-3 px-4 py-3 hover:bg-cs-overlay/[0.06] transition-colors group ${
-                i > 0 ? 'border-t border-cs-line/10' : ''
-              }`}
+              className="group relative rounded-2xl border border-cs-line/10 bg-cs-darker/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-cs-primary/30 hover:bg-cs-darker flex flex-col gap-3"
             >
-              <span className={`badge-outline text-sm ${DIFF_BADGE[z.difficulty] || 'badge-outline-cyan'} shrink-0`}>
-                {z.difficulty}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-lg truncate group-hover:text-cs-primary transition-colors">
-                  {z.title}
-                </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
-                  <span className="font-mono text-sm text-cs-text-muted">
-                    {z.question_count} question{z.question_count === 1 ? '' : 's'}
+              <div className="flex items-center justify-between gap-2">
+                <span className={`badge-outline ${DIFF_BADGE[z.difficulty] || 'badge-outline-cyan'} shrink-0`}>
+                  {z.difficulty}
+                </span>
+                {z.passed ? (
+                  <span className="font-mono text-[11px] text-cs-green inline-flex items-center gap-1 shrink-0">
+                    <FiCheckCircle className="text-xs" /> passed
                   </span>
-                  {z.topic && <span className="font-mono text-sm text-cs-text-muted">{z.topic}</span>}
-                  {z.language && (
-                    <span className="font-mono text-sm text-cs-text-dim inline-flex items-center gap-1">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-cs-cyan/70" /> {z.language}
-                    </span>
-                  )}
-                  {z.best_score > 0 && !z.passed && (
-                    <span className="font-mono text-sm text-cs-orange">best {z.best_score}%</span>
-                  )}
-                </div>
+                ) : (
+                  <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-0.5 shrink-0">
+                    <FiZap className="text-[10px]" /> {z.xp_reward}
+                  </span>
+                )}
               </div>
-              <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-0.5 shrink-0">
-                <FiZap className="text-[10px]" /> {z.xp_reward}
-              </span>
-              {z.passed
-                ? <FiCheckCircle className="text-cs-green shrink-0" />
-                : <FiChevronRight className="text-cs-text-muted group-hover:text-cs-primary shrink-0" />}
+
+              <p className="font-semibold leading-snug line-clamp-1 group-hover:text-cs-primary transition-colors">
+                {z.title}
+              </p>
+
+              <div className="mt-auto pt-2 border-t border-cs-line/8 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]">
+                <span className="text-cs-text-muted">
+                  {z.question_count} question{z.question_count === 1 ? '' : 's'}
+                </span>
+                {z.topic && (
+                  <span className="text-cs-text-dim inline-flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-cs-cyan/70" />
+                    {z.topic}
+                  </span>
+                )}
+                <span className="ml-auto" />
+                {z.best_score > 0 && !z.passed && (
+                  <span className="text-cs-orange">best {z.best_score}%</span>
+                )}
+                {z.language && (
+                  <span className="text-cs-text-muted">{z.language}</span>
+                )}
+              </div>
             </Link>
           ))}
         </div>
@@ -152,30 +176,51 @@ function Stat({ icon: Icon, cls, label, value }) {
   );
 }
 
-function FilterTabs({ label, value, onChange, options }) {
+function FilterDropdown({ label, value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const current = options.find(([v]) => v === value)?.[1] || options[0]?.[1] || 'all';
+  const active = value !== '';
   return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.03] px-1.5 py-1">
-      <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-cs-text-muted px-1">
-        {label}
-      </span>
-      <div className="flex gap-0.5">
-        {options.map(([val, text]) => {
-          const active = value === val;
-          return (
-            <button
-              key={val}
-              onClick={() => onChange(val)}
-              className={`px-2 py-0.5 rounded-md font-mono text-xs transition-all ${
-                active
-                  ? 'bg-cs-primary/15 text-cs-primary shadow-[0_0_12px_-6px_rgb(var(--cs-primary)/0.6)]'
-                  : 'text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/10'
-              }`}
-            >
-              {text}
-            </button>
-          );
-        })}
-      </div>
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-mono text-xs transition-all ${
+          active
+            ? 'border-cs-primary/50 bg-cs-primary/10 text-cs-primary'
+            : 'border-cs-line/15 bg-cs-overlay/[0.04] text-cs-text-dim hover:text-cs-text hover:border-cs-primary/30'
+        }`}
+      >
+        <span className="uppercase tracking-[0.18em] text-[10px] text-cs-text-muted">{label}</span>
+        <span className="font-medium">{current}</span>
+        <FiChevronDown className={`text-xs transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-[calc(100%+6px)] z-50 w-52 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5">
+            {options.map(([val, text]) => {
+              const selected = value === val;
+              return (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => { onChange(val); setOpen(false); }}
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg font-mono text-xs transition-all ${
+                    selected
+                      ? 'bg-cs-primary/15 text-cs-primary'
+                      : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
+                  }`}
+                >
+                  <span>{text}</span>
+                  {selected && <FiCheck className="text-xs shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

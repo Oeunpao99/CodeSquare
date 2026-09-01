@@ -135,6 +135,7 @@ export const communityService = {
   flagPost: (id) => api.post(`/community/posts/${id}/flag`),
   addComment: (id, body, parentId) => api.post(`/community/posts/${id}/comments`, { body, parent_id: parentId || null }),
   deleteComment: (id) => api.delete(`/community/comments/${id}`),
+  likeComment: (id, commentId) => api.post(`/community/posts/${id}/comments/${commentId}/like`),
   reviewQuality: (id) => api.post(`/community/posts/${id}/quality`),
   explainCode: (id) => api.post(`/community/posts/${id}/explain`),
 };
@@ -195,7 +196,8 @@ export const noteService = {
   create: (body) => api.post('/notes', body),
   get: (id) => api.get(`/notes/${id}`),
   update: (id, patch) => api.patch(`/notes/${id}`, patch),
-  remove: (id) => api.delete(`/notes/${id}`),
+  remove: (id) => api.post(`/notes/${id}/delete`),
+  favorite: (id, favorite) => api.post(`/notes/${id}/favorite`, { favorite }),
   reveal: (id, password) => api.post(`/notes/${id}/secret`, { password }),
   convert: (id) => api.post(`/notes/${id}/convert`),
   vaultStatus: () => api.get('/notes/vault/status'),

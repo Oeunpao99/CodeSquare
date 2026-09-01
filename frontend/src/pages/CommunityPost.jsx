@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiCornerUpLeft, FiSend, FiTrash2 } from 'react-icons/fi';
+import { FiArrowLeft, FiCornerUpLeft, FiSend, FiTrash2, FiHeart } from 'react-icons/fi';
 import { communityService } from '../services/api';
 import { toast } from '../utils/toast';
 import PostCard, { Avatar, AuthorName, timeAgo } from '../components/PostCard';
@@ -72,6 +72,13 @@ const threadSize = (comments, cid) => {
   }
   return 0;
 };
+
+const replaceComment = (comments, cid, next) =>
+  comments.map((c) => {
+    if (c.id === cid) return { ...c, ...next };
+    if (c.replies && c.replies.length) return { ...c, replies: replaceComment(c.replies, cid, next) };
+    return c;
+  });
 
 function CommunityPost() {
   const { id } = useParams();
@@ -210,6 +217,24 @@ function CommunityPost() {
     }
   };
 
+  const likeComment = async (c) => {
+    const prev = { ...c };
+    const next = { ...c, liked_by_me: !c.liked_by_me, like_count: (c.like_count || 0) + (c.liked_by_me ? -1 : 1) };
+    setPost((p) => ({ ...p, comments: replaceComment(p.comments, c.id, next) }));
+    try {
+      const r = await communityService.likeComment(id, c.id);
+      setPost((p) => ({
+        ...p,
+        comments: replaceComment(p.comments, c.id, {
+          ...next, liked_by_me: r.data.liked, like_count: r.data.like_count,
+        }),
+      }));
+    } catch {
+      setPost((p) => ({ ...p, comments: replaceComment(p.comments, c.id, prev) }));
+      toast.error('Could not like.');
+    }
+  };
+
   const renderThread = (c, depth) => (
     <div
       key={c.id}
@@ -234,7 +259,20 @@ function CommunityPost() {
       </div>
       <p className="text-sm text-cs-text-dim whitespace-pre-line pl-9">{c.body}</p>
 
-      <div className="pl-9 mt-1.5">
+      <div className="pl-9 mt-1.5 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => likeComment(c)}
+          className={`inline-flex items-center gap-1 text-[11px] font-mono transition-colors ${
+            c.liked_by_me
+              ? 'text-cs-red'
+              : 'text-cs-text-muted hover:text-cs-red'
+          }`}
+          title={c.liked_by_me ? 'Unlike' : 'Like'}
+        >
+          <FiHeart className={`text-xs ${c.liked_by_me ? 'fill-current' : ''}`} />
+          {c.like_count ? c.like_count : ''}
+        </button>
         <button
           type="button"
           onClick={() => launchReply(c.id)}
