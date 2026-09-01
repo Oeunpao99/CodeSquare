@@ -16,6 +16,7 @@
   --cs-green: 74 222 128;
   --cs-orange: 251 146 60;
   --cs-red: 248 113 113;
+  --cs-gold: 251 191 36;
   --cs-teal: 13 148 136;
   --cs-deep-teal: 17 94 89;
   --cs-text: 228 228 231;
@@ -23,6 +24,12 @@
   --cs-text-muted: 113 113 122;
   --cs-line: 255 255 255;
   --cs-overlay: 255 255 255;
+}
+
+/* Light themes get a deeper, ink-safe gold so champion accents stay readable
+   on white surfaces. */
+[data-mode='light'] {
+  --cs-gold: 158 103 2;
 }
 
 @layer base {

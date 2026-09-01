@@ -23,6 +23,7 @@ export default {
         'cs-green': v('cs-green'),
         'cs-orange': v('cs-orange'),
         'cs-red': v('cs-red'),
+        'cs-gold': v('cs-gold'),
         'cs-teal': v('cs-teal'),
         'cs-deep-teal': v('cs-deep-teal'),
         'cs-text': v('cs-text'),
