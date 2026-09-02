@@ -4,19 +4,23 @@ version = "1.0.0"
 description = "CodeSphere AI Learning Platform - FastAPI backend"
 requires-python = ">=3.11,<3.13"
 dependencies = [
-    "fastapi==0.104.1",
-    "uvicorn[standard]==0.24.0",
-    "python-jose[cryptography]==3.3.0",
-    "python-multipart==0.0.6",
-    "pydantic==2.5.2",
-    "sqlalchemy==2.0.23",
-    "asyncpg==0.29.0",
-    "psycopg[binary]==3.1.19",
-    "alembic==1.13.1",
-    "httpx==0.25.2",
+    # Pinned forward past known DoS / auth CVEs:
+    #   starlette < 0.40  -> CVE-2024-47874 (multipart memory-exhaustion DoS)
+    #   python-multipart < 0.0.18 -> CVE-2024-24762 / CVE-2024-53981 (ReDoS / CPU DoS)
+    #   python-jose (any) -> CVE-2024-33663 / CVE-2024-33664 — replaced with PyJWT
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.32.1",
+    "pyjwt==2.10.1",
+    "python-multipart==0.0.18",
+    "pydantic==2.10.4",
+    "sqlalchemy==2.0.36",
+    "asyncpg==0.30.0",
+    "psycopg[binary]==3.2.3",
+    "alembic==1.14.0",
+    "httpx==0.28.1",
     "openai>=1.99,<2",
-    "google-auth==2.25.2",
-    "google-auth-oauthlib==1.2.0",
-    "python-dotenv==1.0.0",
-    "bcrypt==4.1.2",
+    "google-auth==2.37.0",
+    "google-auth-oauthlib==1.2.1",
+    "python-dotenv==1.0.1",
+    "bcrypt==4.2.1",
 ]

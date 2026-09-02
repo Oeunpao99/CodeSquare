@@ -62,7 +62,7 @@ export const lessonService = {
   getLesson: (slug, moduleId, lessonId) => 
     api.get(`/lessons/languages/${slug}/modules/${moduleId}/lessons/${lessonId}`),
   submitExercise: (exerciseId, code) =>
-    api.post('/lessons/submit-exercise', null, { params: { exercise_id: exerciseId, code } }),
+    api.post('/lessons/submit-exercise', { exercise_id: exerciseId, code }),
   getPractice: (limit = 10, slugs = null) =>
     api.get('/lessons/practice', { params: { limit, ...(slugs ? { slugs } : {}) } }),
   completeLesson: (lessonId, score, timeSpent, attempts) => 

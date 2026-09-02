@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +16,7 @@ from ai.tutor import AITutor
 from database import get_db
 from models.models import Challenge, ChallengeAttempt, User
 from routers.auth import get_current_user
+import sandbox
 
 router = APIRouter()
 ai_tutor = AITutor()
@@ -23,53 +24,11 @@ ai_tutor = AITutor()
 DIFFICULTY_ORDER = {"beginner": 0, "intermediate": 1, "advanced": 2}
 
 
-# ---------- test harness (mirrors routers/lessons.submit_exercise) ----------
-
-def _run_tests(code: str, test_cases: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-    """Execute the user's code, then evaluate each test. Tests may reference
-    names the code defines OR the raw submission string via `code`.
-    """
-    tests = (test_cases or {}).get("tests", []) if isinstance(test_cases, dict) else []
-    results: List[Dict[str, Any]] = []
-    passed = True
-
-    for test_case in tests:
-        try:
-            exec_globals = {"code": code, "__code__": code}
-            try:
-                compile(code, "<user_code>", "exec")
-                exec(code, exec_globals)  # noqa: S102 - sandboxed dev harness
-            except Exception:
-                # Non-Python submissions (SQL, HTML, JS) still run string tests.
-                pass
-
-            test_code = test_case.get("test", "")
-            try:
-                outcome = eval(test_code, exec_globals)  # noqa: S307
-            except SyntaxError:
-                exec(test_code, exec_globals)  # noqa: S102
-                outcome = True
-            if not outcome:
-                raise AssertionError(test_case.get("description", "test failed"))
-            results.append({"passed": True, "description": test_case.get("description", "")})
-        except Exception as exc:  # noqa: BLE001
-            passed = False
-            results.append(
-                {
-                    "passed": False,
-                    "description": test_case.get("description", ""),
-                    "error": str(exc),
-                }
-            )
-
-    tests_total = len(results)
-    tests_passed = sum(1 for r in results if r["passed"])
-    return {
-        "passed": passed and tests_total > 0,
-        "results": results,
-        "tests_passed": tests_passed,
-        "tests_total": tests_total,
-    }
+async def _run_tests(code: str, test_cases: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Grade a submission. Content assertions are checked statically; anything
+    that has to run the user's code goes to an isolated, resource-capped child
+    process. See `backend/sandbox.py`."""
+    return await sandbox.grade_async(code, test_cases)
 
 
 # ---------- schemas ----------
@@ -101,7 +60,7 @@ class ChallengeDetail(BaseModel):
 
 
 class SubmitRequest(BaseModel):
-    code: str
+    code: str = Field(default="", max_length=20_000)
 
 
 class SubmitResponse(BaseModel):
@@ -313,7 +272,7 @@ async def submit_challenge(
 ):
     challenge = await _get_by_slug(db, slug)
 
-    run = _run_tests(body.code, challenge.test_cases)
+    run = await _run_tests(body.code, challenge.test_cases)
 
     prior_pass = await db.execute(
         select(func.count(ChallengeAttempt.id)).where(

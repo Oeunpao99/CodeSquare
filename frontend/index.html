@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!-- The Content-Security-Policy is served as a real HTTP header by
+         frontend/nginx.conf (a <meta> CSP would also break the Vite dev
+         server's HMR). -->
+
     <title>CodeSphere - Learn to Code with AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

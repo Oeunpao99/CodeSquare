@@ -5,6 +5,18 @@ import CodeEditor from './CodeEditor';
 // A small markdown renderer: fenced code blocks (with a copy button), inline
 // `code` / **bold** / [links], `#`–`###` headings, and `-` / `1.` lists.
 // Enough for tutor replies, project briefs and notes.
+//
+// This content is UNTRUSTED — it comes from other users' community posts and
+// from LLM output that a user can steer. The renderer never emits raw HTML, and
+// link hrefs are restricted to http(s)/mailto/tel/relative so a
+// `[x](javascript:…)` / `data:` link can't run script when clicked.
+
+function safeHref(url) {
+  const u = String(url || '').trim();
+  if (/^(\/|#|\.|\?)/.test(u)) return u;            // relative / anchor / query
+  if (/^(https?:|mailto:|tel:)/i.test(u)) return u; // explicit safe schemes only
+  return null;                                       // javascript:, data:, vbscript:, …
+}
 
 function renderInline(text, keyBase = '') {
   const out = [];
@@ -24,10 +36,22 @@ function renderInline(text, keyBase = '') {
         </code>
       );
     } else {
+      const href = safeHref(m[5]);
       out.push(
-        <a key={`${keyBase}a${k++}`} href={m[5]} target="_blank" rel="noreferrer" className="underline text-cs-primary">
-          {m[4]}
-        </a>
+        href ? (
+          <a
+            key={`${keyBase}a${k++}`}
+            href={href}
+            target="_blank"
+            rel="noreferrer noopener nofollow"
+            className="underline text-cs-primary"
+          >
+            {m[4]}
+          </a>
+        ) : (
+          // Unsupported/unsafe scheme — show the label as plain text, not a link.
+          <span key={`${keyBase}a${k++}`} title={`blocked link: ${m[5]}`}>{m[4]}</span>
+        )
       );
     }
     rest = rest.slice(m.index + m[0].length);

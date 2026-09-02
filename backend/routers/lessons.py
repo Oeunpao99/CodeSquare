@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from database import get_db
 from models.models import Language, Module, Lesson, Exercise, UserProgress
 from routers.auth import get_current_user
 from models.models import User
 from datetime import datetime
+import sandbox
 
 router = APIRouter()
 
@@ -17,6 +18,10 @@ class LessonCompleteRequest(BaseModel):
     score: float = 100
     time_spent: int = 0
     attempts: int = 1
+
+class ExerciseSubmission(BaseModel):
+    exercise_id: int
+    code: str = Field(default="", max_length=20_000)
 
 class LanguageResponse(BaseModel):
     id: int
@@ -204,61 +209,24 @@ async def get_lesson(
 
 @router.post("/submit-exercise")
 async def submit_exercise(
-    exercise_id: int,
-    code: str,
+    submission: ExerciseSubmission,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    exercise_result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
+    exercise_result = await db.execute(
+        select(Exercise).where(Exercise.id == submission.exercise_id)
+    )
     exercise = exercise_result.scalar_one_or_none()
-    
+
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
-    
-    passed = True
-    results = []
 
-    for test_case in exercise.test_cases.get("tests", []):
-        try:
-            exec_globals = {"code": code, "__code__": code}
-            # The user's code may not be Python (e.g. HTML, SQL, JS, shell, or
-            # placeholder text). Try to exec it so variable-based tests get
-            # their namespace, but swallow any compile/runtime errors so
-            # string-content tests (which reference `code`) still run.
-            try:
-                compile(code, "<user_code>", "exec")
-                exec(code, exec_globals)
-            except Exception:
-                pass
-
-            test_code = test_case.get("test", "")
-            # Tests can be Python `assert` statements (which raise on failure)
-            # OR plain boolean expressions (e.g. "'CREATE TABLE' in code"). We
-            # eval the expression when possible so a False result fails the
-            # test; otherwise fall back to exec for statement-style tests.
-            try:
-                result = eval(test_code, exec_globals)
-            except SyntaxError:
-                exec(test_code, exec_globals)
-                result = True
-            # Only an explicit False fails the test. Statement-style checks that
-            # are still valid expressions (e.g. `print(...)`) eval to None — they
-            # pass as long as they ran without raising.
-            if result is False:
-                raise AssertionError(test_case.get("description", "test failed"))
-            results.append({"passed": True, "description": test_case.get("description", "")})
-        except Exception as e:
-            passed = False
-            results.append({
-                "passed": False, 
-                "description": test_case.get("description", ""),
-                "error": str(e)
-            })
-    
+    # Grading runs untrusted code out-of-process with resource + time limits.
+    graded = await sandbox.grade_async(submission.code, exercise.test_cases)
     return {
-        "passed": passed,
-        "results": results,
-        "message": "All tests passed!" if passed else "Some tests failed. Keep trying!"
+        "passed": graded["passed"],
+        "results": graded["results"],
+        "message": "All tests passed!" if graded["passed"] else "Some tests failed. Keep trying!",
     }
 
 @router.post("/complete-lesson")

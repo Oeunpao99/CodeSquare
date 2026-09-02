@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from pydantic import BaseModel, EmailStr, Field, ConfigDict, computed_field
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 from typing import Optional
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 import base64
 import binascii
 import re
@@ -19,16 +20,33 @@ load_dotenv()
 
 router = APIRouter()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "codesphere-secret-key-change-in-production-2024")
+# The JWT signing key is mandatory and must be strong — a forged token here is a
+# full account (and admin) takeover. No fallback: refuse to boot without one.
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+_INSECURE_KEYS = {
+    "",
+    "codesphere-secret-key-change-in-production-2024",
+    "change-me",
+    "secret",
+    "your-secret-key",
+}
+if SECRET_KEY in _INSECURE_KEYS or len(SECRET_KEY) < 32:
+    raise RuntimeError(
+        "SECRET_KEY is unset, too short, or a known default. Set SECRET_KEY in "
+        "the environment to a unique random string of at least 32 characters "
+        '(e.g. `python -c "import secrets; print(secrets.token_urlsafe(48))"`).'
+    )
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 class UserCreate(BaseModel):
-    email: str
-    username: str
-    password: str
+    email: str = Field(
+        min_length=5, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+    )
+    username: str = Field(min_length=3, max_length=32, pattern=r"^[A-Za-z0-9_.-]+$")
+    password: str = Field(min_length=10, max_length=128)
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -113,7 +131,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         if sub is None:
             raise credentials_exception
         user_id = int(sub)
-    except (JWTError, ValueError, TypeError):
+    except (PyJWTError, ValueError, TypeError):
         raise credentials_exception
     
     result = await db.execute(select(User).where(User.id == user_id))
@@ -214,8 +232,13 @@ async def google_auth(auth_data: GoogleAuth, db: AsyncSession = Depends(get_db))
             token_type="bearer",
             user=UserResponse.model_validate(user)
         )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Google authentication failed: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception:
+        # Don't echo the underlying library error back to the client.
+        import logging
+        logging.getLogger("auth").warning("Google auth failed", exc_info=True)
+        raise HTTPException(status_code=400, detail="Google authentication failed.")
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):

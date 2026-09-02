@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from database import get_db, async_session
 from routers.auth import get_current_user
@@ -68,32 +68,32 @@ async def _log_usage(db: AsyncSession, user_id: int, kind: str) -> None:
 
 class HintRequest(BaseModel):
     exercise_id: int
-    code: str
-    error_message: Optional[str] = None
-    current_hint_level: int = 1
+    code: str = Field(default="", max_length=20_000)
+    error_message: Optional[str] = Field(default=None, max_length=8_000)
+    current_hint_level: int = Field(default=1, ge=1, le=10)
 
 class CodeReviewRequest(BaseModel):
-    code: str
-    language: str
-    lesson_context: str
-    exercise_description: str
+    code: str = Field(default="", max_length=20_000)
+    language: str = Field(default="", max_length=40)
+    lesson_context: str = Field(default="", max_length=8_000)
+    exercise_description: str = Field(default="", max_length=8_000)
 
 class ProjectRequest(BaseModel):
-    language: str
-    skills_learned: List[str]
-    difficulty: str
-    focus: Optional[str] = None  # career-major descriptor, e.g. "AI engineering — ..."
+    language: str = Field(default="", max_length=40)
+    skills_learned: List[str] = Field(default_factory=list, max_length=200)
+    difficulty: str = Field(default="", max_length=40)
+    focus: Optional[str] = Field(default=None, max_length=2_000)
 
 class ChatMessage(BaseModel):
     role: str          # "user" | "assistant"
-    content: str
+    content: str = Field(default="", max_length=24_000)
 
 
 class ChatRequest(BaseModel):
-    message: str
-    context: Optional[str] = None
-    language: Optional[str] = None
-    history: List[ChatMessage] = []   # prior turns, oldest first
+    message: str = Field(default="", max_length=16_000)
+    context: Optional[str] = Field(default=None, max_length=16_000)
+    language: Optional[str] = Field(default=None, max_length=40)
+    history: List[ChatMessage] = Field(default_factory=list, max_length=40)
     session_id: Optional[int] = None  # persist this exchange into a saved chat
 
 class HintResponse(BaseModel):
@@ -150,6 +150,7 @@ async def get_hint(
     hint = hints[hint_index] if hints else "Try breaking down the problem into smaller steps."
     
     if request.current_hint_level >= 3 or not hints:
+        await _enforce_quota(db, current_user)
         ai_hint = await ai_tutor.generate_hint(
             exercise.description,
             request.code,
@@ -172,6 +173,7 @@ async def review_code(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    await _enforce_quota(db, current_user)
     review = await ai_tutor.review_code(
         request.code,
         request.language,
@@ -187,6 +189,7 @@ async def generate_project(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    await _enforce_quota(db, current_user)
     project = await ai_tutor.generate_project(
         request.language,
         request.skills_learned,
@@ -202,6 +205,7 @@ async def chat_with_tutor(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    await _enforce_quota(db, current_user)
     response = await ai_tutor.chat(
         request.message,
         request.context,
@@ -240,6 +244,7 @@ async def compact_chat(
     if len(turns) < 2:
         return CompactResponse(summary="")
 
+    await _enforce_quota(db, current_user)
     transcript = "\n\n".join(f"{t.role.upper()}: {t.content}" for t in turns)
     summary = (await ai_tutor.summarize_chat(transcript)).strip()
     await _log_usage(db, current_user.id, "chat")
@@ -279,6 +284,7 @@ async def compact_chat(
 @router.post("/chat/stream")
 async def chat_with_tutor_stream(
     request: ChatRequest,
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Server-Sent Events version of /chat. Frames: `data: {json}\\n\\n` where
@@ -286,6 +292,7 @@ async def chat_with_tutor_stream(
     ({response, suggestions}, terminal). Falls back to /chat on the client if
     this stream can't be opened.
     """
+    await _enforce_quota(db, current_user)
     history = [m.model_dump() for m in request.history]
     user_id = current_user.id
 
@@ -393,6 +400,33 @@ async def _window_stats(db: AsyncSession, user_id: int, since: datetime):
         )
     ).one()
     return int(row[0] or 0), row[1]
+
+
+async def _enforce_quota(db: AsyncSession, user: User) -> None:
+    """Reject the call with 429 when the user is already over their plan's
+    rolling token budget. Runs BEFORE the model call, so it actually caps spend
+    (the old `_log_usage` only recorded usage after the fact)."""
+    plan = plans_cfg.effective_plan(user.plan, getattr(user, "plan_expires_at", None))
+    now = datetime.utcnow()
+    sess_used, _ = await _window_stats(
+        db, user.id, now - timedelta(hours=plans_cfg.SESSION_WINDOW_HOURS)
+    )
+    if sess_used >= plan["session_tokens"]:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                f"You've hit your {plans_cfg.SESSION_WINDOW_HOURS}-hour AI limit. "
+                "It refills gradually — try again later, or upgrade for more."
+            ),
+        )
+    week_used, _ = await _window_stats(
+        db, user.id, now - timedelta(days=plans_cfg.WEEKLY_WINDOW_DAYS)
+    )
+    if week_used >= plan["weekly_tokens"]:
+        raise HTTPException(
+            status_code=429,
+            detail="You've used this week's AI limit. It resets in a few days, or upgrade for more.",
+        )
 
 
 def _window(label: str, used: int, limit: int, oldest, span: timedelta) -> UsageWindow:
