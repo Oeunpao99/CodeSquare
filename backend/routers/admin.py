@@ -12,7 +12,8 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -114,7 +115,7 @@ async def require_admin(
         if payload.get("scope") != "admin":
             raise unauth
         uid = int(payload["sub"])
-    except (JWTError, KeyError, ValueError, TypeError):
+    except (PyJWTError, KeyError, ValueError, TypeError):
         raise unauth
     user = (await db.execute(select(User).where(User.id == uid))).scalar_one_or_none()
     if user is None or not user.is_admin:

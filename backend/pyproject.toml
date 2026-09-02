@@ -11,6 +11,9 @@ dependencies = [
     "fastapi==0.115.6",
     "uvicorn[standard]==0.32.1",
     "pyjwt==2.10.1",
+    # Fernet for the Notes credential vault (routers/notes.py). Was previously
+    # pulled in transitively by python-jose[cryptography]; now a direct dep.
+    "cryptography==44.0.0",
     "python-multipart==0.0.18",
     "pydantic==2.10.4",
     "sqlalchemy==2.0.36",
