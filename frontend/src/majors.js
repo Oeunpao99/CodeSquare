@@ -14,7 +14,7 @@ export const MAJORS = {
     blurb:
       'The fundamentals every engineer shares: logic, data structures, algorithms and how to reason about efficiency.',
     focus: ['Programming fundamentals', 'Data structures', 'Algorithms', 'Recursion', 'Big-O thinking', 'OOP'],
-    tracks: ['python', 'python-intermediate', 'javascript', 'linux-shell'],
+    tracks: ['python', 'python-intermediate', 'dsa', 'javascript', 'linux-shell'],
     projectLang: 'python',
     projectFocus:
       'core computer-science fundamentals — implementing data structures, algorithms and small command-line programs that exercise logic, recursion and complexity analysis',
@@ -28,10 +28,24 @@ export const MAJORS = {
     blurb:
       'Load messy data, clean it, measure it and communicate what you found. Python plus SQL plus a statistical mindset.',
     focus: ['Python for data', 'Working with datasets', 'Statistics basics', 'SQL queries', 'Data cleaning', 'Reporting'],
-    tracks: ['python', 'python-intermediate', 'backend-foundations', 'linux-shell'],
+    tracks: ['python', 'python-intermediate', 'sql-data', 'backend-foundations', 'linux-shell'],
     projectLang: 'python',
     projectFocus:
       'data analysis — loading a dataset, cleaning it, computing summary statistics and metrics, and producing a clear text or tabular report of the findings',
+  },
+
+  'data-analyst': {
+    label: 'Data Analyst',
+    icon: 'TbChartHistogram',
+    color: '#34D399',
+    tagline: 'Answer business questions with data',
+    blurb:
+      'Query databases directly, shape and aggregate the results, and turn them into clear answers. SQL-first, with just enough Python.',
+    focus: ['SQL queries', 'Joins & aggregation', 'Window functions', 'Python for data', 'Data cleaning', 'Reporting'],
+    tracks: ['python', 'python-intermediate', 'sql-data', 'linux-shell'],
+    projectLang: 'python',
+    projectFocus:
+      'data analysis — writing SQL to pull and aggregate data, loading results in Python, computing metrics and summary tables, and producing a clear written report of the findings',
   },
 
   'ai-engineer': {
@@ -40,12 +54,12 @@ export const MAJORS = {
     color: '#22D3EE',
     tagline: 'Build with models',
     blurb:
-      'Text processing, classification, evaluation and prompt-driven apps — the practical side of shipping AI features.',
-    focus: ['Python', 'Text processing', 'Classification basics', 'Working with model APIs', 'Prompt design', 'Evaluation'],
-    tracks: ['python', 'python-intermediate', 'backend-foundations', 'linux-shell'],
+      'The practical side of shipping AI features: model APIs, structured output, tool use, retrieval (RAG), evaluation and safe serving — on a Python + backend base.',
+    focus: ['Python', 'Model APIs & tool use', 'Prompt design', 'Structured output', 'Embeddings & RAG', 'Evaluation & guardrails'],
+    tracks: ['python', 'python-intermediate', 'sql-data', 'backend-foundations', 'linux-shell', 'ai-llm'],
     projectLang: 'python',
     projectFocus:
-      'AI / machine-learning engineering — building things like a rule-based or statistical text classifier, a keyword extractor, a simple recommender, a prompt-driven assistant, or a small evaluation harness that scores model output',
+      'AI engineering — building LLM-powered features: a prompt-driven assistant with structured JSON output, a tool-calling agent loop, a small RAG pipeline over local documents, or an evaluation harness that scores model output against golden answers',
   },
 
   'web-developer': {
@@ -70,7 +84,7 @@ export const MAJORS = {
     blurb:
       'APIs, databases, migrations and the Git workflow. The services and data models everything else depends on.',
     focus: ['Python', 'REST APIs', 'Databases & SQL', 'Schema migrations', 'Validation & auth', 'Git & GitHub'],
-    tracks: ['python', 'python-intermediate', 'backend-foundations', 'linux-shell', 'full-stack'],
+    tracks: ['python', 'python-intermediate', 'sql-data', 'backend-foundations', 'linux-shell', 'full-stack'],
     projectLang: 'python',
     projectFocus:
       'back-end engineering — designing REST endpoints, request/response models, validation, and small services that read and write structured data (in-memory or SQL)',
@@ -88,6 +102,22 @@ export const MAJORS = {
     projectLang: 'python',
     projectFocus:
       'practical automation — scripts that read and write files, parse or transform text, call a web API and glue steps together to automate a repetitive task',
+  },
+
+  // NOTE: reuses shared tracks until a dedicated `networking` track
+  // (OSI / TCP-IP / DNS / HTTP, then network automation) is added.
+  'network-engineer': {
+    label: 'Network Engineer',
+    icon: 'TbNetwork',
+    color: '#38BDF8',
+    tagline: 'Keep the packets moving',
+    blurb:
+      'The Linux command line, scripting and services behind networked systems — a base for TCP/IP, DNS, HTTP and network automation.',
+    focus: ['Linux & shell', 'Processes & permissions', 'Python scripting', 'HTTP & APIs', 'Automation', 'Troubleshooting'],
+    tracks: ['linux-shell', 'python', 'python-intermediate', 'backend-foundations'],
+    projectLang: 'python',
+    projectFocus:
+      'network / infrastructure automation — Python scripts that check connectivity, parse logs or config, call device or cloud APIs, and report status on a schedule',
   },
 };
 

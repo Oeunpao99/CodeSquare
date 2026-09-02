@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom';
 import { FiUsers, FiSend, FiX, FiLink, FiAward, FiImage, FiSearch, FiEye } from 'react-icons/fi';
 import { communityService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { toast } from '../utils/toast';
 import PostCard, { KIND_META, ACCENT } from '../components/PostCard';
 import Markdown from '../components/Markdown';
@@ -83,6 +84,15 @@ function Composer({ onPosted, sendRef }) {
   const [viewing, setViewing] = useState(-1);
   const urls = useMemo(() => images.map((f) => URL.createObjectURL(f)), [images]);
   const dragDepth = useRef(0);
+  const taRef = useRef(null);
+
+  const autosize = useCallback(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 480)}px`;
+  }, []);
+  useEffect(() => { autosize(); }, [body, showPreview, autosize]);
 
   const MAX_IMAGES = 6;
   const tagList = tags.split(/[,\s]+/).map((t) => t.trim()).filter(Boolean).slice(0, 5);
@@ -128,7 +138,7 @@ function Composer({ onPosted, sendRef }) {
   return (
     <form
       onSubmit={submit}
-      className={`card mb-6 transition-colors ${dragging ? 'border-cs-primary/60' : ''}`}
+      className={`card mb-6 max-w-3xl transition-colors ${dragging ? 'border-cs-primary/60' : ''}`}
       onDragEnter={(e) => { e.preventDefault(); dragDepth.current++; setDragging(true); }}
       onDragOver={(e) => e.preventDefault()}
       onDragLeave={() => { dragDepth.current = Math.max(0, dragDepth.current - 1); if (dragDepth.current === 0) setDragging(false); }}
@@ -154,31 +164,29 @@ function Composer({ onPosted, sendRef }) {
         })}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <p className="text-xs text-cs-text-muted">{body.length > 0 ? `${body.length}/4000` : PLACEHOLDER[kind]}</p>
-      </div>
-
       {showPreview ? (
         <Preview kind={kind} body={body} images={images} tagList={tagList} link={link.trim()} />
       ) : (
         <textarea
+          ref={taRef}
           value={body}
-          onChange={(e) => setBody(e.target.value)}
-          rows={3}
+          onChange={(e) => { setBody(e.target.value); autosize(); }}
+          onInput={autosize}
+          rows={2}
           maxLength={4000}
           placeholder={PLACEHOLDER[kind]}
-          className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/50 resize-y leading-relaxed"
+          className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/50 resize-none leading-relaxed overflow-y-auto min-h-[4.5rem] max-h-[30rem]"
         />
       )}
 
       {urls.length === 1 && (
-        <div className="relative mt-3 group">
+        <div className="relative mt-3 group max-w-md">
           <div
             onClick={() => setViewing(0)}
             className="cursor-zoom-in rounded-lg overflow-hidden border border-cs-line/15 bg-cs-darkest"
           >
-            <div className="flex items-center justify-center min-h-[16rem] p-3 sm:p-4">
-              <img src={urls[0]} alt="" className="max-w-full max-h-[28rem] object-contain rounded-md" />
+            <div className="flex items-center justify-center min-h-[7rem] p-3 sm:p-4">
+              <img src={urls[0]} alt="" className="max-w-full max-h-80 object-contain rounded-md" />
             </div>
           </div>
           <button
@@ -226,59 +234,67 @@ function Composer({ onPosted, sendRef }) {
       )}
 
       <div className="flex flex-wrap items-center gap-2 mt-3">
-        <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-cs-line/25 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 text-xs font-mono cursor-pointer transition-colors">
-          <FiImage /> {images.length ? `+ image (${images.length}/${MAX_IMAGES})` : 'add images · click or drop'}
-          <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
-        </label>
-        <input
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          placeholder="tags: python, sql"
-          className="flex-1 min-w-[176px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs font-mono outline-none focus:border-cs-primary/50"
-        />
-        {!showLink ? (
-          <button type="button" onClick={() => setShowLink(true)} className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary text-xs font-mono">
-            <FiLink /> add link
+        <div className="flex flex-1 flex-wrap items-center gap-2 min-w-[200px]">
+          <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-cs-line/25 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 text-xs font-mono cursor-pointer transition-colors">
+            <FiImage /> {images.length ? `+ image (${images.length}/${MAX_IMAGES})` : 'add images · click or drop'}
+            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
+          </label>
+          <input
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="tags: python, sql"
+            className="flex-1 min-w-[140px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs font-mono outline-none focus:border-cs-primary/50"
+          />
+          {!showLink ? (
+            <button type="button" onClick={() => setShowLink(true)} className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary text-xs font-mono">
+              <FiLink /> add link
+            </button>
+          ) : (
+            <div className="flex items-center gap-1 flex-1 min-w-[200px]">
+              <input
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="https://github.com/you/project"
+                className="flex-1 rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs font-mono outline-none focus:border-cs-primary/50"
+              />
+              <button type="button" onClick={() => { setShowLink(false); setLink(''); }} className="p-2 text-cs-text-muted hover:text-cs-red"><FiX /></button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 ml-auto shrink-0">
+          <span className="font-mono text-[10px] text-cs-text-muted tabular-nums">{body.length}/4000</span>
+          <button
+            type="button"
+            onClick={() => setShowPreview((p) => !p)}
+            className={`btn btn-sm ${showPreview ? 'btn-secondary' : 'btn-ghost'}`}
+          >
+            <FiEye /> {showPreview ? 'Editor' : 'Preview'}
           </button>
-        ) : (
-          <div className="flex items-center gap-1 flex-1 min-w-[200px]">
-            <input
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="https://github.com/you/project"
-              className="flex-1 rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs font-mono outline-none focus:border-cs-primary/50"
-            />
-            <button type="button" onClick={() => { setShowLink(false); setLink(''); }} className="p-2 text-cs-text-muted hover:text-cs-red"><FiX /></button>
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => setShowPreview((p) => !p)}
-          className={`btn btn-sm ${showPreview ? 'btn-secondary' : 'btn-ghost'}`}
-        >
-          <FiEye /> {showPreview ? 'Editor' : 'Preview'}
-        </button>
-        <span className="font-mono text-[10px] text-cs-text-muted">{body.length}/4000</span>
-        <button
-          ref={sendRef}
-          type="submit"
-          disabled={posting || body.trim().length < 2}
-          className="btn btn-primary btn-sm disabled:opacity-40"
-        >
-          <FiSend /> {posting ? 'Posting…' : 'Post'}
-        </button>
+          <button
+            ref={sendRef}
+            type="submit"
+            disabled={posting || body.trim().length < 2}
+            className="btn btn-primary btn-sm disabled:opacity-40"
+          >
+            <FiSend /> {posting ? 'Posting…' : 'Post'}
+          </button>
+        </div>
       </div>
     </form>
   );
 }
 
 function Community() {
+  const { user: me } = useAuth();
   const [params, setParams] = useSearchParams();
   const tag = params.get('tag') || '';
   const [sort, setSort] = useState('new');
   const [kind, setKind] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [composerOpen, setComposerOpen] = useState(false);
   const [posts, setPosts] = useState(null); // null = loading, false = error
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -318,6 +334,7 @@ function Community() {
   const drop = (id) => setPosts((prev) => (prev || []).filter((x) => x.id !== id));
 
   const onPost = (p) => {
+    setComposerOpen(false);
     const fr = sendRef.current?.getBoundingClientRect();
     if (!fr) return;
     setPending(p);
@@ -344,15 +361,13 @@ function Community() {
   };
 
   return (
-    <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex items-end justify-between gap-4 flex-wrap lg:pr-14">
-          <div>
-            <span className="mono-label text-cs-primary"> community</span>
-            <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-              <FiUsers className="text-cs-primary" /> Dev Community
-            </h1>
-            <p className="text-sm text-cs-text-dim mt-1">
+    <main className="w-full px-6 lg:pl-10 lg:pr-16 xl:pr-24 py-8">
+      <div className="sticky top-0 z-30 -mx-6 lg:-ml-10 lg:-mr-16 xl:-mr-24 px-6 lg:pl-10 lg:pr-16 xl:pr-24 -mt-8 pt-6 pb-4 mb-6 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/[0.07]">
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <span className="font-mono text-xs text-cs-text-muted tracking-wide">~/community</span>
+            <h1 className="text-2xl font-semibold mt-0.5 tracking-tight">Dev community</h1>
+            <p className="text-sm text-cs-text-dim mt-1.5 max-w-[52ch]">
               Learn in public — share ideas, progress, questions and what you're building.
             </p>
           </div>
@@ -362,33 +377,76 @@ function Community() {
         </div>
 
         {/* Search */}
-        <form
-          onSubmit={(e) => { e.preventDefault(); setSearch(searchInput.trim()); }}
-          className="mt-4 flex items-center gap-2"
-        >
-          <div className="relative flex-1 min-w-0 max-w-md">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted text-sm" />
-            <input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="search the feed…"
-              className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 pl-9 pr-3 py-2 text-sm font-mono outline-none focus:border-cs-primary/50 placeholder:text-cs-text-muted/60"
-            />
-          </div>
-          <button type="submit" className="btn btn-primary btn-sm">Search</button>
-          {search && (
+        <div className="mt-4 flex items-center justify-end gap-2">
+          {searchOpen ? (
+            <form
+              onSubmit={(e) => { e.preventDefault(); setSearch(searchInput.trim()); }}
+              className="flex items-center gap-2 flex-1 max-w-md"
+            >
+              <div className="relative flex-1 min-w-0">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted text-sm" />
+                <input
+                  autoFocus
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onBlur={() => { if (!searchInput.trim() && !search) setSearchOpen(false); }}
+                  placeholder="search users, devs or the feed…"
+                  className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 pl-9 pr-3 py-1.5 text-sm font-mono outline-none focus:border-cs-primary/50 placeholder:text-cs-text-muted/60"
+                />
+              </div>
+              <button type="submit" className="btn btn-primary btn-sm">Search</button>
+              {search ? (
+                <button
+                  type="button"
+                  onClick={() => { setSearch(''); setSearchInput(''); }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-text font-mono text-xs"
+                >
+                  clear <FiX />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setSearchInput(''); setSearchOpen(false); }}
+                  aria-label="Close search"
+                  className="p-2 rounded-lg text-cs-text-muted hover:text-cs-text hover:bg-cs-overlay/5"
+                >
+                  <FiX />
+                </button>
+              )}
+            </form>
+          ) : (
             <button
               type="button"
-              onClick={() => { setSearch(''); setSearchInput(''); }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-text font-mono text-xs"
+              onClick={() => setSearchOpen(true)}
+              title="Search feed"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 font-mono text-xs transition-colors"
             >
-              clear <FiX />
+              <FiSearch className="text-sm" />
+              {search && <span className="text-cs-primary">#{search}</span>}
             </button>
           )}
-        </form>
+        </div>
       </div>
 
-      <Composer onPosted={onPost} sendRef={sendRef} />
+      {composerOpen ? (
+        <Composer onPosted={onPost} sendRef={sendRef} />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setComposerOpen(true)}
+          className="w-full max-w-3xl mb-6 flex items-center gap-3 rounded-2xl border border-cs-line/10 bg-cs-darker/40 px-4 py-3 text-left transition-colors hover:border-cs-primary/40 group"
+        >
+          <span className="w-9 h-9 rounded-xl bg-cs-darkest border border-cs-primary/25 flex items-center justify-center font-mono font-bold text-cs-primary overflow-hidden shrink-0">
+            {me?.avatar
+              ? <img src={me.avatar} alt="" className="w-full h-full object-cover" />
+              : <span>{(me?.display_name || me?.username)?.charAt(0).toUpperCase() || '?'}</span>}
+          </span>
+          <span className="flex-1 font-mono text-sm text-cs-text-muted group-hover:text-cs-text transition-colors">
+            Share progress, ask a question or show what you built…
+          </span>
+          <FiSend className="text-cs-text-muted group-hover:text-cs-primary transition-colors shrink-0" />
+        </button>
+      )}
 
       {term && (
         <PublishTerminal
@@ -405,51 +463,55 @@ function Community() {
         </FlyIcon>
       )}
 
-      {/* Kind filter chips */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        {['', ...KIND_KEYS].map((k) => {
-          const Meta = k ? KIND_META[k] : null;
-          const Icon = Meta ? Meta.icon : FiUsers;
-          const active = kind === k;
-          return (
-            <button
-              key={k || 'all'}
-              onClick={() => setKind(k)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-mono text-xs transition-colors ${
-                active
-                  ? 'bg-cs-primary/15 text-cs-primary border-cs-primary/40'
-                  : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
-              }`}
-            >
-              <Icon />
-              {k ? Meta.label : 'all'}
-            </button>
-          );
-        })}
-      </div>
+      {/* Filter bar: kind pills + sort */}
+      <div className="-mx-6 lg:-ml-10 lg:-mr-16 xl:-mr-24 px-6 lg:pl-10 lg:pr-16 xl:pr-24 mb-3 pb-2.5 border-b border-cs-line/[0.07]">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none" ref={feedRef}>
+            {['', ...KIND_KEYS].map((k) => {
+              const Meta = k ? KIND_META[k] : null;
+              const Icon = Meta ? Meta.icon : FiUsers;
+              const active = kind === k;
+              return (
+                <button
+                  key={k || 'all'}
+                  onClick={() => setKind(k)}
+                  className={`tap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-xs whitespace-nowrap ${
+                    active
+                      ? Meta ? ACCENT[Meta.accent] : 'bg-cs-primary/15 text-cs-primary border-cs-primary/40'
+                      : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
+                  }`}
+                >
+                  <Icon className="text-[11px]" />
+                  {k ? Meta.label : 'all'}
+                </button>
+              );
+            })}
+          </div>
 
-      <div className="flex items-center gap-2 mb-4" ref={feedRef}>
-        <div className="inline-flex rounded-lg border border-cs-line/15 overflow-hidden font-mono text-xs">
-          {['new', 'top'].map((s) => (
-            <button
-              key={s}
-              onClick={() => setSort(s)}
-              className={`px-3 py-1.5 capitalize transition-colors ${
-                sort === s ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-muted hover:text-cs-text'
-              } ${s === 'top' ? 'border-l border-cs-line/15' : ''}`}
-            >
-              {s}
-            </button>
-          ))}
+          <div className="flex items-center gap-2 shrink-0">
+            {tag && (
+              <button
+                onClick={() => setParams({})}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-cs-primary/40 bg-cs-primary/10 text-cs-primary font-mono text-xs"
+              >
+                #{tag} <FiX />
+              </button>
+            )}
+            <div className="inline-flex rounded-full border border-cs-line/15 overflow-hidden font-mono text-xs">
+              {['new', 'top'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSort(s)}
+                  className={`tap px-3 py-1.5 capitalize ${
+                    sort === s ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-muted hover:text-cs-text'
+                  } ${s === 'top' ? 'border-l border-cs-line/15' : ''}`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        {tag && (
-          <button
-            onClick={() => setParams({})}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-primary/40 bg-cs-primary/10 text-cs-primary font-mono text-xs"
-          >
-            #{tag} <FiX />
-          </button>
-        )}
       </div>
 
       {posts === null && <p className="text-cs-text-muted font-mono text-sm">loading /community…</p>}
@@ -472,17 +534,19 @@ function Community() {
       )}
 
       {Array.isArray(posts) && posts.length > 0 && (
-        <div className="space-y-3">
-          {posts.map((p) => (
-            <div key={p.id} className={`rounded-xl ${landed === p.id ? 'animate-post-land' : ''}`}>
-              <PostCard post={p} onDelete={drop} />
-            </div>
-          ))}
+        <div>
+          <div className="divide-y divide-cs-line/10">
+            {posts.map((p) => (
+              <div key={p.id} className={landed === p.id ? 'animate-post-land' : ''}>
+                <PostCard post={p} onDelete={drop} />
+              </div>
+            ))}
+          </div>
           {hasMore && (
             <button
               onClick={more}
               disabled={loadingMore}
-              className="btn btn-secondary btn-sm w-full justify-center"
+              className="btn btn-secondary btn-sm w-full justify-center mt-4"
             >
               {loadingMore ? 'Loading…' : 'Load more'}
             </button>

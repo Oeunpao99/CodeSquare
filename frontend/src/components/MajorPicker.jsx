@@ -58,7 +58,7 @@ function MajorPicker({ onboarding = false, onPicked }) {
                   <MajorIcon major={key} />
                 </span>
                 {active && (
-                  <span className="w-6 h-6 rounded-full bg-cs-primary text-cs-dark flex items-center justify-center">
+                  <span className="w-6 h-6 rounded-full bg-cs-primary text-cs-btn-text flex items-center justify-center">
                     <FiCheck className="text-sm" />
                   </span>
                 )}

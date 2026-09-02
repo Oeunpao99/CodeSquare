@@ -29,12 +29,13 @@ export default {
         'cs-text': v('cs-text'),
         'cs-text-dim': v('cs-text-dim'),
         'cs-text-muted': v('cs-text-muted'),
+        'cs-btn-text': v('cs-btn-text'),
         'cs-line': v('cs-line'),
         'cs-overlay': v('cs-overlay'),
       },
       fontFamily: {
-        'mono': ['JetBrains Mono', 'monospace'],
-        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'Kantumruy Pro', 'monospace'],
+        'sans': ['Inter', 'Kantumruy Pro', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

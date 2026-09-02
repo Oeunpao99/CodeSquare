@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useMajor } from '../context/MajorContext';
 import { authService } from '../services/api';
@@ -12,6 +13,7 @@ import { FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 // step 2 = profile (avatar / name / headline / bio / links). Skippable at
 // any point; everything is editable later from /profile.
 function Onboarding() {
+  const { t } = useTranslation();
   const { user, updateUser } = useAuth();
   const { hasMajor } = useMajor();
   const navigate = useNavigate();
@@ -46,7 +48,7 @@ function Onboarding() {
             <span className="text-cs-text-muted">~/</span>codesphere
           </div>
           <button onClick={skip} disabled={skipping} className="btn btn-ghost btn-sm font-mono">
-            {skipping ? 'Skipping…' : 'Skip for now'}
+            {skipping ? t('onboarding.skipping') : t('onboarding.skip')}
           </button>
         </div>
 
@@ -58,7 +60,7 @@ function Onboarding() {
                 <span className={`w-6 h-6 rounded-full border flex items-center justify-center ${
                   step >= n ? 'border-cs-primary bg-cs-primary/10' : 'border-cs-line/20'
                 }`}>{n}</span>
-                {n === 1 ? 'Your path' : 'Your profile'}
+                {n === 1 ? t('onboarding.your_path') : t('onboarding.your_profile')}
               </span>
               {n === 1 && <span className="flex-1 h-px bg-cs-line/15" />}
             </React.Fragment>
@@ -74,22 +76,21 @@ function Onboarding() {
                 disabled={!hasMajor}
                 className="btn btn-primary btn-lg disabled:opacity-40"
               >
-                Continue <FiArrowRight />
+                {t('onboarding.continue')} <FiArrowRight />
               </button>
             </div>
           </div>
         ) : (
           <div>
-            <span className="mono-label"> almost there</span>
-            <h1 className="text-3xl md:text-4xl font-extrabold mt-3 mb-3">Set up your profile</h1>
+            <span className="mono-label"> {t('onboarding.almost_there')}</span>
+            <h1 className="text-3xl md:text-4xl font-extrabold mt-3 mb-3">{t('onboarding.setup_profile')}</h1>
             <p className="text-cs-text-dim max-w-2xl mb-8">
-              This is what shows on your portfolio and the leaderboard. All optional — you can
-              fill it in later from your profile page.
+              {t('onboarding.setup_profile_desc')}
             </p>
 
             <div className="card p-6">
               <ProfileForm
-                submitLabel="Finish & go to dashboard"
+                submitLabel={t('onboarding.finish')}
                 extraPayload={{ complete_onboarding: true }}
                 onSaved={() => navigate('/dashboard', { replace: true })}
               />
@@ -97,7 +98,7 @@ function Onboarding() {
 
             <div className="mt-6">
               <button onClick={() => setStep(1)} className="btn btn-ghost btn-sm">
-                <FiArrowLeft /> Back
+                <FiArrowLeft /> {t('onboarding.back')}
               </button>
             </div>
           </div>

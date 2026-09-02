@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   FiHeart, FiMessageSquare, FiFlag, FiTrash2, FiEdit2, FiExternalLink,
   FiZap, FiTrendingUp, FiHelpCircle, FiGlobe, FiCode, FiCpu, FiX, FiChevronsDown,
+  FiMoreHorizontal, FiBookmark, FiRepeat,
 } from 'react-icons/fi';
 import Markdown from './Markdown';
 import { MAJORS } from '../majors';
@@ -47,14 +48,62 @@ function qualityTier(score) {
 }
 
 function Avatar({ author, size = 'w-10 h-10' }) {
+  const ring = 15 + (hashStr(author.username || '') % 85);
   return (
-    <span
-      className={`${size} rounded-lg bg-cs-darkest border border-cs-line/15 flex items-center justify-center font-mono font-bold text-cs-primary overflow-hidden shrink-0`}
-    >
-      {author.avatar
-        ? <img src={author.avatar} alt="" className="w-full h-full object-cover" />
-        : <span className="text-sm">{(author.display_name || author.username)?.charAt(0).toUpperCase()}</span>}
+    <span className={`ring-avatar ${size}`} style={{ '--p': ring }}>
+      <span>
+        {author.avatar
+          ? <img src={author.avatar} alt="" className="w-full h-full object-cover" />
+          : <span className="text-sm font-bold text-cs-primary">{(author.display_name || author.username)?.charAt(0).toUpperCase()}</span>}
+      </span>
     </span>
+  );
+}
+
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; }
+  return h;
+}
+
+function OverflowMenu({ items }) {
+  const [open, setOpen] = useState(false);
+  if (!items.length) return null;
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label="More actions"
+        aria-expanded={open}
+        className="tap inline-flex items-center px-2 py-1.5 rounded-lg text-cs-text-muted hover:text-cs-text"
+      >
+        <FiMoreHorizontal />
+      </button>
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-hidden
+            tabIndex={-1}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 cursor-default"
+          />
+          <div className="absolute right-0 top-full mt-1 z-50 min-w-[9rem] rounded-lg border border-cs-line/15 bg-cs-darkest shadow-lg overflow-hidden py-1">
+            {items.map((it) => (
+              <button
+                key={it.label}
+                onClick={() => { setOpen(false); it.onClick(); }}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs font-mono text-left transition-colors hover:bg-cs-overlay/5 ${
+                  it.danger ? 'text-cs-text-muted hover:text-cs-red' : 'text-cs-text-muted hover:text-cs-text'
+                }`}
+              >
+                {it.icon} {it.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -80,16 +129,16 @@ function ImageGrid({ images, full }) {
     return (
       <div className="mt-4">
         <div
-          className="post-image-frame cursor-zoom-in"
+          className={`post-image-frame cursor-zoom-in ${full ? 'max-w-2xl' : 'max-w-xl'}`}
           onClick={() => setViewing(0)}
           title="View full size"
         >
-          <div className="p-3 sm:p-4 bg-cs-darkest/40 flex items-center justify-center min-h-[10rem]">
+          <div className="p-3 sm:p-4 bg-cs-darkest/40 flex items-center justify-center min-h-[8rem]">
             <img
               src={images[0]}
               alt=""
               loading="lazy"
-              className="max-w-full max-h-[28rem] object-contain rounded-md"
+              className={`max-w-full object-contain rounded-md ${full ? 'max-h-[32rem]' : 'max-h-96'}`}
             />
           </div>
         </div>
@@ -105,7 +154,7 @@ function ImageGrid({ images, full }) {
 
   return (
     <div className="mt-4">
-      <div className="post-image-frame">
+      <div className={`post-image-frame ${full ? 'max-w-2xl' : 'max-w-xl'}`}>
         <div className="p-3 sm:p-4 bg-cs-darkest/40">
           <div className="grid grid-cols-2 gap-2">
             {images.map((src, i) => (
@@ -199,6 +248,38 @@ function PostCard({ post, full = false, onChange, onDelete }) {
     }
   };
 
+  const save = async () => {
+    const next = { ...p, saved_by_me: !p.saved_by_me };
+    setP(next);
+    try {
+      const r = await communityService.savePost(p.id);
+      const synced = { ...next, saved_by_me: r.data.saved };
+      setP(synced);
+      onChange?.(synced);
+      toast.success(r.data.saved ? 'Saved to your bookmarks' : 'Removed from bookmarks');
+    } catch {
+      setP(p);
+      toast.error('Could not save that.');
+    }
+  };
+
+  const doRepost = async () => {
+    if (p.is_mine) return;
+    const on = p.reposted_by_me;
+    const next = { ...p, reposted_by_me: !on, repost_count: (p.repost_count || 0) + (on ? -1 : 1) };
+    setP(next);
+    try {
+      const r = await communityService.repost(p.id);
+      const synced = { ...next, reposted_by_me: r.data.reposted, repost_count: r.data.repost_count };
+      setP(synced);
+      onChange?.(synced);
+      toast.success(r.data.reposted ? 'Reposted to your profile' : 'Repost removed');
+    } catch (e) {
+      setP(p);
+      toast.error(e.response?.data?.detail || 'Could not repost.');
+    }
+  };
+
   const flag = async () => {
     try {
       const r = await communityService.flagPost(p.id);
@@ -221,29 +302,51 @@ function PostCard({ post, full = false, onChange, onDelete }) {
 
   const isLong = !full && (p.body?.length || 0) > 400;
   const body = (
-    <div className={full ? '' : `relative overflow-hidden ${isLong ? 'max-h-60' : ''}`}>
-      <Markdown text={p.body} size="text-sm" className="text-cs-text-dim leading-relaxed" />
-      <ImageGrid images={p.images} full={full} />
-      {isLong && (
-        <>
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cs-darker via-cs-darker/80 to-transparent" />
-          <span className="absolute inset-x-0 bottom-2 flex justify-center">
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-cs-darkest/90 border border-cs-primary/30 text-cs-primary font-mono text-[11px] uppercase tracking-wide">
-              read more <FiChevronsDown className="text-[11px]" />
+    <div>
+      {/* Only the TEXT is clamped + faded — the image always renders in full below. */}
+      <div className={`max-w-[72ch] ${full ? '' : `relative overflow-hidden ${isLong ? 'max-h-60' : ''}`}`}>
+        <Markdown text={p.body} size="text-sm" className="text-cs-text-dim leading-relaxed" />
+        {isLong && (
+          <>
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cs-dark via-cs-dark/80 to-transparent" />
+            <span className="absolute inset-x-0 bottom-2 flex justify-center">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-cs-darkest/90 border border-cs-primary/30 text-cs-primary font-mono text-[11px] uppercase tracking-wide">
+                read more <FiChevronsDown className="text-[11px]" />
+              </span>
             </span>
-          </span>
-        </>
-      )}
+          </>
+        )}
+      </div>
+      <ImageGrid images={p.images} full={full} />
     </div>
   );
 
   return (
     <article className="post-card group">
-      {/* Header: avatar + author + kind badge */}
-      <div className="flex items-center gap-3 mb-3">
-        <Avatar author={p.author} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 min-w-0">
+      <div className="flex gap-3.5">
+        {/* Avatar */}
+        <div className="shrink-0">
+          <Avatar author={p.author} size="w-11 h-11" />
+        </div>
+
+        {/* Content column — fills most of the row; the paragraph text below gets
+            its own reading-measure cap so lines don't run too wide. */}
+        <div className="min-w-0 flex-1 max-w-5xl">
+          {p.reposted_by && (
+            <div className="flex items-center gap-1.5 mb-1 font-mono text-[11px] text-cs-text-muted">
+              <FiRepeat className="text-[11px]" />
+              <Link
+                to={`/u/${p.reposted_by.username}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:text-cs-text"
+              >
+                {p.reposted_by.display_name || p.reposted_by.username}
+              </Link>
+              <span>reposted</span>
+            </div>
+          )}
+          {/* Author line */}
+          <div className="flex items-center gap-2 flex-wrap">
             <AuthorName
               author={p.author}
               to={`/u/${p.author.username}`}
@@ -252,176 +355,185 @@ function PostCard({ post, full = false, onChange, onDelete }) {
             {p.is_mine && (
               <span className="text-cs-primary/70 text-xs font-mono whitespace-nowrap">you</span>
             )}
-          </div>
-          <p className="font-mono text-xs text-cs-text-muted mt-0.5">
-            {major && <span className="text-cs-text-dim">{major}</span>}
-            {major && <span className="mx-1.5 text-cs-line/30">·</span>}
-            <span>{timeAgo(p.created_at)}</span>
-            {p.updated_at && p.updated_at !== p.created_at && (
-              <span className="ml-1.5 text-cs-text-dim/60">(edited)</span>
+            {p.author.week != null && (
+              <span className="inline-flex items-center font-mono text-[10px] text-cs-text-muted bg-cs-overlay/5 border border-cs-line/[0.12] px-1.5 py-px rounded-full whitespace-nowrap">
+                week {p.author.week}
+              </span>
             )}
-          </p>
-        </div>
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border font-mono text-[11px] uppercase tracking-wider shrink-0 ${ACCENT[meta.accent]}`}>
-          <KindIcon className="text-[11px]" /> {meta.label}
-        </span>
-      </div>
-
-      {/* Body */}
-      {full ? body : <Link to={`/community/${p.id}`} className="block">{body}</Link>}
-
-      {/* Tags */}
-      {p.tags?.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-3">
-          {p.tags.map((t) => (
-            <Link
-              key={t}
-              to={`/community?tag=${encodeURIComponent(t)}`}
-              className="inline-flex items-center font-mono text-xs px-2 py-0.5 rounded-md bg-cs-darkest/60 border border-cs-line/10 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/30 transition-colors"
-            >
-              #{t}
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {/* Link */}
-      {p.link_url && (
-        <a
-          href={p.link_url}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-cs-primary hover:text-cs-cyan transition-colors truncate max-w-full"
-        >
-          <FiExternalLink className="shrink-0" />
-          <span className="truncate">{p.link_url.replace(/^https?:\/\//, '')}</span>
-        </a>
-      )}
-
-      {/* Quality */}
-      {p.can_review_quality && (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border font-mono text-[11px] ${
-              qualityTier(p.quality_score) >= 0
-                ? QUAL_STYLE[qualityTier(p.quality_score)]
-                : 'bg-cs-overlay/5 text-cs-text-muted border-cs-line/10'
-            }`}
-          >
-            {p.quality_score != null ? (
-              <>
-                <FiZap className="text-[11px]" />
-                {p.quality_score}
-                <span className="opacity-70">{p.quality_ai ? '· ai' : '· auto'}</span>
-              </>
-            ) : (
-              'quality — pending'
-            )}
-          </span>
-          <button
-            onClick={review}
-            disabled={qBusy}
-            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-cs-line/15 text-[11px] font-mono text-cs-text-muted hover:text-cs-text hover:border-cs-primary/30 transition-colors disabled:opacity-50"
-          >
-            <FiTrendingUp className={qBusy ? 'animate-pulse' : ''} />
-            {qBusy ? 'reviewing…' : p.quality_ai ? 're-review' : 'AI review'}
-          </button>
-          {p.quality_note && (
-            <p className="w-full text-[11px] text-cs-text-muted font-mono leading-relaxed">
-              <span className="text-cs-text-dim/70">{p.quality_ai ? 'ai' : 'quick'} check · </span>
-              {p.quality_note}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* AI explain panel */}
-      {explain && (
-        <div className="mt-3 rounded-lg border border-cs-violet/25 bg-cs-violet/5 overflow-hidden">
-          <div className="flex items-center justify-between px-3 py-1.5 border-b border-cs-violet/15 bg-cs-violet/10">
-            <span className="font-mono text-[10px] text-cs-violet inline-flex items-center gap-1.5 uppercase tracking-wider">
-              <FiCpu /> ai · explain this code
+            <span className="flex items-center gap-1.5 shrink-0 font-mono text-[11px] text-cs-text-muted whitespace-nowrap">
+              {major && <span className="text-cs-text-dim hidden sm:inline">{major}</span>}
+              {major && <span className="hidden sm:inline text-cs-line/30">·</span>}
+              <span>{timeAgo(p.created_at)}</span>
+              {p.updated_at && p.updated_at !== p.created_at && (
+                <span className="text-cs-text-dim/60">(edited)</span>
+              )}
             </span>
-            <button
-              onClick={() => setExplain(null)}
-              className="font-mono text-[10px] text-cs-text-muted hover:text-cs-text inline-flex items-center gap-1"
-            >
-              close <FiX />
-            </button>
+            <span className={`ml-auto inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border font-mono text-[10px] uppercase tracking-wider shrink-0 ${ACCENT[meta.accent]}`}>
+              <KindIcon className="text-[10px]" /> {meta.label}
+            </span>
           </div>
-          {explain.loading ? (
-            <div className="p-4 space-y-2 animate-pulse">
-              <div className="h-3 w-2/3 bg-cs-violet/15 rounded" />
-              <div className="h-3 w-full bg-cs-violet/10 rounded" />
-              <div className="h-3 w-1/2 bg-cs-violet/10 rounded" />
+
+          {/* Body */}
+          {full ? body : <Link to={`/community/${p.id}`} className="block">{body}</Link>}
+
+          {/* Tags */}
+          {p.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {p.tags.map((t) => (
+                <Link
+                  key={t}
+                  to={`/community?tag=${encodeURIComponent(t)}`}
+                  className="inline-flex items-center font-mono text-xs px-2 py-0.5 rounded-md bg-cs-overlay/5 border border-cs-line/10 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/30 transition-colors"
+                >
+                  #{t}
+                </Link>
+              ))}
             </div>
-          ) : (
-            <Markdown
-              text={explain.text}
-              size="text-[13px]"
-              className="p-3 text-cs-text-dim leading-relaxed"
-            />
           )}
+
+          {/* Link */}
+          {p.link_url && (
+            <a
+              href={p.link_url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-cs-primary hover:text-cs-cyan transition-colors truncate max-w-full"
+            >
+              <FiExternalLink className="shrink-0" />
+              <span className="truncate">{p.link_url.replace(/^https?:\/\//, '')}</span>
+            </a>
+          )}
+
+          {/* Quality — compact inline chip (detail view only; keeps the feed clean) */}
+          {p.can_review_quality && full && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border font-mono text-[11px] ${
+                  qualityTier(p.quality_score) >= 0
+                    ? QUAL_STYLE[qualityTier(p.quality_score)]
+                    : 'bg-cs-overlay/5 text-cs-text-muted border-cs-line/10'
+                }`}
+              >
+                {p.quality_score != null ? (
+                  <>
+                    <FiZap className="text-[11px]" />
+                    {p.quality_score}
+                    <span className="opacity-70">{p.quality_ai ? '· ai' : '· auto'}</span>
+                  </>
+                ) : (
+                  'quality — pending'
+                )}
+              </span>
+              <button
+                onClick={review}
+                disabled={qBusy}
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-cs-line/15 text-[11px] font-mono text-cs-text-muted hover:text-cs-text hover:border-cs-primary/30 transition-colors disabled:opacity-50"
+              >
+                <FiTrendingUp className={qBusy ? 'animate-pulse' : ''} />
+                {qBusy ? 'reviewing…' : p.quality_ai ? 're-review' : 'AI review'}
+              </button>
+              {p.quality_note && (
+                <p className="w-full text-[11px] text-cs-text-muted font-mono leading-relaxed">
+                  <span className="text-cs-text-dim/70">{p.quality_ai ? 'ai' : 'quick'} check · </span>
+                  {p.quality_note}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* AI explain panel */}
+          {explain && (
+            <div className="mt-3 rounded-lg border border-cs-violet/25 bg-cs-violet/5 overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-cs-violet/15 bg-cs-violet/10">
+                <span className="font-mono text-[10px] text-cs-violet inline-flex items-center gap-1.5 uppercase tracking-wider">
+                  <FiCpu /> ai · explain this code
+                </span>
+                <button
+                  onClick={() => setExplain(null)}
+                  className="font-mono text-[10px] text-cs-text-muted hover:text-cs-text inline-flex items-center gap-1"
+                >
+                  close <FiX />
+                </button>
+              </div>
+              {explain.loading ? (
+                <div className="p-4 space-y-2 animate-pulse">
+                  <div className="h-3 w-2/3 bg-cs-violet/15 rounded" />
+                  <div className="h-3 w-full bg-cs-violet/10 rounded" />
+                  <div className="h-3 w-1/2 bg-cs-violet/10 rounded" />
+                </div>
+              ) : (
+                <Markdown
+                  text={explain.text}
+                  size="text-[13px]"
+                  className="p-3 text-cs-text-dim leading-relaxed"
+                />
+              )}
+            </div>
+          )}
+
+          {/* Action bar */}
+          <div className="flex items-center gap-1 mt-3 pt-3 border-t border-cs-line/8">
+            <button
+              onClick={like}
+              className={`tap inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono ${
+                p.liked_by_me ? 'text-cs-red' : 'text-cs-text-muted hover:text-cs-text'
+              }`}
+            >
+              <FiHeart className={p.liked_by_me ? 'fill-current' : ''} /> <span className="tabular-nums">{p.like_count || 0}</span>
+            </button>
+            <Link
+              to={`/community/${p.id}`}
+              className="tap inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono text-cs-text-muted hover:text-cs-text"
+            >
+              <FiMessageSquare /> <span className="tabular-nums">{p.comment_count || 0}</span>
+            </Link>
+            {!p.is_mine && (
+              <button
+                onClick={doRepost}
+                title={p.reposted_by_me ? 'Undo repost' : 'Repost'}
+                className={`tap inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono ${
+                  p.reposted_by_me ? 'text-cs-green' : 'text-cs-text-muted hover:text-cs-text'
+                }`}
+              >
+                <FiRepeat /> <span className="tabular-nums">{p.repost_count || 0}</span>
+              </button>
+            )}
+            <button
+              onClick={save}
+              title={p.saved_by_me ? 'Remove bookmark' : 'Save'}
+              className={`tap inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-mono ${
+                p.saved_by_me ? 'text-cs-primary' : 'text-cs-text-muted hover:text-cs-text'
+              }`}
+            >
+              <FiBookmark className={p.saved_by_me ? 'fill-current' : ''} />
+            </button>
+
+            <span className="flex-grow" />
+
+            {hasCode && (
+              <button
+                onClick={explainCode}
+                disabled={explain?.loading}
+                title="AI explain this code"
+                className="tap inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cs-line/20 text-xs font-mono text-cs-violet hover:text-cs-violet hover:border-cs-violet/40 disabled:opacity-50"
+              >
+                <FiCpu className={explain?.loading ? 'animate-pulse' : ''} />
+                {explain?.loading ? 'explaining…' : explain ? 're-explain' : 'Explain'}
+              </button>
+            )}
+
+            <OverflowMenu
+              items={[
+                ...(p.is_mine && full
+                  ? [{ label: 'Edit', icon: <FiEdit2 />, onClick: () => onChange?.({ ...p, _edit: true }) }]
+                  : []),
+                p.can_delete
+                  ? { label: 'Delete', icon: <FiTrash2 />, danger: true, onClick: () => setConfirm('delete') }
+                  : { label: 'Report', icon: <FiFlag />, danger: true, onClick: () => setConfirm('report') },
+              ]}
+            />
+          </div>
         </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex items-center gap-0.5 mt-3 pt-3 border-t border-cs-line/8">
-        <button
-          onClick={like}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all duration-150 ${
-            p.liked_by_me
-              ? 'text-cs-red bg-cs-red/8'
-              : 'text-cs-text-muted hover:text-cs-text hover:bg-cs-overlay/5'
-          }`}
-        >
-          <FiHeart className={p.liked_by_me ? 'fill-current' : ''} /> {p.like_count || 0}
-        </button>
-        <Link
-          to={`/community/${p.id}`}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono text-cs-text-muted hover:text-cs-text hover:bg-cs-overlay/5 transition-all duration-150"
-        >
-          <FiMessageSquare /> {p.comment_count || 0}
-        </Link>
-
-        <span className="flex-grow" />
-
-        {hasCode && (
-          <button
-            onClick={explainCode}
-            disabled={explain?.loading}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono text-cs-violet hover:bg-cs-violet/10 disabled:opacity-50 transition-all duration-150"
-            title="AI explain this code"
-          >
-            <FiCpu className={explain?.loading ? 'animate-pulse' : ''} />
-            {explain?.loading ? 'explaining…' : explain ? 're-explain' : 'explain'}
-          </button>
-        )}
-
-        {p.is_mine && full && (
-          <button
-            onClick={() => onChange?.({ ...p, _edit: true })}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono text-cs-text-muted hover:text-cs-text hover:bg-cs-overlay/5 transition-all duration-150"
-          >
-            <FiEdit2 /> edit
-          </button>
-        )}
-        {p.can_delete ? (
-          <button
-            onClick={() => setConfirm('delete')}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono text-cs-text-muted hover:text-cs-red hover:bg-cs-red/5 transition-all duration-150"
-          >
-            <FiTrash2 /> delete
-          </button>
-        ) : (
-          <button
-            onClick={() => setConfirm('report')}
-            title="Report"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono text-cs-text-muted hover:text-cs-orange hover:bg-cs-orange/5 transition-all duration-150"
-          >
-            <FiFlag />
-          </button>
-        )}
       </div>
 
       {confirm === 'delete' && (

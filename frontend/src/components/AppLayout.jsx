@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useMajor } from '../context/MajorContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { progressService, usageService } from '../services/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -10,6 +12,7 @@ import {
   FiUser, FiSettings, FiLayers, FiCircle, FiActivity, FiChevronRight, FiChevronUp,
   FiChevronsLeft, FiChevronsRight, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
   FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers, FiMessageSquare,
+  FiGlobe as FiLanguage,
 } from 'react-icons/fi';
 import MajorIcon from './MajorIcon';
 import NotificationBell from './NotificationBell';
@@ -17,47 +20,49 @@ import NotificationBell from './NotificationBell';
 // Sidebar nav grouped by the student journey (Learn → Practice → Build) so new
 // sections slot into an existing group instead of lengthening a flat list.
 // Every entry points at a route that already exists — no dead links.
-const NAV_GROUPS = [
-  {
-    id: 'learn',
-    items: [
-      { to: '/dashboard', label: 'Learn', icon: FiBook, end: true, match: ['/learn'] },
-      { to: '/roadmap', label: 'Roadmap', icon: FiTarget },
-      { to: '/library', label: 'Library', icon: FiBookOpen },
-      { to: '/progress', label: 'Progress', icon: FiActivity },
-    ],
-  },
-  {
-    id: 'practice',
-    items: [
-      { to: '/practice', label: 'Practice', icon: FiZap },
-      { to: '/quizzes', label: 'Quizzes', icon: FiHelpCircle },
-      { to: '/tutor', label: 'CodeSquareAgent', icon: FiCpu },
-    ],
-  },
-  {
-    id: 'build',
-    items: [
-      { to: '/projects', label: 'Projects', icon: FiCode },
-      { to: '/notes', label: 'CodeSquare Note', icon: FiFileText },
-      { to: '/portfolio', label: 'Portfolio', icon: FiGlobe },
-    ],
-  },
-  {
-    id: 'career',
-    items: [
-      { to: '/career', label: 'Job Readiness', icon: FiTrendingUp },
-    ],
-  },
-  {
-    id: 'community',
-    items: [
-      { to: '/devs', label: 'Dev Directory', icon: FiUsers },
-      { to: '/community', label: 'Dev Community', icon: FiMessageSquare },
-      { to: '/leaderboard', label: 'Leaderboard', icon: FiAward },
-    ],
-  },
-];
+function getNavGroups(t) {
+  return [
+    {
+      id: 'learn',
+      items: [
+        { to: '/dashboard', label: t('nav.learn'), icon: FiBook, end: true, match: ['/learn'] },
+        { to: '/roadmap', label: t('nav.roadmap'), icon: FiTarget },
+        { to: '/library', label: t('nav.library'), icon: FiBookOpen },
+        { to: '/progress', label: t('nav.progress'), icon: FiActivity },
+      ],
+    },
+    {
+      id: 'practice',
+      items: [
+        { to: '/practice', label: t('nav.practice'), icon: FiZap },
+        { to: '/quizzes', label: t('nav.quizzes'), icon: FiHelpCircle },
+        { to: '/tutor', label: t('nav.tutor'), icon: FiCpu },
+      ],
+    },
+    {
+      id: 'build',
+      items: [
+        { to: '/projects', label: t('nav.projects'), icon: FiCode },
+        { to: '/notes', label: t('nav.notes'), icon: FiFileText },
+        { to: '/portfolio', label: t('nav.portfolio'), icon: FiGlobe },
+      ],
+    },
+    {
+      id: 'career',
+      items: [
+        { to: '/career', label: t('nav.job_readiness'), icon: FiTrendingUp },
+      ],
+    },
+    {
+      id: 'community',
+      items: [
+        { to: '/devs', label: t('nav.dev_directory'), icon: FiUsers },
+        { to: '/community', label: t('nav.dev_community'), icon: FiMessageSquare },
+        { to: '/leaderboard', label: t('nav.leaderboard'), icon: FiAward },
+      ],
+    },
+  ];
+}
 
 // Per-group accent colors give each journey stage its own dev-vibe hue — the
 // group header and the active pill inherit the group's color so the whole sidebar
@@ -72,9 +77,22 @@ const GROUP_COLORS = {
 };
 
 
-// Flat list of every nav entry — used by the icon-only collapsed rail, which has
-// no room for group headers.
-const NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
+const NAV_ITEMS_RAW = [
+  { to: '/dashboard', icon: FiBook, end: true, match: ['/learn'] },
+  { to: '/roadmap', icon: FiTarget },
+  { to: '/library', icon: FiBookOpen },
+  { to: '/progress', icon: FiActivity },
+  { to: '/practice', icon: FiZap },
+  { to: '/quizzes', icon: FiHelpCircle },
+  { to: '/tutor', icon: FiCpu },
+  { to: '/projects', icon: FiCode },
+  { to: '/notes', icon: FiFileText },
+  { to: '/portfolio', icon: FiGlobe },
+  { to: '/career', icon: FiTrendingUp },
+  { to: '/devs', icon: FiUsers },
+  { to: '/community', icon: FiMessageSquare },
+  { to: '/leaderboard', icon: FiAward },
+];
 
 const NAV_COLLAPSE_KEY = 'cs-nav-groups-collapsed';
 
@@ -111,9 +129,11 @@ function readAccent() {
 // desktop, slide-in drawer on mobile) plus the main content area. Clicking the
 // user row opens a settings/theme/color/activity popup.
 function AppLayout() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { major, majorData, clearMajor } = useMajor();
   const { theme, setTheme, themes, themeKeys } = useTheme();
+  const { lang, setLang, languages } = useLanguage();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -126,8 +146,11 @@ function AppLayout() {
   const [activity, setActivity] = useState(null);
   const [usage, setUsage] = useState(null);
   const [navGroups, setNavGroups] = useState(readNavGroups);
+  const [langOpen, setLangOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const NAV_GROUPS = getNavGroups(t);
 
   // First two path segments — keys the content wrapper so navigating *within*
   // a section (lesson ↔ lesson) swaps instantly while section/detail changes
@@ -281,27 +304,60 @@ function AppLayout() {
         <img src="/logo.png" alt="CodeSquare" className="h-9 w-auto object-contain" />
         <button
           onClick={toggleCollapsed}
-          title="Expand sidebar"
+          title={t('sidebar.expand_sidebar')}
           className="w-full flex items-center justify-center py-2.5 rounded-[10px] font-mono text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.05] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary hover:shadow-[0_0_16px_-8px_rgb(var(--cs-primary)/0.6)] transition-all"
         >
           <FiChevronsRight className="text-lg" />
         </button>
+        {/* Language switcher — compact icon */}
+        <div className="relative w-full">
+          <button
+            onClick={() => setLangOpen((v) => !v)}
+            className="w-full flex items-center justify-center py-2.5 rounded-[10px] font-mono text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.05] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary transition-all"
+          >
+            <FiLanguage className="text-lg" />
+          </button>
+          {langOpen && (
+            <>
+              <div className="fixed inset-0 z-[80]" onClick={() => setLangOpen(false)} />
+              <div className="absolute left-0 bottom-full mb-2 z-[90] w-36 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5 shadow-xl">
+                {languages.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => { setLang(l.code); setLangOpen(false); }}
+                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all ${
+                      lang === l.code
+                        ? 'bg-cs-primary/15 text-cs-primary'
+                        : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
+                    }`}
+                  >
+                    <span>{l.flag}</span>
+                    <span>{l.native}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Nav — icon-only rail */}
       <nav className="relative flex-1 px-3 space-y-2 overflow-y-auto flex flex-col items-stretch">
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            onClick={close}
-            className="relative block group"
-            title={item.label}
-          >
-            {({ isActive: routerActive }) => {
-              const isActive = isNavActive(item, routerActive);
-              return (
+        {NAV_ITEMS_RAW.map((item) => {
+          const grp = NAV_GROUPS.find((g) => g.items.some((it) => it.to === item.to));
+          const label = grp?.items.find((it) => it.to === item.to)?.label || '';
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={close}
+              className="relative block group"
+              title={label}
+            >
+              {({ isActive: routerActive }) => {
+                const isActive = isNavActive(item, routerActive);
+                return (
               <>
                 {isActive && (
                   <motion.span
@@ -323,7 +379,8 @@ function AppLayout() {
             );
             }}
           </NavLink>
-        ))}
+          );
+        })}
       </nav>
     </div>
   ) : (
@@ -347,14 +404,14 @@ function AppLayout() {
           </div>
           <button
             onClick={toggleCollapsed}
-            title="Collapse sidebar"
+            title={t('sidebar.collapse_sidebar')}
             className="hidden lg:inline-flex p-2 rounded-lg font-mono text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.04] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary hover:shadow-[0_0_16px_-8px_rgb(var(--cs-primary)/0.6)] transition-all shrink-0"
           >
             <FiChevronsLeft className="text-lg" />
           </button>
         </div>
         <span className="font-mono text-[11px] tracking-wide text-cs-text-muted">
-          build boldly
+          {t('sidebar.build_boldly')}
         </span>
       </div>
 
@@ -394,6 +451,49 @@ function AppLayout() {
 
       {/* Profile — terminal-style status card opening the settings popup */}
       <div className="relative border-t border-cs-line/10 px-3 pt-3 pb-3">
+        {/* Language switcher */}
+        <div className="relative mb-2">
+          <button
+            onClick={() => setLangOpen((v) => !v)}
+            className="w-full flex items-center gap-3 p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.06] backdrop-blur-md hover:border-cs-primary/40 hover:shadow-[0_0_18px_-10px_rgb(var(--cs-primary)/0.7),inset_0_1px_0_rgb(var(--cs-line)/0.06)] hover:bg-cs-overlay/[0.1] transition-all text-left"
+          >
+            <span className="relative w-8 h-8 rounded-lg bg-cs-darkest border border-cs-primary/30 flex items-center justify-center text-cs-primary shrink-0 text-lg">
+              {languages.find((l) => l.code === lang)?.flag}
+            </span>
+            <span className="flex-grow min-w-0">
+              <span className="block text-xs font-mono font-semibold text-cs-text-dim">
+                {lang === 'km' ? 'ភាសា' : 'Language'}
+              </span>
+              <span className="block text-[11px] font-mono text-cs-text-muted truncate">
+                {languages.find((l) => l.code === lang)?.native}
+              </span>
+            </span>
+            <FiChevronUp className={`text-cs-text-muted shrink-0 transition-transform duration-200 ${langOpen ? '' : 'rotate-180'}`} />
+          </button>
+          {langOpen && (
+            <>
+              <div className="fixed inset-0 z-[80]" onClick={() => setLangOpen(false)} />
+              <div className="absolute left-0 bottom-full mb-2 z-[90] w-44 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5 shadow-xl">
+                {languages.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => { setLang(l.code); setLangOpen(false); }}
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all ${
+                      lang === l.code
+                        ? 'bg-cs-primary/15 text-cs-primary'
+                        : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
+                    }`}
+                  >
+                    <span className="text-base">{l.flag}</span>
+                    <span className="font-medium">{l.native}</span>
+                    {lang === l.code && <FiCheck className="ml-auto text-cs-primary shrink-0" />}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
         <button
           onClick={() => openPopup('activity')}
           className="w-full flex items-center gap-3 p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.06] backdrop-blur-md hover:border-cs-primary/40 hover:shadow-[0_0_18px_-10px_rgb(var(--cs-primary)/0.7),inset_0_1px_0_rgb(var(--cs-line)/0.06)] hover:bg-cs-overlay/[0.1] transition-all text-left"
@@ -412,7 +512,7 @@ function AppLayout() {
               <span className="text-cs-text-muted font-normal">@local</span>
             </span>
             <span className="block text-[11px] font-mono text-cs-text-muted truncate">
-              status: <span className="text-cs-green">online</span>
+              {t('sidebar.status')}: <span className="text-cs-green">{t('sidebar.online')}</span>
             </span>
           </span>
           <FiChevronUp className="text-cs-text-muted shrink-0" />
@@ -422,11 +522,11 @@ function AppLayout() {
   );
 
   const popupTabs = [
-    { id: 'activity', label: 'Activity', icon: FiActivity },
-    { id: 'usage', label: 'Usage', icon: FiBarChart2 },
-    { id: 'settings', label: 'Settings', icon: FiSettings },
-    { id: 'theme', label: 'Theme', icon: FiLayers },
-    { id: 'color', label: 'Color', icon: FiCircle },
+    { id: 'activity', label: t('settings.activity'), icon: FiActivity },
+    { id: 'usage', label: t('settings.usage'), icon: FiBarChart2 },
+    { id: 'settings', label: t('settings.settings'), icon: FiSettings },
+    { id: 'theme', label: t('settings.theme'), icon: FiLayers },
+    { id: 'color', label: t('settings.color'), icon: FiCircle },
   ];
 
   const fmtCountdown = (s) => {
@@ -606,14 +706,14 @@ function AppLayout() {
                 >
               {tab === 'activity' && (
                 <div>
-                  <p className="mono-label text-cs-text-muted mb-4"> your recent activity</p>
+                  <p className="mono-label text-cs-text-muted mb-4"> {t('activity.your_recent')}</p>
                   {activity ? (
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { label: 'Lessons', value: activity.total_lessons_completed, icon: FiBook, cls: 'text-cs-primary' },
-                        { label: 'Total XP', value: activity.total_xp, icon: FiActivity, cls: 'text-cs-cyan' },
-                        { label: 'Day Streak', value: activity.current_streak, icon: FiBook, cls: 'text-cs-green' },
-                        { label: 'Hints Used', value: activity.hints_used_total, icon: FiBook, cls: 'text-cs-orange' },
+                        { label: t('activity.lessons'), value: activity.total_lessons_completed, icon: FiBook, cls: 'text-cs-primary' },
+                        { label: t('activity.total_xp'), value: activity.total_xp, icon: FiActivity, cls: 'text-cs-cyan' },
+                        { label: t('activity.day_streak'), value: activity.current_streak, icon: FiBook, cls: 'text-cs-green' },
+                        { label: t('activity.hints_used'), value: activity.hints_used_total, icon: FiBook, cls: 'text-cs-orange' },
                       ].map((s) => (
                         <div key={s.label} className="rounded-xl bg-cs-darker/60 border border-cs-line/10 p-4">
                           <div className={`text-xl mb-2 ${s.cls}`}><s.icon /></div>
@@ -631,7 +731,7 @@ function AppLayout() {
               {tab === 'usage' && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <p className="mono-label text-cs-text-muted"> ai token usage</p>
+                    <p className="mono-label text-cs-text-muted"> {t('usage.ai_token_usage')}</p>
                     {usage && (
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wide border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
                         {usage.plan_label}
@@ -643,14 +743,14 @@ function AppLayout() {
                       <UsageBar w={usage.session} />
                       <UsageBar w={usage.weekly} />
                       <p className="font-mono text-[11px] text-cs-text-muted">
-                        {usage.calls_this_week} AI call{usage.calls_this_week === 1 ? '' : 's'} this week · limits are soft (nothing blocked)
+                        {t('usage.ai_calls_this_week', { count: usage.calls_this_week })}
                       </p>
                       <Link
                         to="/usage"
                         onClick={() => setPopup(false)}
                         className="inline-flex items-center gap-1.5 text-sm text-cs-primary hover:text-cs-cyan font-mono mt-1"
                       >
-                        Full usage & plans <FiArrowRight />
+                        {t('usage.full_usage_plans')} <FiArrowRight />
                       </Link>
                     </div>
                   ) : (
@@ -662,20 +762,20 @@ function AppLayout() {
               {tab === 'settings' && (
                 <div className="space-y-4">
                   <div>
-                    <p className="mono-label text-cs-text-muted mb-2"> settings</p>
+                    <p className="mono-label text-cs-text-muted mb-2"> {t('settings.settings')}</p>
                     <Link
                       to="/profile"
                       onClick={() => setPopup(false)}
                       className="flex items-center gap-3 p-3 rounded-xl border border-cs-line/10 hover:border-cs-primary/40 transition-colors"
                     >
                       <FiUser className="text-cs-primary" />
-                      <span className="text-sm font-medium">Profile & full settings</span>
+                      <span className="text-sm font-medium">{t('settings.profile_full_settings')}</span>
                       <FiChevronRight className="ml-auto text-cs-text-muted" />
                     </Link>
                   </div>
 
                   <div>
-                    <p className="mono-label text-cs-text-muted mb-2"> major</p>
+                    <p className="mono-label text-cs-text-muted mb-2"> {t('settings.major')}</p>
                     {majorData ? (
                       <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-cs-line/10">
                         <div className="flex items-center gap-3 min-w-0">
@@ -694,11 +794,11 @@ function AppLayout() {
                           </div>
                         </div>
                         <button onClick={clearMajor} className="text-xs text-cs-red hover:underline shrink-0">
-                          Clear
+                          {t('settings.clear')}
                         </button>
                       </div>
                     ) : (
-                      <p className="text-sm text-cs-text-muted">No major chosen yet.</p>
+                      <p className="text-sm text-cs-text-muted">{t('settings.no_major')}</p>
                     )}
                   </div>
 
@@ -707,7 +807,7 @@ function AppLayout() {
                       onClick={handleLogout}
                       className="flex items-center justify-center gap-2 w-[100px] p-2.5 rounded-xl border border-cs-red/30 text-cs-red text-sm hover:bg-cs-red/10 transition-colors"
                     >
-                      <FiLogOut /> Log out
+                      <FiLogOut /> {t('settings.log_out')}
                     </button>
                   </div>
                 </div>
@@ -715,7 +815,7 @@ function AppLayout() {
 
               {tab === 'theme' && (
                 <div>
-                  <p className="mono-label text-cs-text-muted mb-3"> themes</p>
+                  <p className="mono-label text-cs-text-muted mb-3"> {t('settings.themes')}</p>
                   {['dark', 'light'].map((mode) => (
                     <div key={mode} className="mb-4 last:mb-0">
                       <p className="text-xs uppercase tracking-wider text-cs-text-muted mb-2">{mode}</p>
@@ -766,7 +866,7 @@ function AppLayout() {
               {tab === 'color' && (
                 <div>
                   <p className="mono-label text-cs-text-muted mb-3">
-                    // accent color {accentName ? `· ${accentName}` : ''}
+                    {t('settings.accent_color')} {accentName ? `· ${accentName}` : ''}
                   </p>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {ACCENTS.map((a) => (

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FiSearch, FiArrowRight, FiBookOpen, FiClock, FiX, FiCornerDownLeft, FiPlayCircle, FiUsers, FiStar, FiCheckCircle } from 'react-icons/fi';
 import { docService } from '../services/api';
 import { useMajor } from '../context/MajorContext';
@@ -29,11 +30,12 @@ function MajorChips({ slugs = [] }) {
 }
 
 function CollectionCard({ c, forMajor = false }) {
+  const { t } = useTranslation();
   return (
     <Link to={`/library/${c.slug}`} className="card group relative flex flex-col">
       {forMajor && (
         <span className="absolute top-3 right-3 text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-cs-primary/15 text-cs-primary">
-          your path
+          {t('dashboard.for_your_major')}
         </span>
       )}
       <span className="w-12 h-12 rounded-xl bg-cs-overlay/5 flex items-center justify-center text-3xl shrink-0 mb-4">
@@ -64,7 +66,7 @@ function CollectionCard({ c, forMajor = false }) {
         <div className="mt-4">
           <div className="flex items-center justify-between text-[11px] font-mono text-cs-text-muted mb-1.5">
             <span className={c.completed === c.trackable ? 'text-cs-green' : ''}>
-              {c.completed} / {c.trackable} done
+              {c.completed} / {c.trackable} {t('library.done')}
             </span>
             <span>{Math.round((c.completed / c.trackable) * 100)}%</span>
           </div>
@@ -80,7 +82,7 @@ function CollectionCard({ c, forMajor = false }) {
       )}
 
       <div className="flex items-center justify-between mt-4 text-sm">
-        <span className="text-cs-text-muted font-mono">{c.topic_count} topics</span>
+        <span className="text-cs-text-muted font-mono">{t('library.topics', { count: c.topic_count })}</span>
         <span className="inline-flex items-center gap-1 text-cs-primary group-hover:text-cs-cyan transition-colors">
           Browse <FiArrowRight />
         </span>
@@ -91,6 +93,7 @@ function CollectionCard({ c, forMajor = false }) {
 }
 
 function Library() {
+  const { t } = useTranslation();
   const { major, majorData, hasMajor } = useMajor();
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -145,7 +148,7 @@ function Library() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">Loading the library...</p>
+        <p className="text-gray-400">{t('loading_library')}</p>
       </div>
     );
   }
@@ -157,12 +160,12 @@ function Library() {
       {/* Sticky header — the whole thing (title, description, search and category
           filters) stays locked while the collections scroll beneath it. */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label"> knowledge library</span>
+        <span className="mono-label"> {t('library.knowledge_base')}</span>
         <h1 className="text-3xl font-bold mt-3 mb-2 flex items-center gap-3">
-          <FiBookOpen className="text-cs-primary" /> Library
+          <FiBookOpen className="text-cs-primary" /> {t('library.library_title')}
         </h1>
         <p className="text-cs-text-dim mb-6">
-          Reference and deep-dives. Look anything up, read ahead — no track required.
+          {t('library.library_desc')}
         </p>
 
         <div className="relative max-w-lg mb-6">
@@ -170,7 +173,7 @@ function Library() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search topics — rebase, JOIN, f-string…"
+            placeholder={t('library.search_placeholder')}
             className="input w-full pl-9 pr-9"
           />
           {query && (
@@ -196,7 +199,7 @@ function Library() {
                     : 'text-cs-text-dim border border-cs-line/10 hover:text-cs-text hover:border-cs-line/25'
                 }`}
               >
-                {k === 'all' ? 'All' : CAT_LABELS[k] || k}
+                {k === 'all' ? t('library.all') : CAT_LABELS[k] || k}
               </button>
             ))}
           </div>
@@ -213,7 +216,7 @@ function Library() {
           </span>
           <div className="flex-grow min-w-0">
             <p className="mono-label text-cs-primary mb-1">
-              {resume.resuming ? 'continue reading' : 'jump back in'}
+              {resume.resuming ? t('library.continue_reading') : t('library.jump_back')}
             </p>
             <h2 className="text-xl font-bold truncate">{resume.title}</h2>
             <p className="text-sm text-cs-text-dim font-mono truncate">
@@ -222,7 +225,7 @@ function Library() {
             </p>
           </div>
           <span className="inline-flex items-center gap-2 text-cs-primary font-semibold group-hover:text-cs-cyan transition-colors shrink-0 self-start sm:self-center">
-            {resume.resuming ? 'Continue' : 'Reread'} <FiArrowRight />
+            {resume.resuming ? t('library.continue') : t('library.reread')} <FiArrowRight />
           </span>
         </Link>
       )}
@@ -237,7 +240,7 @@ function Library() {
 
           {!searching && results.length === 0 && (
             <p className="text-sm text-cs-text-muted">
-              Nothing matched. Try a shorter term, or browse the collections below by clearing the search.
+              {t('library.no_results')}
             </p>
           )}
 
@@ -286,7 +289,7 @@ function Library() {
           {hasMajor && forMajor.length > 0 && (
             <section className="mb-12">
               <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-cs-text-muted mb-4">
-                Your {majorData?.label} library
+                {t('library.your_library', { major: majorData?.label })}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {forMajor.map((c) => (
@@ -298,14 +301,14 @@ function Library() {
 
           <section>
             <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-cs-text-muted mb-4">
-              {hasMajor ? 'All collections' : 'Collections'}
+              {hasMajor ? t('library.all_collections') : t('library.collections')}
             </h2>
             {!hasMajor && (
               <p className="text-sm text-cs-text-muted mb-4">
                 <Link to="/dashboard" className="text-cs-primary font-mono">
-                  → pick a major
+                  → {t('library.pick_major')}
                 </Link>{' '}
-                to pin the shelves that matter for your path.
+                {t('library.pick_major_desc')}
               </p>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

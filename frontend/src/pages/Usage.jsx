@@ -135,7 +135,7 @@ function Usage() {
             {/* Account card */}
             <div className="card flex flex-col justify-between gap-6 bg-gradient-to-br from-cs-primary/[0.06] to-transparent">
               <div className="flex items-center gap-4">
-                <span className="w-14 h-14 rounded-2xl bg-cs-primary/15 text-cs-primary flex items-center justify-center font-mono font-bold text-xl shrink-0 shadow-[0_0_24px_-8px_rgb(var(--cs-primary)/0.6)]">
+                <span className="w-14 h-14 rounded-2xl bg-cs-primary/15 text-cs-primary flex items-center justify-center font-mono font-bold text-xl shrink-0">
                   {user?.username?.charAt(0).toUpperCase()}
                 </span>
                 <div className="min-w-0">

@@ -4,6 +4,7 @@ import {
   FiArrowLeft, FiZap, FiBook, FiCode, FiCheckSquare, FiAward, FiStar,
   FiUser, FiUsers, FiUserPlus, FiUserCheck, FiActivity, FiMessageSquare,
   FiGithub, FiGlobe, FiLinkedin, FiFileText, FiChevronLeft, FiChevronRight,
+  FiRepeat, FiBookmark, FiHeart,
 } from 'react-icons/fi';
 import { communityService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -138,6 +139,8 @@ function FollowerChip({ icon, count, label, onClick }) {
   );
 }
 
+const POST_TABS = ['posts', 'reposts', 'saved', 'liked'];
+
 export default function UserProfile() {
   const { username } = useParams();
   const { user: me } = useAuth();
@@ -153,17 +156,19 @@ export default function UserProfile() {
   const PAGE = 10;
 
   const loadPosts = useCallback(async (reset) => {
+    const t = POST_TABS.includes(tab) ? tab : 'posts';
     const nextOffset = reset ? 0 : offset;
     if (reset) { setPosts(null); setHasMore(false); }
     try {
-      const r = await communityService.userPosts(username, { limit: PAGE, offset: nextOffset });
+      const r = await communityService.userPosts(username, { tab: t, limit: PAGE, offset: nextOffset });
       setHasMore(r.data.has_more);
       setOffset(nextOffset + r.data.posts.length);
       setPosts((prev) => (reset || !prev ? r.data.posts : [...prev, ...r.data.posts]));
-    } catch {
-      setPosts((prev) => prev || false);
+    } catch (e) {
+      if (e.response?.status === 403) setPosts([]);
+      else setPosts((prev) => prev || false);
     }
-  }, [username, offset]);
+  }, [username, offset, tab]);
 
   useEffect(() => {
     let alive = true;
@@ -175,10 +180,17 @@ export default function UserProfile() {
       .profile(username)
       .then((r) => alive && setData(r.data))
       .catch(() => alive && setNotFound(true));
-    if (username) loadPosts(true);
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username]);
+
+  // Load / reload the post list whenever the user or the active post-tab changes.
+  useEffect(() => {
+    if (!username || !POST_TABS.includes(tab)) return;
+    setOffset(0);
+    loadPosts(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [username, tab]);
 
   const toggleFollow = async () => {
     if (busyFollow || !data || data.is_me) return;
@@ -237,12 +249,13 @@ export default function UserProfile() {
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky profile header */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/community" className="inline-flex items-center gap-2 text-sm font-mono text-cs-text-dim hover:text-cs-primary mb-3">
+        <Link to="/community" className="inline-flex items-center gap-2 text-sm font-mono text-cs-text-dim hover:text-cs-primary mb-4">
           <FiArrowLeft /> ../community
         </Link>
 
-        <div className="flex items-center gap-5 flex-wrap">
-          <div className="w-20 h-20 rounded-full bg-gradient-main flex items-center justify-center text-3xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40 shadow-[0_0_28px_-6px_rgb(var(--cs-primary)/0.5)]">
+        {/* Hero */}
+        <div className="flex items-start gap-5">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-main flex items-center justify-center text-4xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40 shadow-[0_0_28px_-6px_rgb(var(--cs-primary)/0.5)]">
             {data.avatar
               ? <img src={data.avatar} alt={name} className="w-full h-full object-cover" />
               : <span>{(name).charAt(0).toUpperCase()}</span>}
@@ -250,7 +263,7 @@ export default function UserProfile() {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-2xl md:text-3xl font-bold truncate">{name}</h1>
+              <h1 className="text-3xl font-bold truncate">{name}</h1>
               {data.verified && <VerifiedBadge />}
               {data.is_staff && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-cs-violet/40 bg-cs-violet/10 text-cs-violet font-mono text-[10px] uppercase tracking-wide">
@@ -258,17 +271,20 @@ export default function UserProfile() {
                 </span>
               )}
             </div>
-            <p className="text-xs md:text-sm text-cs-text-dim mt-1">
-              <span className="font-mono text-cs-text-muted">@{data.username}</span>
-              {major ? <span className="text-cs-mint"> · {major.label}</span> : null}
-              {data.rank ? <span className="text-cs-text-muted"> · rank #{data.rank}</span> : null}
-              {data.joined && <span className="text-cs-text-muted"> · joined {new Date(data.joined).getFullYear()}</span>}
+
+            {/* Meta line */}
+            <p className="font-mono text-sm text-cs-text-muted mt-1.5 flex items-center gap-x-2 gap-y-1 flex-wrap">
+              <span>@{data.username}</span>
+              {major && <span className="text-cs-mint">· {major.label}</span>}
+              {data.rank ? <span>· rank #{data.rank}</span> : null}
+              {data.joined && <span>· joined {new Date(data.joined).getFullYear()}</span>}
             </p>
 
-            {/* follower / following counts */}
-            <div className="flex items-center gap-4 mt-2">
+            {/* Full stats row */}
+            <div className="flex items-center gap-5 mt-4">
               <FollowerChip icon={<FiUsers className="text-[11px]" />} count={data.follower_count} label="followers" />
               <FollowerChip icon={<FiUserPlus className="text-[11px]" />} count={data.following_count} label="following" />
+              <FollowerChip icon={<FiCode className="text-[11px]" />} count={data.recent_projects?.length ?? 0} label="projects" />
             </div>
           </div>
 
@@ -287,9 +303,14 @@ export default function UserProfile() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mt-4 pb-2 -mb-px overflow-x-auto">
+        <div className="flex items-center gap-1 mt-5 pb-2 -mb-px overflow-x-auto">
           {[
             { id: 'posts', label: 'posts', icon: <FiMessageSquare /> },
+            { id: 'reposts', label: 'reposts', icon: <FiRepeat /> },
+            ...(data?.is_me ? [
+              { id: 'saved', label: 'saved', icon: <FiBookmark /> },
+              { id: 'liked', label: 'liked', icon: <FiHeart /> },
+            ] : []),
             { id: 'projects', label: 'projects', icon: <FiCode /> },
             { id: 'activity', label: 'activity', icon: <FiActivity /> },
           ].map((t) => (
@@ -349,9 +370,9 @@ export default function UserProfile() {
       />
 
       {/* ---- TAB: POSTS ---- */}
-      {tab === 'posts' && (
+      {POST_TABS.includes(tab) && (
         <div>
-          <span className="mono-label text-cs-text-dim mb-3 block"> recent posts</span>
+          <span className="mono-label text-cs-text-dim mb-3 block"> {tab === 'posts' ? 'recent posts' : tab}</span>
           {posts === null && (
             <div className="space-y-3">
               {[0, 1, 2].map((i) => (
@@ -379,12 +400,18 @@ export default function UserProfile() {
             <div className="card text-center py-14">
               <FiMessageSquare className="text-3xl text-cs-text-muted mx-auto mb-3" />
               <p className="text-cs-text-dim font-mono text-sm">
-                {isMe ? 'You haven’t posted anything yet.' : `${name} hasn’t posted anything yet.`}
+                {tab === 'posts'
+                  ? (isMe ? 'You haven’t posted anything yet.' : `${name} hasn’t posted anything yet.`)
+                  : tab === 'reposts'
+                    ? (isMe ? 'You haven’t reposted anything yet.' : `${name} hasn’t reposted anything yet.`)
+                    : tab === 'saved'
+                      ? 'Nothing saved yet — tap the bookmark on a post to keep it here.'
+                      : 'Nothing liked yet.'}
               </p>
             </div>
           )}
           {Array.isArray(posts) && posts.length > 0 && (
-            <div className="space-y-3">
+            <div className="divide-y divide-cs-line/10 border-t border-cs-line/10">
               {posts.map((p) => (
                 <PostCard key={p.id} post={p} onDelete={isMe ? dropPost : undefined} />
               ))}

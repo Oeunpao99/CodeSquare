@@ -76,6 +76,30 @@ CURRICULUM = {
         ("Environment & Permissions", "intermediate", 2),
         ("Processes & Scripting", "advanced", 3),
     ],
+    "ai-llm": [
+        ("LLM Foundations", "beginner", 1),
+        ("Prompting & Structured Output", "beginner", 2),
+        ("Tool Use & Agents", "intermediate", 3),
+        ("Embeddings & RAG", "intermediate", 4),
+        ("Evaluating LLM Output", "intermediate", 5),
+        ("Guardrails & Serving", "advanced", 6),
+    ],
+    "sql-data": [
+        ("Querying Basics", "beginner", 1),
+        ("Filtering & Shaping", "beginner", 2),
+        ("Aggregation", "beginner", 3),
+        ("Joins", "intermediate", 4),
+        ("Subqueries & CTEs", "intermediate", 5),
+        ("Windows & Performance", "advanced", 6),
+    ],
+    "dsa": [
+        ("Complexity & Big-O", "beginner", 1),
+        ("Arrays & Two Pointers", "beginner", 2),
+        ("Hash Maps & Sets", "beginner", 3),
+        ("Stacks, Queues & Lists", "intermediate", 4),
+        ("Recursion & Trees", "intermediate", 5),
+        ("Searching, Sorting, Graphs", "advanced", 6),
+    ],
 }
 
 

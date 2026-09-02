@@ -465,7 +465,7 @@ function LibraryArticle() {
                 <div className="flex gap-2 px-3.5 py-2.5 bg-cs-darkest border-t border-cs-line/15">
                   <button
                     onClick={run}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs bg-cs-primary text-cs-dark hover:brightness-110 transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs bg-cs-primary text-cs-btn-text hover:brightness-110 transition"
                   >
                     <FiPlay className="text-xs" /> Run
                   </button>

@@ -329,7 +329,7 @@ function CommunityPost() {
       )}
 
       {post && post !== false && (
-        <>
+        <div className="max-w-3xl">
           {editing ? (
             <EditForm
               post={post}
@@ -337,12 +337,14 @@ function CommunityPost() {
               onSaved={(next) => { setPost((p) => ({ ...p, ...next })); setEditing(false); }}
             />
           ) : (
-            <PostCard
-              post={post}
-              full
-              onChange={onCardChange}
-              onDelete={() => navigate('/community')}
-            />
+            <div className="border-b border-cs-line/10">
+              <PostCard
+                post={post}
+                full
+                onChange={onCardChange}
+                onDelete={() => navigate('/community')}
+              />
+            </div>
           )}
 
           <section className="mt-6">
@@ -401,7 +403,7 @@ function CommunityPost() {
               onCancel={() => setConfirmDelete(null)}
             />
           </section>
-        </>
+        </div>
       )}
     </main>
   );

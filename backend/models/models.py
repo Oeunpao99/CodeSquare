@@ -431,6 +431,8 @@ class Post(Base):
 
     author = relationship("User")
     reactions = relationship("PostReaction", back_populates="post", cascade="all, delete-orphan")
+    saves = relationship("PostSave", back_populates="post", cascade="all, delete-orphan")
+    reposts = relationship("PostRepost", back_populates="post", cascade="all, delete-orphan")
     comments = relationship(
         "PostComment",
         back_populates="post",
@@ -449,6 +451,33 @@ class PostReaction(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     post = relationship("Post", back_populates="reactions")
+
+
+class PostSave(Base):
+    """One row per (post, user) — a private bookmark. Presence = saved.
+    Only the owner ever sees their saved list."""
+    __tablename__ = "post_saves"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("posts.id"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    post = relationship("Post", back_populates="saves")
+
+
+class PostRepost(Base):
+    """One row per (post, user) — a public repost/boost. Presence = reposted.
+    Surfaces on the reposter's profile and in the home feed."""
+    __tablename__ = "post_reposts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("posts.id"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    post = relationship("Post", back_populates="reposts")
+    user = relationship("User")
 
 
 class PostComment(Base):

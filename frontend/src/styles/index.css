@@ -22,6 +22,7 @@
   --cs-text: 228 228 231;
   --cs-text-dim: 161 161 170;
   --cs-text-muted: 113 113 122;
+  --cs-btn-text: 11 12 14;
   --cs-line: 255 255 255;
   --cs-overlay: 255 255 255;
 }
@@ -106,12 +107,12 @@
 
   /* Clean modern dev primary — solid accent fill, crisp edge, gentle lift */
   .btn-primary {
-    @apply bg-cs-primary text-[#0b0c0e] border border-cs-primary;
+    @apply bg-cs-primary text-cs-btn-text border border-cs-primary;
     box-shadow: 0 1px 2px rgb(var(--cs-dark) / 0.35), inset 0 1px 0 rgb(var(--cs-line) / 0.25);
   }
 
   .btn-primary:hover {
-    @apply -translate-y-0.5 bg-cs-mint border-cs-mint;
+    @apply -translate-y-0.5 bg-cs-mint border-cs-mint text-cs-btn-text;
     box-shadow: 0 6px 20px -10px rgb(var(--cs-primary) / 0.6), inset 0 1px 0 rgb(var(--cs-line) / 0.3);
   }
 
@@ -121,12 +122,12 @@
   }
 
   .btn-danger {
-    @apply bg-cs-red text-[#0b0c0e] border border-cs-red;
+    @apply bg-cs-red text-cs-btn-text border border-cs-red;
     box-shadow: 0 1px 2px rgb(var(--cs-dark) / 0.35), inset 0 1px 0 rgb(var(--cs-line) / 0.25);
   }
 
   .btn-danger:hover {
-    @apply -translate-y-0.5;
+    @apply -translate-y-0.5 text-cs-btn-text;
     box-shadow: 0 6px 20px -10px rgb(var(--cs-red) / 0.6), inset 0 1px 0 rgb(var(--cs-line) / 0.3);
   }
 
@@ -307,12 +308,21 @@
     @apply relative rounded-2xl border border-cs-line border-opacity-10 bg-cs-darker bg-opacity-60 p-6 transition-colors duration-300;
   }
 
+  /* Card-less feed row: one continuous stream separated by hairlines, not boxed
+     cards. The feed container supplies the dividers (divide-y). */
   .post-card {
-    @apply relative rounded-2xl border border-cs-line/10 bg-cs-darker p-5 transition-all duration-200;
+    @apply relative py-5;
   }
-  .post-card:hover {
-    border-color: rgb(var(--cs-line) / 0.18);
-    background: color-mix(in srgb, rgb(var(--cs-darker)) 95%, rgb(var(--cs-primary)) 5%);
+
+  /* Tactile press instead of a busy hover wash — for dense icon-button rows. */
+  .tap {
+    @apply transition-transform duration-100 ease-out;
+  }
+  .tap:active {
+    transform: scale(0.9);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tap:active { transform: none; }
   }
 
   .post-image-frame {
@@ -322,6 +332,30 @@
       inset 0 1px 0 rgb(var(--cs-line) / 0.05),
       inset 0 -1px 0 rgb(var(--cs-line) / 0.03),
       0 2px 8px -4px rgba(0,0,0,0.3);
+  }
+
+  /* Dev-community ring avatar (conic activity ring around a circle) */
+  .ring-avatar {
+    --p: 0;
+    display: grid;          /* it is a span; without this its width/height are ignored */
+    place-items: center;
+    flex: none;
+    border-radius: 9999px;
+    padding: 2px;
+    background: conic-gradient(
+      rgb(var(--cs-primary)) calc(var(--p) * 1%),
+      rgb(var(--cs-line) / 0.12) 0
+    );
+  }
+  .ring-avatar > span {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    border: 2px solid rgb(var(--cs-darker));
+    overflow: hidden;
+    background: rgb(var(--cs-darkest));
   }
 
   /* Rendered HTML body of a Library article (Tailwind base strips defaults). */

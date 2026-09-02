@@ -80,7 +80,7 @@ function ThemePicker() {
                         <p className="text-xs text-cs-text-muted">{themes[key].hint}</p>
                       </div>
                       {active && (
-                        <span className="w-6 h-6 rounded-full bg-cs-primary text-cs-dark flex items-center justify-center shrink-0">
+                        <span className="w-6 h-6 rounded-full bg-cs-primary text-cs-btn-text flex items-center justify-center shrink-0">
                           <FiCheck className="text-sm" />
                         </span>
                       )}

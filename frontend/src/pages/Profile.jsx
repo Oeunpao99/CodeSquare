@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { progressService } from '../services/api';
-import { FiBook, FiZap, FiTrendingUp, FiHelpCircle, FiClock, FiTarget, FiStar, FiActivity, FiAward, FiUser, FiSettings } from 'react-icons/fi';
+import { FiBook, FiZap, FiTrendingUp, FiHelpCircle, FiClock, FiTarget, FiStar, FiActivity, FiAward, FiUser, FiSettings, FiExternalLink } from 'react-icons/fi';
 import ThemePicker from '../components/ThemePicker';
 import AiIcon from '../components/AiIcon';
 import MajorPicker from '../components/MajorPicker';
@@ -92,11 +93,15 @@ function buildYearGrid(summary, weekly, year) {
 }
 
 function Profile() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('overview'); // overview | settings
   const [heatYear, setHeatYear] = useState(0); // year offset: -1 last, 0 this, +1 next
+  const [lessonQuery, setLessonQuery] = useState('');
+  const [lessonPage, setLessonPage] = useState(0);
+  const LESSONS_PER_PAGE = 12;
 
   useEffect(() => {
     fetchProgress();
@@ -117,7 +122,7 @@ function Profile() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">Loading your progress...</p>
+        <p className="text-gray-400">{t('loading_progress')}</p>
       </div>
     );
   }
@@ -135,7 +140,7 @@ function Profile() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="mono-label"> profile</span>
+            <span className="mono-label"> {t('profile.profile_label')}</span>
             <h1 className="text-2xl md:text-3xl font-bold truncate flex items-center gap-3">
               {user?.display_name || user?.username} <span className="text-cs-primary animate-blink">▍</span>
             </h1>
@@ -143,24 +148,32 @@ function Profile() {
               {user?.headline || user?.email}
             </p>
           </div>
+          {user?.username && (
+            <Link
+              to={`/u/${user.username}`}
+              className="btn btn-ghost btn-sm shrink-0 self-start"
+            >
+              <FiExternalLink /> public profile
+            </Link>
+          )}
         </div>
 
         {/* Tab switcher */}
         <div className="flex items-center gap-1 mt-4 pb-2 -mb-px">
           {[
-            { id: 'overview', label: 'overview', icon: <FiUser /> },
-            { id: 'settings', label: 'settings', icon: <FiSettings /> },
-          ].map((t) => (
+            { id: 'overview', label: t('profile.overview'), icon: <FiUser /> },
+            { id: 'settings', label: t('profile.settings'), icon: <FiSettings /> },
+          ].map((tabItem) => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tabItem.id}
+              onClick={() => setTab(tabItem.id)}
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-lg border-b-2 font-mono text-sm transition-colors ${
-                tab === t.id
+                tab === tabItem.id
                   ? 'border-cs-primary text-cs-primary'
                   : 'border-transparent text-cs-text-dim hover:text-cs-text'
               }`}
             >
-              {t.icon} {t.label}
+              {tabItem.icon} {tabItem.label}
             </button>
           ))}
         </div>
@@ -169,21 +182,21 @@ function Profile() {
       {tab === 'settings' ? (
         <div className="space-y-10">
           <div>
-            <span className="mono-label mb-4 block"> profile details</span>
+            <span className="mono-label mb-4 block"> {t('profile.profile_details')}</span>
             <div className="card p-6">
               <ProfileForm />
             </div>
           </div>
 
           <div>
-            <span className="mono-label mb-4 block"> choose path</span>
+            <span className="mono-label mb-4 block"> {t('profile.choose_path')}</span>
             <div className="card p-6">
               <MajorPicker />
             </div>
           </div>
 
           <div>
-            <span className="mono-label mb-4 block"> editor theme</span>
+            <span className="mono-label mb-4 block"> {t('profile.editor_theme')}</span>
             <div className="card p-6">
               <ThemePicker />
             </div>
@@ -195,10 +208,10 @@ function Profile() {
           {/* Stat cards — moved here from the dashboard, given a streak-board feel */}
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
             {[
-              { icon: <FiBook />, value: progress.summary.total_lessons_completed, label: 'Lessons Completed', cls: 'text-cs-primary', chip: 'bg-cs-primary/15' },
-              { icon: <FiZap />, value: progress.summary.total_xp, label: 'Total XP', cls: 'text-cs-cyan', chip: 'bg-cs-cyan/15' },
-              { icon: <FiAward />, value: progress.summary.current_streak, label: 'Day Streak', cls: 'text-cs-green', chip: 'bg-cs-green/15', highlight: progress.summary.current_streak > 0 },
-                { icon: <FiHelpCircle />, value: progress.summary.hints_used_total, label: 'Hints Used', cls: 'text-cs-orange', chip: 'bg-cs-orange/15' },
+              { icon: <FiBook />, value: progress.summary.total_lessons_completed, label: t('profile.lessons_completed'), cls: 'text-cs-primary', chip: 'bg-cs-primary/15' },
+              { icon: <FiZap />, value: progress.summary.total_xp, label: t('profile.total_xp'), cls: 'text-cs-cyan', chip: 'bg-cs-cyan/15' },
+              { icon: <FiAward />, value: progress.summary.current_streak, label: t('profile.day_streak'), cls: 'text-cs-green', chip: 'bg-cs-green/15', highlight: progress.summary.current_streak > 0 },
+                { icon: <FiHelpCircle />, value: progress.summary.hints_used_total, label: t('profile.hints_used'), cls: 'text-cs-orange', chip: 'bg-cs-orange/15' },
               ].map((stat, index) => (
                 <div
                   key={index}
@@ -208,7 +221,7 @@ function Profile() {
                 >
                   {stat.highlight && (
                     <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-cs-orange">
-                      <FiAward className="animate-pulse" /> on fire
+                      <FiAward className="animate-pulse" /> {t('profile.on_fire')}
                     </span>
                   )}
                   <div className="flex items-center justify-center gap-3 mb-3">
@@ -232,28 +245,28 @@ function Profile() {
                 <div className="card mb-8 overflow-hidden">
                   <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
                     <div>
-                      <h3 className="text-lg font-bold flex items-center gap-2"><FiActivity /> Your coding heatmap</h3>
+                      <h3 className="text-lg font-bold flex items-center gap-2"><FiActivity /> {t('profile.coding_heatmap')}</h3>
                       <p className="text-xs text-cs-text-muted">
                         {heatYear > 0
-                          ? `${selectedYear} hasn't started — nothing logged yet`
-                          : `Activity across ${selectedYear}`}
+                          ? t('profile.hasnt_started', { year: selectedYear })
+                          : t('profile.activity_across', { year: selectedYear })}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] text-cs-text-muted">
-                      Less
+                      {t('profile.less')}
                       {[0, 1, 2, 3, 4].map((lvl) => (
                         <span key={lvl} className={`w-3 h-3 rounded-[3px] border border-cs-line/10 ${LEVEL_STYLES[lvl]}`} />
                       ))}
-                      More
+                      {t('profile.more')}
                     </div>
                   </div>
 
                   {/* year filter */}
                   <div className="flex items-center gap-1 mb-3">
                     {[
-                      { k: -1, label: 'Last year' },
-                      { k: 0, label: 'This year' },
-                      { k: 1, label: 'Next year' },
+                      { k: -1, label: t('profile.last_year') },
+                      { k: 0, label: t('profile.this_year') },
+                      { k: 1, label: t('profile.next_year') },
                     ].map((o) => (
                       <button
                         key={o.k}
@@ -351,39 +364,88 @@ function Profile() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
-                <h2 className="text-2xl font-bold mb-5">Lesson History</h2>
-                <div className="rounded-xl border border-cs-line/10 bg-cs-darker/60 overflow-hidden">
-                  {progress.lessons.map((lesson, i) => {
-                    const grade = gradeFor(lesson.score);
-                    return (
-                      <div key={lesson.lesson_id} className={`flex items-center gap-3 px-4 py-2.5 ${i > 0 ? 'border-t border-cs-line/10' : ''}`}>
-                        <div className={`w-6 h-6 flex items-center justify-center rounded-full shrink-0 text-xs ${lesson.completed ? 'bg-cs-green/15 text-cs-green' : 'bg-cs-overlay/10 text-gray-500'}`}>
-                          {lesson.completed ? '✓' : '·'}
-                        </div>
-                        <div className="flex-grow min-w-0">
-                          <p className="text-sm font-semibold truncate">{lesson.lesson_title}</p>
-                          <p className="text-[11px] text-cs-text-muted truncate">{lesson.module_title}</p>
-                        </div>
-                        <span className={`badge-outline ${grade.cls} shrink-0`}>{grade.label}</span>
-                        <div className="text-right shrink-0">
-                          <p className="text-sm font-semibold">{Math.round(lesson.score)}%</p>
-                          <p className="text-[11px] text-cs-text-muted">{Math.round(lesson.time_spent / 60)}m • {lesson.hints_used} hints</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {progress.lessons.length === 0 && (
-                    <div className="text-center py-12 text-gray-500">
-                      <p className="text-5xl mb-4">📚</p>
-                      <p>No lessons completed yet.</p>
-                      <Link to="/dashboard" className="btn btn-primary btn-sm mt-4">Start learning!</Link>
-                    </div>
+                <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+                  <h2 className="text-2xl font-bold">{t('profile.lesson_history')}</h2>
+                  {progress.lessons.length > 0 && (
+                    <input
+                      value={lessonQuery}
+                      onChange={(e) => { setLessonQuery(e.target.value); setLessonPage(0); }}
+                      placeholder="filter lessons…"
+                      className="rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-1.5 text-xs font-mono outline-none focus:border-cs-primary/50 w-40 sm:w-48"
+                    />
                   )}
                 </div>
+                {(() => {
+                  const q = lessonQuery.trim().toLowerCase();
+                  const filtered = q
+                    ? progress.lessons.filter((l) =>
+                        (l.lesson_title || '').toLowerCase().includes(q) ||
+                        (l.module_title || '').toLowerCase().includes(q))
+                    : progress.lessons;
+                  const pages = Math.max(1, Math.ceil(filtered.length / LESSONS_PER_PAGE));
+                  const page = Math.min(lessonPage, pages - 1);
+                  const shown = filtered.slice(page * LESSONS_PER_PAGE, (page + 1) * LESSONS_PER_PAGE);
+                  return (
+                    <>
+                      <div className="rounded-xl border border-cs-line/10 bg-cs-darker/60 overflow-hidden">
+                        {shown.map((lesson, i) => {
+                          const grade = gradeFor(lesson.score);
+                          return (
+                            <div key={lesson.lesson_id} className={`flex items-center gap-3 px-4 py-2.5 ${i > 0 ? 'border-t border-cs-line/10' : ''}`}>
+                              <div className={`w-6 h-6 flex items-center justify-center rounded-full shrink-0 text-xs ${lesson.completed ? 'bg-cs-green/15 text-cs-green' : 'bg-cs-overlay/10 text-gray-500'}`}>
+                                {lesson.completed ? '✓' : '·'}
+                              </div>
+                              <div className="flex-grow min-w-0">
+                                <p className="text-sm font-semibold truncate">{lesson.lesson_title}</p>
+                                <p className="text-[11px] text-cs-text-muted truncate">{lesson.module_title}</p>
+                              </div>
+                              <span className={`badge-outline ${grade.cls} shrink-0`}>{grade.label}</span>
+                              <div className="text-right shrink-0">
+                                <p className="text-sm font-semibold">{Math.round(lesson.score)}%</p>
+                                <p className="text-[11px] text-cs-text-muted">{Math.round(lesson.time_spent / 60)}m • {lesson.hints_used} hints</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {progress.lessons.length === 0 && (
+                          <div className="text-center py-12 text-gray-500">
+                            <p className="text-5xl mb-4">📚</p>
+                            <p>{t('profile.no_lessons')}</p>
+                            <Link to="/dashboard" className="btn btn-primary btn-sm mt-4">{t('profile.start_learning')}</Link>
+                          </div>
+                        )}
+                        {progress.lessons.length > 0 && filtered.length === 0 && (
+                          <div className="text-center py-10 text-cs-text-muted font-mono text-sm">
+                            No lessons match “{lessonQuery}”.
+                          </div>
+                        )}
+                      </div>
+                      {pages > 1 && (
+                        <div className="flex items-center justify-between mt-3 font-mono text-xs text-cs-text-muted">
+                          <button
+                            onClick={() => setLessonPage(Math.max(0, page - 1))}
+                            disabled={page === 0}
+                            className="tap px-3 py-1.5 rounded-lg border border-cs-line/15 hover:text-cs-text disabled:opacity-40"
+                          >
+                            prev
+                          </button>
+                          <span>page {page + 1} / {pages} · {filtered.length} lessons</span>
+                          <button
+                            onClick={() => setLessonPage(Math.min(pages - 1, page + 1))}
+                            disabled={page >= pages - 1}
+                            className="tap px-3 py-1.5 rounded-lg border border-cs-line/15 hover:text-cs-text disabled:opacity-40"
+                          >
+                            next
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
               <div>
-                <h2 className="text-2xl font-bold mb-6">Weekly Activity</h2>
+                <h2 className="text-2xl font-bold mb-6">{t('profile.weekly_activity')}</h2>
                 <div className="card">
                   {progress.weekly_activity.map((day, index) => {
                     const max = Math.max(...progress.weekly_activity.map(d => d.lessons_completed), 1);
@@ -404,7 +466,7 @@ function Profile() {
 
                 {progress.recent_projects?.length > 0 && (
                   <>
-                    <h2 className="text-2xl font-bold mt-8 mb-4">Recent Projects</h2>
+                    <h2 className="text-2xl font-bold mt-8 mb-4">{t('profile.recent_projects')}</h2>
                     <div className="space-y-3">
                       {progress.recent_projects.map((project) => (
                         <div key={project.id} className="card py-4">
@@ -420,8 +482,8 @@ function Profile() {
         </>
       ) : (
         <div className="card text-center py-16">
-          <p className="text-cs-text-dim">Nothing here yet — go learn something!</p>
-          <Link to="/dashboard" className="btn btn-primary btn-sm mt-4">Start learning</Link>
+          <p className="text-cs-text-dim">{t('profile.nothing_here')}</p>
+          <Link to="/dashboard" className="btn btn-primary btn-sm mt-4">{t('profile.start_learning_link')}</Link>
         </div>
       ))}
     </main>

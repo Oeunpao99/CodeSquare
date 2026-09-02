@@ -22,8 +22,8 @@ from ai.tutor import AITutor
 from common.cambodia import khmer_date, khmer_today
 from database import get_db
 from models.models import (
-    Challenge, ChallengeAttempt, Follow, Notification, Post, PostComment, PostCommentLike, PostReaction, Quiz,
-    QuizAttempt, User, UserProgress, UserProject,
+    Challenge, ChallengeAttempt, Follow, Notification, Post, PostComment, PostCommentLike, PostReaction,
+    PostRepost, PostSave, Quiz, QuizAttempt, User, UserProgress, UserProject,
 )
 from routers.auth import get_current_user
 
@@ -191,6 +191,7 @@ class PostAuthor(BaseModel):
     major: Optional[str] = None
     headline: Optional[str] = None
     verified: bool = False
+    week: Optional[int] = None  # 1-indexed weeks since the author joined ("learning in public")
 
 
 class CommentOut(BaseModel):
@@ -226,6 +227,12 @@ class PostOut(BaseModel):
     quality_note: Optional[str] = None
     quality_ai: bool = False
     can_review_quality: bool = False
+    saved_by_me: bool = False
+    reposted_by_me: bool = False
+    repost_count: int = 0
+    # Set only when this feed entry is someone's repost of the post above.
+    reposted_by: Optional[PostAuthor] = None
+    reposted_at: Optional[datetime] = None
 
 
 class PostDetailOut(PostOut):
@@ -258,6 +265,9 @@ class CommentCreate(BaseModel):
 
 
 def _author(u: User) -> PostAuthor:
+    week = None
+    if u.created_at:
+        week = (datetime.utcnow() - u.created_at).days // 7 + 1
     return PostAuthor(
         id=u.id,
         username=u.username or f"user{u.id}",
@@ -266,6 +276,7 @@ def _author(u: User) -> PostAuthor:
         major=u.major,
         headline=u.headline,
         verified=bool(u.verified),
+        week=week,
     )
 
 
@@ -648,7 +659,19 @@ async def _ai_quality(p: Post) -> Optional[Dict[str, object]]:
         return None
 
 
-def _post_out(p: Post, like_count: int, comment_count: int, liked: bool, me: User) -> PostOut:
+def _post_out(
+    p: Post,
+    like_count: int,
+    comment_count: int,
+    liked: bool,
+    me: User,
+    *,
+    saved: bool = False,
+    reposted: bool = False,
+    repost_count: int = 0,
+    reposted_by: Optional[User] = None,
+    reposted_at: Optional[datetime] = None,
+) -> PostOut:
     is_mine = p.user_id == me.id
     return PostOut(
         id=p.public_id,
@@ -670,7 +693,65 @@ def _post_out(p: Post, like_count: int, comment_count: int, liked: bool, me: Use
         quality_note=p.quality_note if is_mine or bool(me.is_staff) else None,
         quality_ai=bool(p.quality_ai),
         can_review_quality=is_mine or bool(me.is_staff),
+        saved_by_me=saved,
+        reposted_by_me=reposted,
+        repost_count=int(repost_count or 0),
+        reposted_by=_author(reposted_by) if reposted_by else None,
+        reposted_at=reposted_at,
     )
+
+
+async def _engagement(db: AsyncSession, ids: List[int], me_id: int):
+    """Bulk-load per-post engagement for a page of posts:
+    (comment_ct, liked_ids, saved_ids, reposted_ids, repost_ct)."""
+    if not ids:
+        return {}, set(), set(), set(), {}
+    comment_ct = dict(
+        (
+            await db.execute(
+                select(PostComment.post_id, func.count())
+                .where(PostComment.post_id.in_(ids), PostComment.hidden.is_(False))
+                .group_by(PostComment.post_id)
+            )
+        ).all()
+    )
+    liked_ids = set(
+        (
+            await db.execute(
+                select(PostReaction.post_id).where(
+                    PostReaction.post_id.in_(ids), PostReaction.user_id == me_id
+                )
+            )
+        ).scalars().all()
+    )
+    saved_ids = set(
+        (
+            await db.execute(
+                select(PostSave.post_id).where(
+                    PostSave.post_id.in_(ids), PostSave.user_id == me_id
+                )
+            )
+        ).scalars().all()
+    )
+    reposted_ids = set(
+        (
+            await db.execute(
+                select(PostRepost.post_id).where(
+                    PostRepost.post_id.in_(ids), PostRepost.user_id == me_id
+                )
+            )
+        ).scalars().all()
+    )
+    repost_ct = dict(
+        (
+            await db.execute(
+                select(PostRepost.post_id, func.count())
+                .where(PostRepost.post_id.in_(ids))
+                .group_by(PostRepost.post_id)
+            )
+        ).all()
+    )
+    return comment_ct, liked_ids, saved_ids, reposted_ids, repost_ct
 
 
 async def _load_post(db: AsyncSession, public_id: str, me: User, with_comments: bool = False) -> Post:
@@ -700,64 +781,103 @@ async def list_posts(
     limit = max(1, min(limit, 50))
     offset = max(0, offset)
 
-    like_ct = (
-        select(PostReaction.post_id, func.count().label("c"))
-        .group_by(PostReaction.post_id)
-        .subquery()
-    )
-    q = (
-        select(Post, func.coalesce(like_ct.c.c, 0))
-        .outerjoin(like_ct, like_ct.c.post_id == Post.id)
-        .options(selectinload(Post.author))
-    )
-    if not current_user.is_staff:
-        q = q.where(Post.hidden.is_(False))
     tag_clean = re.sub(r"[^a-z0-9+#.\-]", "", (tag or "").strip().lower())[:24]
-    if tag_clean:
-        q = q.where(cast(Post.tags, String).ilike(f'%"{tag_clean}"%'))
-    if kind and kind in KINDS:
-        q = q.where(Post.kind == kind)
+    kind_ok = kind if (kind and kind in KINDS) else None
     search_clean = (search or "").strip()
-    if search_clean:
-        q = q.where(Post.body.ilike(f"%{search_clean}%"))
-    if sort == "top":
-        q = q.order_by(func.coalesce(like_ct.c.c, 0).desc(), Post.created_at.desc())
+    hide_filter = not current_user.is_staff
+    # Reposts are folded into the default "new" feed only — a filtered or "top"
+    # view stays a pure list of original posts.
+    merge_reposts = sort != "top" and not tag_clean and not kind_ok and not search_clean
+
+    # entries: list of (Post, reposter_or_None, reposted_at_or_None)
+    if merge_reposts:
+        want = offset + limit + 1
+        oq = (
+            select(Post).options(selectinload(Post.author))
+            .order_by(Post.created_at.desc()).limit(want)
+        )
+        if hide_filter:
+            oq = oq.where(Post.hidden.is_(False))
+        originals = (await db.execute(oq)).scalars().all()
+
+        rq = (
+            select(PostRepost, Post)
+            .join(Post, Post.id == PostRepost.post_id)
+            .options(selectinload(PostRepost.user), selectinload(Post.author))
+            .order_by(PostRepost.created_at.desc()).limit(want)
+        )
+        if hide_filter:
+            rq = rq.where(Post.hidden.is_(False))
+        reposts = (await db.execute(rq)).all()
+
+        merged = [(p.created_at, p, None, None) for p in originals]
+        merged += [(rp.created_at, p, rp.user, rp.created_at) for rp, p in reposts]
+        merged.sort(key=lambda e: e[0] or datetime.min, reverse=True)
+        window = merged[offset : offset + limit + 1]
+        has_more = len(window) > limit
+        entries = [(p, rb, rat) for _, p, rb, rat in window[:limit]]
     else:
-        q = q.order_by(Post.created_at.desc())
+        q = select(Post).options(selectinload(Post.author))
+        if hide_filter:
+            q = q.where(Post.hidden.is_(False))
+        if tag_clean:
+            q = q.where(cast(Post.tags, String).ilike(f'%"{tag_clean}"%'))
+        if kind_ok:
+            q = q.where(Post.kind == kind_ok)
+        if search_clean:
+            q = q.where(Post.body.ilike(f"%{search_clean}%"))
+        if sort == "top":
+            like_ct = (
+                select(PostReaction.post_id, func.count().label("c"))
+                .group_by(PostReaction.post_id).subquery()
+            )
+            q = (
+                q.add_columns(func.coalesce(like_ct.c.c, 0))
+                .outerjoin(like_ct, like_ct.c.post_id == Post.id)
+                .order_by(func.coalesce(like_ct.c.c, 0).desc(), Post.created_at.desc())
+            )
+            rows = (await db.execute(q.limit(limit + 1).offset(offset))).all()
+            page = [p for p, _ in rows]
+        else:
+            q = q.order_by(Post.created_at.desc())
+            page = (await db.execute(q.limit(limit + 1).offset(offset))).scalars().all()
+        has_more = len(page) > limit
+        entries = [(p, None, None) for p in page[:limit]]
 
-    rows = (await db.execute(q.limit(limit + 1).offset(offset))).all()
-    has_more = len(rows) > limit
-    rows = rows[:limit]
-    ids = [p.id for p, _ in rows]
+    posts = await _hydrate_feed(db, entries, current_user)
+    return FeedOut(posts=posts, has_more=has_more)
 
-    comment_ct: Dict[int, int] = {}
-    liked_ids: set = set()
+
+async def _hydrate_feed(db: AsyncSession, entries, me: User) -> List[PostOut]:
+    """entries: list of (Post, reposter_user_or_None, reposted_at_or_None)."""
+    ids = list({p.id for p, _, _ in entries})
+    comment_ct, liked_ids, saved_ids, reposted_ids, repost_ct = await _engagement(db, ids, me.id)
+    like_ct_map: Dict[int, int] = {}
     if ids:
-        comment_ct = dict(
+        like_ct_map = dict(
             (
                 await db.execute(
-                    select(PostComment.post_id, func.count())
-                    .where(PostComment.post_id.in_(ids), PostComment.hidden.is_(False))
-                    .group_by(PostComment.post_id)
+                    select(PostReaction.post_id, func.count())
+                    .where(PostReaction.post_id.in_(ids))
+                    .group_by(PostReaction.post_id)
                 )
             ).all()
         )
-        liked_ids = set(
-            (
-                await db.execute(
-                    select(PostReaction.post_id).where(
-                        PostReaction.post_id.in_(ids),
-                        PostReaction.user_id == current_user.id,
-                    )
-                )
-            ).scalars().all()
+    return [
+        _post_out(
+            p,
+            like_ct_map.get(p.id, 0),
+            comment_ct.get(p.id, 0),
+            p.id in liked_ids,
+            me,
+            saved=p.id in saved_ids,
+            reposted=p.id in reposted_ids,
+            repost_count=repost_ct.get(p.id, 0),
+            reposted_by=rb,
+            reposted_at=rat,
         )
-
-    posts = [
-        _post_out(p, lc, comment_ct.get(p.id, 0), p.id in liked_ids, current_user)
-        for p, lc in rows
+        for p, rb, rat in entries
     ]
-    return FeedOut(posts=posts, has_more=has_more)
 
 
 @router.post("/posts", response_model=PostOut, status_code=201)
@@ -914,7 +1034,13 @@ async def get_post(
     ])
     like_counts, liked_ids = await _comment_like_info(db, p.comments, current_user)
     comments = _comments_tree(p.comments, current_user, like_counts, liked_ids)
-    base = _post_out(p, like_count, total_comments, liked, current_user)
+    _, _, saved_ids, reposted_ids, repost_ct = await _engagement(db, [p.id], current_user.id)
+    base = _post_out(
+        p, like_count, total_comments, liked, current_user,
+        saved=p.id in saved_ids,
+        reposted=p.id in reposted_ids,
+        repost_count=repost_ct.get(p.id, 0),
+    )
     return PostDetailOut(**base.model_dump(), comments=comments)
 
 
@@ -1006,6 +1132,69 @@ async def toggle_like(
         await db.execute(select(func.count()).select_from(PostReaction).where(PostReaction.post_id == post_id))
     ).scalar() or 0
     return {"liked": liked, "like_count": int(like_count)}
+
+
+@router.post("/posts/{public_id}/save")
+async def toggle_save(
+    public_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Private bookmark — toggles. Only the owner ever sees their saved list."""
+    post = (await db.execute(select(Post).where(Post.public_id == public_id))).scalar_one_or_none()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found.")
+    row = (
+        await db.execute(
+            select(PostSave).where(
+                PostSave.post_id == post.id, PostSave.user_id == current_user.id
+            )
+        )
+    ).scalar_one_or_none()
+    if row:
+        await db.delete(row)
+        saved = False
+    else:
+        db.add(PostSave(post_id=post.id, user_id=current_user.id))
+        saved = True
+    await db.commit()
+    return {"saved": saved}
+
+
+@router.post("/posts/{public_id}/repost")
+async def toggle_repost(
+    public_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Public repost/boost — toggles. Shows on the reposter's profile and in the feed."""
+    post = (await db.execute(select(Post).where(Post.public_id == public_id))).scalar_one_or_none()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found.")
+    if post.user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="You can't repost your own post.")
+    if post.hidden:
+        raise HTTPException(status_code=404, detail="Post not found.")
+    row = (
+        await db.execute(
+            select(PostRepost).where(
+                PostRepost.post_id == post.id, PostRepost.user_id == current_user.id
+            )
+        )
+    ).scalar_one_or_none()
+    if row:
+        await db.delete(row)
+        reposted = False
+    else:
+        db.add(PostRepost(post_id=post.id, user_id=current_user.id))
+        reposted = True
+    await db.commit()
+    count = (
+        await db.execute(
+            select(func.count()).select_from(PostRepost).where(PostRepost.post_id == post.id)
+        )
+    ).scalar() or 0
+    return {"reposted": reposted, "repost_count": int(count)}
 
 
 @router.post("/posts/{public_id}/comments/{comment_id}/like")
@@ -1642,60 +1831,61 @@ async def unfollow_user(
 @router.get("/users/{username}/posts", response_model=FeedOut)
 async def user_posts(
     username: str,
+    tab: str = "posts",
     limit: int = 20,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """A user's posts. `tab` is one of:
+      posts   — posts they authored (default)
+      reposts — posts they reposted (public)
+      saved   — their bookmarks (private: owner only)
+      liked   — posts they liked (private: owner only)
+    """
     target = await _resolve_user(db, username)
     limit = max(1, min(limit, 50))
     offset = max(0, offset)
+    is_self = current_user.id == target.id
+    tab = tab if tab in ("posts", "reposts", "saved", "liked") else "posts"
+    if tab in ("saved", "liked") and not is_self:
+        raise HTTPException(status_code=403, detail="That list is private.")
 
-    like_ct = (
-        select(PostReaction.post_id, func.count().label("c"))
-        .group_by(PostReaction.post_id)
-        .subquery()
-    )
-    q = (
-        select(Post, func.coalesce(like_ct.c.c, 0))
-        .outerjoin(like_ct, like_ct.c.post_id == Post.id)
-        .options(selectinload(Post.author))
-        .where(Post.user_id == target.id)
-    )
-    if not current_user.is_staff:
-        q = q.where(Post.hidden.is_(False))
-    q = q.order_by(Post.created_at.desc())
+    q_off = limit + 1
 
-    rows = (await db.execute(q.limit(limit + 1).offset(offset))).all()
-    has_more = len(rows) > limit
-    rows = rows[:limit]
-    ids = [p.id for p, _ in rows]
-
-    comment_ct: Dict[int, int] = {}
-    liked_ids: set = set()
-    if ids:
-        comment_ct = dict(
-            (
-                await db.execute(
-                    select(PostComment.post_id, func.count())
-                    .where(PostComment.post_id.in_(ids), PostComment.hidden.is_(False))
-                    .group_by(PostComment.post_id)
-                )
-            ).all()
+    if tab == "posts":
+        q = (
+            select(Post).options(selectinload(Post.author))
+            .where(Post.user_id == target.id)
+            .order_by(Post.created_at.desc())
         )
-        liked_ids = set(
-            (
-                await db.execute(
-                    select(PostReaction.post_id).where(
-                        PostReaction.post_id.in_(ids),
-                        PostReaction.user_id == current_user.id,
-                    )
-                )
-            ).scalars().all()
+        if not current_user.is_staff and not is_self:
+            q = q.where(Post.hidden.is_(False))
+        page = (await db.execute(q.limit(q_off).offset(offset))).scalars().all()
+        entries = [(p, None, None) for p in page]
+    elif tab == "reposts":
+        q = (
+            select(Post, PostRepost.created_at)
+            .join(PostRepost, PostRepost.post_id == Post.id)
+            .options(selectinload(Post.author))
+            .where(PostRepost.user_id == target.id, Post.hidden.is_(False))
+            .order_by(PostRepost.created_at.desc())
         )
+        rows = (await db.execute(q.limit(q_off).offset(offset))).all()
+        entries = [(p, target, at) for p, at in rows]
+    else:  # saved | liked
+        link = PostSave if tab == "saved" else PostReaction
+        q = (
+            select(Post, link.created_at)
+            .join(link, link.post_id == Post.id)
+            .options(selectinload(Post.author))
+            .where(link.user_id == target.id, Post.hidden.is_(False))
+            .order_by(link.created_at.desc())
+        )
+        rows = (await db.execute(q.limit(q_off).offset(offset))).all()
+        entries = [(p, None, None) for p, _ in rows]
 
-    posts = [
-        _post_out(p, lc, comment_ct.get(p.id, 0), p.id in liked_ids, current_user)
-        for p, lc in rows
-    ]
+    has_more = len(entries) > limit
+    entries = entries[:limit]
+    posts = await _hydrate_feed(db, entries, current_user)
     return FeedOut(posts=posts, has_more=has_more)

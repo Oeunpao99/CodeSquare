@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { progressService } from '../services/api';
 import {
   FiActivity, FiZap, FiAward, FiBookOpen, FiTarget, FiArrowRight,
@@ -36,6 +37,7 @@ function Bar({ value, color = 'rgb(var(--cs-primary))', className = '', glow = t
 }
 
 function Progress() {
+  const { t } = useTranslation();
   const [summary, setSummary] = useState(null);
   const [skills, setSkills] = useState(null);
 
@@ -62,9 +64,9 @@ function Progress() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary"> progress</span>
+        <span className="mono-label text-cs-primary"> {t('progress.progress_label')}</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-          <FiActivity className="text-cs-primary" /> Progress
+          <FiActivity className="text-cs-primary" /> {t('progress.progress_title')}
         </h1>
       </div>
 
@@ -84,11 +86,11 @@ function Progress() {
       <div className="max-w-none grid lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
         {/* Skills */}
         <div className="card">
-          <span className="mono-label text-cs-text-dim"> skills</span>
+          <span className="mono-label text-cs-text-dim"> {t('progress.skills')}</span>
           <div className="mt-3">
-            {skills === null && <p className="text-cs-text-muted font-mono text-sm">loading skill profile…</p>}
+            {skills === null && <p className="text-cs-text-muted font-mono text-sm">{t('progress.loading_skills')}</p>}
             {skills && skills.skills?.length === 0 && (
-              <p className="text-sm text-cs-text-dim font-mono">no data — complete a lesson or challenge to start building your skill profile.</p>
+              <p className="text-sm text-cs-text-dim font-mono">{t('progress.no_skill_data')}</p>
             )}
             {skills && skills.skills?.length > 0 && (
               <div className="divide-y divide-cs-line/10">
@@ -123,7 +125,7 @@ function Progress() {
         <div className="space-y-6">
           {summary && summary.weak_concepts?.length > 0 && (
             <div className="card border-cs-orange/25">
-              <span className="mono-label text-cs-orange"> worth another look</span>
+              <span className="mono-label text-cs-orange"> {t('progress.worth_look')}</span>
               <div className="mt-3 rounded-lg bg-cs-darkest/60 border border-cs-line/10 p-3 space-y-1.5">
                 {summary.weak_concepts.map((w, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm font-mono">
@@ -138,11 +140,11 @@ function Progress() {
           {summary && summary.recommended_action && (
             <div className="card border-cs-primary/25">
               <span className="mono-label text-cs-primary flex items-center gap-1.5">
-                <FiRefreshCw className="text-[10px]" /> next
+                <FiRefreshCw className="text-[10px]" /> {t('progress.next_label')}
               </span>
               <p className="text-sm mt-3 font-mono text-cs-text-dim">{summary.recommended_action}</p>
               <div className="flex mt-4">
-                <Link to="/practice" className="btn btn-primary btn-sm"><FiTarget /> Practice <FiArrowRight /></Link>
+                <Link to="/practice" className="btn btn-primary btn-sm"><FiTarget /> {t('progress.practice')} <FiArrowRight /></Link>
               </div>
             </div>
           )}

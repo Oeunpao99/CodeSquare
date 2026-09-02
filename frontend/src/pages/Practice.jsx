@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useMajor } from '../context/MajorContext';
 import { challengeService, lessonService } from '../services/api';
 import CodeEditor from '../components/CodeEditor';
@@ -20,6 +21,7 @@ const DIFF_BADGE = {
 };
 
 function Practice() {
+  const { t } = useTranslation();
   const { major, majorData } = useMajor();
   const navigate = useNavigate();
   const [mode, setMode] = useState('browse'); // 'browse' | 'quickfire'
@@ -127,14 +129,14 @@ function Practice() {
         {/* lg:pr-14 reserves the top-right corner for the global notification bell */}
         <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-14">
           <div>
-            <span className="mono-label"> practice</span>
+            <span className="mono-label"> {t('practice.practice_label')}</span>
             <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-              <FiTarget className="text-cs-primary" /> Practice
+              <FiTarget className="text-cs-primary" /> {t('practice.practice_title')}
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex gap-1 p-1 rounded-xl border border-cs-line/15 bg-cs-overlay/[0.04]">
-              {[['browse', 'Challenges'], ['quickfire', 'Quick-fire']].map(([m, label]) => (
+              {[['browse', t('practice.challenges')], ['quickfire', t('practice.quickfire')]].map(([m, label]) => (
                 <button
                   key={m}
                   onClick={() => setMode(m)}
@@ -185,7 +187,7 @@ function Practice() {
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <span className="mono-label text-cs-primary flex items-center gap-1.5">
-                    <FiCalendar className="text-[11px]" /> today’s challenge
+                    <FiCalendar className="text-[11px]" /> {t('practice.todays_challenge')}
                   </span>
                   <h2 className="text-lg font-bold mt-1 truncate">{daily.title}</h2>
                   <div className="flex flex-wrap items-center gap-2 mt-1.5">
@@ -198,7 +200,7 @@ function Practice() {
                     </span>
                     {daily.solved && (
                       <span className="font-mono text-xs text-cs-green inline-flex items-center gap-1">
-                        <FiCheckCircle className="text-[11px]" /> solved
+                        <FiCheckCircle className="text-[11px]" /> {t('practice.solved')}
                       </span>
                     )}
                   </div>
@@ -211,8 +213,8 @@ function Practice() {
           {/* Stats — one clean row */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Stat icon={FiCheckCircle} cls="text-cs-green" label="Solved" value={`${stats.solved}/${stats.total}`} />
-              <Stat icon={FiAward} cls="text-cs-primary" label="Day streak" value={stats.daily_streak} />
+              <Stat icon={FiCheckCircle} cls="text-cs-green" label={t('practice.solved_label')} value={`${stats.solved}/${stats.total}`} />
+              <Stat icon={FiAward} cls="text-cs-primary" label={t('practice.day_streak')} value={stats.daily_streak} />
               {DIFFS.slice(0, 2).map((d) => (
                 stats.by_difficulty?.[d] && (
                   <Stat
@@ -249,12 +251,12 @@ function Practice() {
           {list && list.length === 0 && (
             <div className="card text-center py-14">
               <p className="text-4xl mb-3">🗂️</p>
-              <p className="text-cs-text-dim mb-4">No challenges match these filters.</p>
+              <p className="text-cs-text-dim mb-4">{t('practice.no_match')}</p>
               <button
                 onClick={() => { setFLang(''); setFDiff(''); }}
                 className="btn btn-ghost btn-sm"
               >
-                Clear filters
+                {t('practice.clear_filters')}
               </button>
             </div>
           )}
@@ -272,7 +274,7 @@ function Practice() {
                     </span>
                     {c.solved ? (
                       <span className="font-mono text-[11px] text-cs-green inline-flex items-center gap-1 shrink-0">
-                        <FiCheckCircle className="text-xs" /> done
+                        <FiCheckCircle className="text-xs" /> {t('library.done')}
                       </span>
                     ) : (
                       <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-0.5 shrink-0">
@@ -311,13 +313,13 @@ function Practice() {
             {major ? ' your major’s tracks' : ' all tracks'}. Not graded — just reps.
           </p>
 
-          {items === null && <p className="text-cs-text-muted font-mono text-sm">Loading exercises…</p>}
+          {items === null && <p className="text-cs-text-muted font-mono text-sm">{t('loading_exercises')}</p>}
 
           {items && items.length === 0 && (
             <div className="card text-center py-16">
               <p className="text-5xl mb-4">🗒️</p>
-              <p className="text-cs-text-dim mb-4">No exercises available right now.</p>
-              <button onClick={loadQuickfire} className="btn btn-ghost btn-sm">Try again</button>
+              <p className="text-cs-text-dim mb-4">{t('practice.no_exercises')}</p>
+              <button onClick={loadQuickfire} className="btn btn-ghost btn-sm">{t('practice.try_again')}</button>
             </div>
           )}
 
@@ -386,20 +388,20 @@ function Practice() {
               )}
 
               <div className="flex items-center justify-between gap-3">
-                <button
-                  onClick={() => setShowHints((v) => !v)}
-                  disabled={!current.hints?.length}
-                  className="btn btn-secondary btn-sm disabled:opacity-40"
-                >
-                  <FiHelpCircle /> {showHints ? 'Hide hints' : `Hints (${current.hints?.length || 0})`}
-                </button>
+                  <button
+                    onClick={() => setShowHints((v) => !v)}
+                    disabled={!current.hints?.length}
+                    className="btn btn-secondary btn-sm disabled:opacity-40"
+                  >
+                    <FiHelpCircle /> {showHints ? t('practice.hide_hints') : `Hints (${current.hints?.length || 0})`}
+                  </button>
                 <div className="flex items-center gap-2">
                   <span className="hidden sm:inline font-mono text-[10px] text-cs-text-muted">⌘/Ctrl+↵</span>
                   <button onClick={runQuickfire} disabled={running} title="Run (Ctrl+Enter)" className="btn btn-primary btn-sm">
-                    <FiPlay /> {running ? 'Running…' : 'Run'}
+                    <FiPlay /> {running ? t('practice.running') : t('practice.run')}
                   </button>
                   <button onClick={nextQuickfire} className="btn btn-ghost btn-sm">
-                    {idx + 1 >= items.length ? 'Finish' : 'Skip / Next'} <FiArrowRight />
+                    {idx + 1 >= items.length ? t('practice.finish') : t('practice.skip_next')} <FiArrowRight />
                   </button>
                 </div>
               </div>
@@ -409,18 +411,18 @@ function Practice() {
           {finished && (
             <div className="card text-center py-14">
               <p className="text-5xl mb-4">{correct === answered.length ? '🎉' : '💪'}</p>
-              <h2 className="text-2xl font-bold mb-1">{correct} / {answered.length} correct</h2>
+              <h2 className="text-2xl font-bold mb-1">{t('practice.correct', { count: correct, total: answered.length })}</h2>
               <p className="text-cs-text-dim mb-8">
                 {correct === answered.length
-                  ? 'Clean sweep. Try the graded Challenges next.'
-                  : 'Nice work — the ones you missed are worth another look.'}
+                  ? t('practice.clean_sweep')
+                  : t('practice.nice_work')}
               </p>
               <div className="flex gap-3 justify-center">
                 <button onClick={loadQuickfire} className="btn btn-primary btn-sm">
-                  <FiRefreshCw /> New set
+                  <FiRefreshCw /> {t('practice.new_set')}
                 </button>
                 <button onClick={() => setMode('browse')} className="btn btn-ghost btn-sm">
-                  Browse challenges
+                  {t('practice.browse_challenges')}
                 </button>
               </div>
             </div>

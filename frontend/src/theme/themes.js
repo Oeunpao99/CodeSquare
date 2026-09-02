@@ -23,6 +23,7 @@ export const THEMES = {
       'cs-teal': '13 148 136', 'cs-deep-teal': '17 94 89',
       'cs-text': '228 228 231', 'cs-text-dim': '161 161 170', 'cs-text-muted': '113 113 122',
       'cs-line': '255 255 255', 'cs-overlay': '255 255 255',
+      'cs-btn-text': '11 12 14',
     },
   },
 
@@ -37,6 +38,7 @@ export const THEMES = {
       'cs-teal': '39 174 158', 'cs-deep-teal': '61 66 46',
       'cs-text': '248 248 242', 'cs-text-dim': '201 201 192', 'cs-text-muted': '117 113 94',
       'cs-line': '255 255 255', 'cs-overlay': '255 255 255',
+      'cs-btn-text': '26 27 19',
     },
   },
 
@@ -51,6 +53,7 @@ export const THEMES = {
       'cs-teal': '189 147 249', 'cs-deep-teal': '68 71 90',
       'cs-text': '248 248 242', 'cs-text-dim': '201 204 224', 'cs-text-muted': '98 114 164',
       'cs-line': '255 255 255', 'cs-overlay': '255 255 255',
+      'cs-btn-text': '26 24 29',
     },
   },
 
@@ -65,6 +68,7 @@ export const THEMES = {
       'cs-teal': '86 182 194', 'cs-deep-teal': '62 68 81',
       'cs-text': '218 223 230', 'cs-text-dim': '171 178 191', 'cs-text-muted': '92 99 112',
       'cs-line': '255 255 255', 'cs-overlay': '255 255 255',
+      'cs-btn-text': '11 15 22',
     },
   },
 
@@ -79,6 +83,7 @@ export const THEMES = {
       'cs-teal': '42 195 222', 'cs-deep-teal': '59 66 97',
       'cs-text': '192 202 245', 'cs-text-dim': '169 177 214', 'cs-text-muted': '86 95 137',
       'cs-line': '255 255 255', 'cs-overlay': '255 255 255',
+      'cs-btn-text': '15 17 26',
     },
   },
 
@@ -93,6 +98,7 @@ export const THEMES = {
       'cs-teal': '94 129 172', 'cs-deep-teal': '67 76 94',
       'cs-text': '236 239 244', 'cs-text-dim': '216 222 233', 'cs-text-muted': '97 110 136',
       'cs-line': '255 255 255', 'cs-overlay': '255 255 255',
+      'cs-btn-text': '15 20 25',
     },
   },
 
@@ -107,6 +113,7 @@ export const THEMES = {
       'cs-teal': '57 197 207', 'cs-deep-teal': '33 38 45',
       'cs-text': '230 237 243', 'cs-text-dim': '173 186 199', 'cs-text-muted': '118 131 144',
       'cs-line': '255 255 255', 'cs-overlay': '255 255 255',
+      'cs-btn-text': '255 255 255',
     },
   },
 
@@ -122,6 +129,7 @@ export const THEMES = {
       'cs-teal': '9 105 218', 'cs-deep-teal': '208 215 222',
       'cs-text': '31 35 40', 'cs-text-dim': '87 96 106', 'cs-text-muted': '140 149 159',
       'cs-line': '13 17 23', 'cs-overlay': '13 17 23',
+      'cs-btn-text': '255 255 255',
     },
   },
 
@@ -136,6 +144,7 @@ export const THEMES = {
       'cs-teal': '64 120 242', 'cs-deep-teal': '208 208 208',
       'cs-text': '56 58 66', 'cs-text-dim': '105 108 119', 'cs-text-muted': '160 161 167',
       'cs-line': '56 58 66', 'cs-overlay': '56 58 66',
+      'cs-btn-text': '255 255 255',
     },
   },
 
@@ -150,6 +159,7 @@ export const THEMES = {
       'cs-teal': '38 139 210', 'cs-deep-teal': '147 161 161',
       'cs-text': '88 110 117', 'cs-text-dim': '101 123 131', 'cs-text-muted': '147 161 161',
       'cs-line': '88 110 117', 'cs-overlay': '88 110 117',
+      'cs-btn-text': '255 255 255',
     },
   },
 };

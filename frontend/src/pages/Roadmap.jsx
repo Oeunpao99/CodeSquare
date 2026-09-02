@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useMajor } from '../context/MajorContext';
 import { roadmapService } from '../services/api';
 import {
@@ -18,6 +19,7 @@ const STATUS_META = {
 };
 
 function Roadmap() {
+  const { t } = useTranslation();
   const { major, majorData } = useMajor();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,18 +47,27 @@ function Roadmap() {
   if (!major) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <p className="text-lg text-cs-text-muted">Pick a major to see your roadmap.</p>
-        <Link to="/profile" className="btn btn-primary">Choose your major</Link>
+        <p className="text-lg text-cs-text-muted">{t('roadmap.pick_major')}</p>
+        <Link to="/profile" className="btn btn-primary">{t('roadmap.choose_major')}</Link>
       </div>
     );
   }
+
+  const statusMeta = (status) => {
+    const key = status || 'not-started';
+    const cls = STATUS_META[key] || STATUS_META['not-started'];
+    return {
+      label: t(`roadmap.${key === 'not-started' ? 'not_started' : key === 'in-progress' ? 'in_progress' : 'completed'}`),
+      cls: cls.cls,
+    };
+  };
 
   return (
     <main className="w-full px-6 lg:px-10 py-6">
       {/* Sticky header — just the back link + title (compact, like every other
           page). The major blurb/chips scroll away in the card below. */}
       <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-6 mb-6">
-        <p className="mono-label text-cs-text-muted"> your roadmap</p>
+        <p className="mono-label text-cs-text-muted"> {t('roadmap.your_roadmap')}</p>
         <div className="flex items-end justify-between gap-4 flex-wrap lg:pr-14">
           <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
             {majorData && (
@@ -106,7 +117,7 @@ function Roadmap() {
         {loading ? (
           <div className="min-h-[40vh] flex flex-col items-center justify-center gap-4">
             <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-            <p className="text-cs-text-muted">Loading your roadmap...</p>
+            <p className="text-cs-text-muted">{t('roadmap.loading')}</p>
           </div>
         ) : (
           <>
@@ -116,10 +127,10 @@ function Roadmap() {
                   <FiAward className="text-xl text-cs-primary" />
                   <div className="flex-grow">
                     <p className="font-semibold">
-                      {data.percent === 100 ? 'Major complete — congratulations!' : 'Overall progress'}
+                      {data.percent === 100 ? t('roadmap.major_complete') : t('roadmap.overall_progress')}
                     </p>
                     <p className="text-sm text-cs-text-dim">
-                      {data.completed_lessons} / {data.total_lessons} lessons
+                      {t('roadmap.lessons', { done: data.completed_lessons, total: data.total_lessons })}
                     </p>
                   </div>
                   <span className="text-2xl font-bold text-cs-primary">{data.percent}%</span>
@@ -141,7 +152,7 @@ function Roadmap() {
             ) : (
             <>
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-cs-text-muted">
-              <FiBook /> Suggested learning path
+              <FiBook /> {t('roadmap.suggested_path')}
             </h2>
 
             <div className="relative">
@@ -149,7 +160,7 @@ function Roadmap() {
 
               <div className="space-y-6">
                 {data?.tracks.map((track, index) => {
-                  const meta = STATUS_META[track.status] || STATUS_META['not-started'];
+                  const meta = statusMeta(track.status);
                   const isOpen = !!expanded[track.slug];
                   return (
                     <div key={track.slug} className="relative pl-16">
@@ -202,14 +213,14 @@ function Roadmap() {
 
                           <div className="flex flex-col items-end gap-2 shrink-0">
                             <Link to={`/learn/${track.slug}`} className="btn btn-primary btn-sm">
-                              {track.status === 'completed' ? 'Review' : track.status === 'in-progress' ? 'Continue' : 'Start'}
+                              {track.status === 'completed' ? t('roadmap.review') : track.status === 'in-progress' ? t('roadmap.continue') : t('roadmap.start')}
                             </Link>
                             {track.modules.length > 0 && (
                               <button
                                 onClick={() => toggle(track.slug)}
                                 className="text-xs text-cs-primary hover:text-cs-cyan flex items-center gap-1"
                               >
-                                {isOpen ? 'Hide' : 'Show'} modules <FiChevronDown className={isOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                                {isOpen ? t('roadmap.hide_modules') : t('roadmap.show_modules')} <FiChevronDown className={isOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
                               </button>
                             )}
                           </div>
@@ -244,7 +255,7 @@ function Roadmap() {
                                     </span>
                                   </div>
                                   <p className="text-xs text-cs-text-muted">
-                                    {mod.completed_lessons} / {mod.total_lessons} lessons
+                                    {t('roadmap.lessons_lowercase', { done: mod.completed_lessons, total: mod.total_lessons })}
                                   </p>
                                   <div className="h-1.5 bg-cs-darker rounded overflow-hidden mt-2">
                                     <div

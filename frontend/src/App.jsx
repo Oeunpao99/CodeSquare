@@ -5,6 +5,8 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { MajorProvider } from './context/MajorContext';
+import { LanguageProvider } from './context/LanguageContext';
+import './i18n';
 import PageTransition from './components/PageTransition';
 import TopProgressBar from './components/TopProgressBar';
 import AppLayout from './components/AppLayout';
@@ -116,6 +118,7 @@ function App() {
     <ThemeProvider>
     <AuthProvider>
     <MajorProvider>
+    <LanguageProvider>
       <Router>
         <Toaster
           position="top-right"
@@ -147,6 +150,7 @@ function App() {
         <AppRoutes />
         <TopProgressBar />
       </Router>
+    </LanguageProvider>
     </MajorProvider>
     </AuthProvider>
     </ThemeProvider>

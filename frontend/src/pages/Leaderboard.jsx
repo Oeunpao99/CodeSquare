@@ -4,7 +4,7 @@ import { communityService } from '../services/api';
 import { MAJORS } from '../majors';
 import VerifiedBadge from '../components/VerifiedBadge';
 import {
-  FiAward, FiTerminal, FiZap, FiCheckCircle, FiCode, FiChevronUp,
+  FiAward, FiTerminal, FiZap, FiChevronUp,
 } from 'react-icons/fi';
 
 const MEDAL = ['#F5C518', '#B8C0C8', '#CD7F42']; // gold / silver / bronze
@@ -13,42 +13,43 @@ function Row({ r, highlight }) {
   const major = r.major ? MAJORS[r.major]?.label : null;
   const medal = r.rank <= 3 ? MEDAL[r.rank - 1] : null;
   return (
-    <div
-      className={`flex items-center gap-3 px-4 py-3 border-t border-cs-line/10 first:border-t-0 ${
-        highlight ? 'bg-cs-primary/[0.07]' : 'hover:bg-cs-overlay/[0.04]'
-      } transition-colors`}
+    <Link
+      to={`/u/${r.username}`}
+      className={`flex items-center gap-4 p-4 rounded-xl border transition-colors group ${
+        highlight
+          ? 'border-cs-text-muted/20 bg-cs-primary/[0.07]'
+          : 'border-cs-text-muted/15 bg-cs-darker/40 hover:border-cs-text-muted/30 hover:bg-cs-overlay/[0.05]'
+      }`}
     >
       <span
-        className="w-8 shrink-0 text-center font-mono text-sm font-bold"
-        style={{ color: medal || 'rgb(var(--cs-text-muted))' }}
+        className={`w-9 shrink-0 text-center font-mono text-base font-bold ${
+          medal ? '' : 'text-cs-text-muted'
+        }`}
+        style={medal ? { color: medal } : undefined}
       >
         {r.rank}
       </span>
-      <span className="w-9 h-9 rounded-lg bg-cs-darkest border border-cs-primary/25 flex items-center justify-center font-mono font-bold text-cs-primary overflow-hidden shrink-0">
+      <span className="w-12 h-12 rounded-xl bg-cs-darkest border border-cs-primary/25 flex items-center justify-center font-mono font-bold text-cs-primary overflow-hidden shrink-0">
         {r.avatar_url
           ? <img src={r.avatar_url} alt={r.username} className="w-full h-full object-cover" />
           : <span>{r.username?.charAt(0).toUpperCase()}</span>}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-mono text-base font-semibold truncate">
-          <Link to={`/u/${r.username}`} className="inline-flex items-center gap-1 hover:text-cs-primary transition-colors">
-            <span className="truncate">{r.username}</span>
+        <p className="font-mono text-sm font-semibold truncate">
+          <span className="inline-flex items-center gap-1">
+            <span className="truncate group-hover:text-cs-primary transition-colors">{r.username}</span>
             {r.verified && <VerifiedBadge size="h-4 w-4" />}
-          </Link>
+          </span>
           {highlight && <span className="text-cs-primary font-normal"> · you</span>}
         </p>
-        {major && <p className="font-mono text-[11px] text-cs-text-muted truncate">{major}</p>}
+        <p className="font-mono text-[11px] text-cs-text-muted truncate">{major || '—'}</p>
       </div>
-      <span className="hidden sm:inline-flex items-center gap-1 font-mono text-[11px] text-cs-text-muted shrink-0" title="lessons completed">
-        <FiCheckCircle className="text-[11px]" /> {r.lessons_completed}
+      <span
+        className="inline-flex items-center gap-1.5 font-mono text-sm font-bold text-cs-primary shrink-0 bg-cs-primary/10 border border-cs-primary/20 rounded-lg px-2.5 py-1"
+      >
+        <FiZap className="text-[11px]" /> {r.xp.toLocaleString()} <span className="text-[10px] font-medium text-cs-text-muted">xp</span>
       </span>
-      <span className="hidden sm:inline-flex items-center gap-1 font-mono text-[11px] text-cs-text-muted shrink-0" title="challenges solved">
-        <FiCode className="text-[11px]" /> {r.challenges_solved}
-      </span>
-      <span className="inline-flex items-center gap-1 font-mono text-sm font-bold text-cs-primary shrink-0 w-20 justify-end">
-        <FiZap className="text-[11px]" /> {r.xp.toLocaleString()}
-      </span>
-    </div>
+    </Link>
   );
 }
 
@@ -92,15 +93,7 @@ function Leaderboard() {
 
       {data && data.total_ranked > 0 && (
         <div>
-          <div className="rounded-xl border border-cs-line/15 bg-cs-darker/50 overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-2 bg-cs-line/[0.04] font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted">
-              <span className="w-8 text-center shrink-0">#</span>
-              <span className="w-9 shrink-0" />
-              <span className="flex-1">learner</span>
-              <span className="hidden sm:inline w-[52px] text-right">lsn</span>
-              <span className="hidden sm:inline w-[52px] text-right">chl</span>
-              <span className="w-20 text-right">xp</span>
-            </div>
+          <div className="flex flex-col gap-2.5">
             {data.top.map((r) => (
               <Row key={r.user_id} r={r} highlight={r.is_me} />
             ))}
@@ -108,13 +101,11 @@ function Leaderboard() {
 
           {data.me && (
             <>
-              <div className="flex items-center justify-center py-2 text-cs-text-muted">
+              <div className="flex items-center justify-center py-3 text-cs-text-muted">
                 <FiChevronUp />
               </div>
-              <div className="rounded-xl border border-cs-primary/30 bg-cs-darker/50 overflow-hidden">
-                <Row r={data.me} highlight />
-              </div>
-              <p className="text-center font-mono text-[11px] text-cs-text-muted mt-2">
+              <Row r={data.me} highlight />
+              <p className="text-center font-mono text-[11px] text-cs-text-muted mt-3">
                 {data.total_ranked} learners ranked
               </p>
             </>

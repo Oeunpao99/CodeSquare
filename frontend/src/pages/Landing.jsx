@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import {
   FiCode, FiZap, FiMessageCircle, FiArrowRight, FiPlay,
-  FiTerminal, FiCheckCircle, FiBook, FiTrendingUp, FiAward, FiLayers,
+  FiTerminal, FiCheckCircle, FiBook, FiTrendingUp, FiAward, FiLayers, FiGlobe,
 } from 'react-icons/fi';
 import ThemeMenu from '../components/ThemeMenu';
 import LangLogo from '../components/LangLogo';
@@ -22,6 +24,9 @@ const SYN = {
 };
 
 function Landing() {
+  const { t } = useTranslation();
+  const { lang, setLang, languages: langList } = useLanguage();
+  const [langOpen, setLangOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -49,29 +54,29 @@ function Landing() {
     {
       icon: <FiPlay />,
       tag: '01',
-      title: 'Learn',
-      description: 'Structured lessons that start from zero. No experience assumed, nothing skipped.',
+      title: t('landing.learn_title'),
+      description: t('landing.learn_desc'),
       color: '#2DD4BF',
     },
     {
       icon: <FiCode />,
       tag: '02',
-      title: 'Practice',
-      description: 'A real editor in the browser. Run code, read the error, iterate — instant feedback.',
+      title: t('landing.practice_title'),
+      description: t('landing.practice_desc'),
       color: '#3B82F6',
     },
     {
       icon: <FiZap />,
       tag: '03',
-      title: 'Build',
-      description: 'AI scopes projects to exactly what you have learned so far. No tutorial hell.',
+      title: t('landing.build_title'),
+      description: t('landing.build_desc'),
       color: '#4ADE80',
     },
     {
       icon: <FiMessageCircle />,
       tag: '04',
-      title: 'Get Unstuck',
-      description: 'The tutor explains why the code is wrong and what to try — not just that it broke.',
+      title: t('landing.unstuck_title'),
+      description: t('landing.unstuck_desc'),
       color: '#8B5CF6',
     },
   ];
@@ -205,9 +210,40 @@ function Landing() {
             </span>
           </Link>
           <div className="flex gap-2 sm:gap-3 items-center shrink-0">
+            {/* Language switcher */}
+            <div className="relative">
+              <button
+                onClick={() => setLangOpen((v) => !v)}
+                className="btn btn-ghost btn-sm font-mono inline-flex items-center gap-1.5"
+              >
+                <FiGlobe className="text-sm" />
+                <span>{lang === 'km' ? 'ខ្មែរ' : 'EN'}</span>
+              </button>
+              {langOpen && (
+                <>
+                  <div className="fixed inset-0 z-[80]" onClick={() => setLangOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 z-[90] w-44 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5 shadow-xl">
+                    {langList.map((l) => (
+                      <button
+                        key={l.code}
+                        onClick={() => { setLang(l.code); setLangOpen(false); }}
+                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all ${
+                          lang === l.code
+                            ? 'bg-cs-primary/15 text-cs-primary'
+                            : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
+                        }`}
+                      >
+                        <span className="text-base">{l.flag}</span>
+                        <span className="font-medium">{l.native}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             <ThemeMenu />
-            <Link to="/auth" className="btn btn-ghost btn-sm hidden sm:inline-flex">Sign In</Link>
-            <Link to="/auth" className="btn btn-primary btn-sm">Get Started</Link>
+            <Link to="/auth" className="btn btn-ghost btn-sm hidden sm:inline-flex">{t('landing.sign_in')}</Link>
+            <Link to="/auth" className="btn btn-primary btn-sm">{t('landing.get_started')}</Link>
           </div>
         </div>
       </nav>
@@ -272,17 +308,17 @@ function Landing() {
             </p>
             <div className="flex flex-wrap gap-4 mb-10">
               <Link to="/auth" className="btn btn-primary btn-lg">
-                Start Learning Now <FiArrowRight />
+                {t('landing.start_learning_now')} <FiArrowRight />
               </Link>
               <button className="btn btn-secondary btn-lg font-mono">
-                <FiTerminal /> $ watch demo
+                <FiTerminal /> {t('landing.watch_demo')}
               </button>
             </div>
             <div className="flex flex-wrap gap-x-8 gap-y-4 sm:gap-10">
               {[
-                { num: '9+', label: 'Structured Lessons' },
-                { num: '4', label: 'CodeSquareAgent Modes' },
-                { num: '∞', label: 'Challenges & Quizzes' },
+                { num: '9+', label: t('landing.structured_lessons') },
+                { num: '4', label: t('landing.tutor_modes') },
+                { num: '∞', label: t('landing.challenges_quizzes') },
               ].map((s) => (
                 <div key={s.label} className="flex flex-col">
                   <span className="text-2xl sm:text-3xl font-extrabold text-gradient-dev font-mono">{s.num}</span>
@@ -348,10 +384,9 @@ function Landing() {
       {/* FEATURES */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <span className="mono-label"> capabilities</span>
-        <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-3">Four ways the AI actually helps</h2>
+        <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-3">{t('landing.four_ways')}</h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
-          Not a chatbot bolted on. Four distinct roles — teacher, reviewer, architect, debugger —
-          working the same codebase you are.
+          {t('landing.four_ways_desc')}
         </p>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -377,13 +412,12 @@ function Landing() {
 
       {/* FULL JOURNEY — every shipped feature, by stage */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <span className="mono-label"> the full path</span>
+        <span className="mono-label"> {t('landing.full_path')}</span>
         <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-3">
           From <span className="font-mono text-cs-mint">"what's a variable?"</span> to job-ready
         </h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
-          One place for the whole journey. Every stage is already built in — you never
-          have to go hunt for the next tool.
+          {t('landing.full_path_desc')}
         </p>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -419,10 +453,10 @@ function Landing() {
 
       {/* LANGUAGES */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <span className="mono-label"> choose your path</span>
+        <span className="mono-label"> {t('landing.choose_path')}</span>
         <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-3">Pick a language, open the file</h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
-          Start with whichever one excites you. You can switch tracks any time.
+          {t('landing.choose_lang_desc')}
         </p>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -459,13 +493,10 @@ function Landing() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="mono-label"> beyond the basics</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-4">Backend &amp; DevOps track</h2>
+            <span className="mono-label"> {t('landing.beyond_basics')}</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-4">{t('landing.backend_track')}</h2>
             <p className="text-cs-text-dim mb-6 max-w-xl">
-              Once the fundamentals click, keep going. CodeSquareAgent walks you through the
-              stack real teams ship on — databases and SQL, schema migrations, REST APIs and their
-              docs, the tools you test them with, containers and CI, and the Git workflow that ties
-              it together.
+              {t('landing.backend_desc')}
             </p>
             <div className="flex flex-wrap gap-2">
               {['SQL', 'Migrations', 'REST API', 'OpenAPI / Swagger', 'Postman', 'Docker', 'CI/CD', 'Git', 'GitHub', 'SSH'].map((t) => (
@@ -509,8 +540,8 @@ function Landing() {
 
       {/* HOW IT WORKS */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <span className="mono-label"> getting started</span>
-        <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-14">Four commands to your first project</h2>
+        <span className="mono-label"> {t('landing.getting_started')}</span>
+        <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-14">{t('landing.four_commands')}</h2>
 
         <div className="terminal relative overflow-hidden">
           <div className="scanlines absolute inset-0 pointer-events-none opacity-50" aria-hidden="true" />
@@ -565,12 +596,12 @@ function Landing() {
         <div className="terminal dev-dots glass-hover relative overflow-hidden">
           <div className="scanlines absolute inset-0 pointer-events-none opacity-40" aria-hidden="true" />
           <div className="p-10 md:p-14 text-center bg-cs-dark/70">
-            <span className="mono-label"> ready?</span>
+            <span className="mono-label"> {t('landing.ready')}</span>
             <h2 className="text-3xl md:text-4xl font-extrabold mt-3 mb-4">
-              Start your coding journey today
+              {t('landing.start_journey_today')}
             </h2>
             <p className="text-cs-text-dim mb-8">
-              Free to start. No credit card. Just you, an editor, and a tutor that has your back.
+              {t('landing.free_cta')}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link to="/auth" className="btn btn-primary btn-lg font-mono">
@@ -592,7 +623,7 @@ function Landing() {
             <span className="text-cs-text-muted">~/</span>codesphere
           </div>
           <p className="font-mono text-xs text-cs-text-muted">
-            AI-powered learning for complete beginners · © {new Date().getFullYear()}
+            {t('landing.footer_desc')} · © {new Date().getFullYear()}
           </p>
         </div>
       </footer>

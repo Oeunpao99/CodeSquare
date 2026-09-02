@@ -4,12 +4,16 @@ a major to its ordered learning path server-side.
 """
 
 MAJOR_TRACKS = {
-    "computer-science": ["python", "python-intermediate", "javascript", "linux-shell"],
-    "data-science": ["python", "python-intermediate", "backend-foundations", "linux-shell"],
-    "ai-engineer": ["python", "python-intermediate", "backend-foundations", "linux-shell"],
+    "computer-science": ["python", "python-intermediate", "dsa", "javascript", "linux-shell"],
+    "data-science": ["python", "python-intermediate", "sql-data", "backend-foundations", "linux-shell"],
+    "data-analyst": ["python", "python-intermediate", "sql-data", "linux-shell"],
+    "ai-engineer": ["python", "python-intermediate", "sql-data", "backend-foundations", "linux-shell", "ai-llm"],
     "web-developer": ["html-css", "javascript", "react-typescript", "full-stack"],
-    "backend-engineer": ["python", "python-intermediate", "backend-foundations", "linux-shell", "full-stack"],
+    "backend-engineer": ["python", "python-intermediate", "sql-data", "backend-foundations", "linux-shell", "full-stack"],
     "automation": ["python", "python-intermediate", "linux-shell", "backend-foundations"],
+    # NOTE: network-engineer reuses existing tracks until a dedicated
+    # `networking` track (OSI/TCP-IP/DNS/HTTP, network automation) is seeded.
+    "network-engineer": ["linux-shell", "python", "python-intermediate", "backend-foundations"],
 }
 
 # Library shelves each major should see first, most relevant first. Slugs point at
@@ -25,10 +29,12 @@ MAJOR_DOCS = {
 MAJOR_LABELS = {
     "computer-science": "Computer Science",
     "data-science": "Data Science",
+    "data-analyst": "Data Analyst",
     "ai-engineer": "AI Engineer",
     "web-developer": "Web Developer",
     "backend-engineer": "Backend Engineer",
     "automation": "Automation Engineer",
+    "network-engineer": "Network Engineer",
 }
 
 # Skill buckets for the Progress "skills" view and Career readiness. Each bucket
@@ -66,7 +72,7 @@ SKILL_DEFS = [
     {
         "key": "sql",
         "label": "SQL & Data",
-        "tracks": [],
+        "tracks": ["sql-data"],
         "challenge_langs": ["sql"],
         "challenge_topics": ["sql"],
     },
@@ -87,16 +93,34 @@ SKILL_DEFS = [
             "stacks", "dictionaries", "control-flow",
         ],
     },
+    {
+        "key": "dsa",
+        "label": "Data Structures & Algorithms",
+        "tracks": ["dsa"],
+        "challenge_langs": [],
+        "challenge_topics": [
+            "algorithms", "arrays", "recursion", "stacks", "dictionaries",
+        ],
+    },
+    {
+        "key": "ai-llm",
+        "label": "AI & LLM Apps",
+        "tracks": ["ai-llm"],
+        "challenge_langs": [],
+        "challenge_topics": ["ai", "llm", "prompting", "rag"],
+    },
 ]
 
 SKILL_LABELS = {s["key"]: s["label"] for s in SKILL_DEFS}
 
 # The skills that define "job ready" for each major, most central first.
 MAJOR_SKILLS = {
-    "computer-science": ["python", "problem-solving", "javascript", "shell"],
+    "computer-science": ["dsa", "python", "problem-solving", "javascript", "shell"],
     "data-science": ["python", "sql", "problem-solving"],
-    "ai-engineer": ["python", "sql", "problem-solving", "backend"],
+    "data-analyst": ["sql", "python", "problem-solving"],
+    "ai-engineer": ["ai-llm", "python", "problem-solving", "sql", "backend"],
     "web-developer": ["javascript", "web", "problem-solving"],
     "backend-engineer": ["python", "backend", "sql", "shell", "problem-solving"],
     "automation": ["python", "shell", "backend"],
+    "network-engineer": ["shell", "python", "backend"],
 }
