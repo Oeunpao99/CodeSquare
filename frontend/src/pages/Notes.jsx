@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FiAlertTriangle,
   FiArrowLeft,
@@ -429,6 +429,7 @@ function AiStructure({ suggestion }) {
 function Editor({
   note,
   busy,
+  autosaving,
   onSave,
   onConvert,
   converting,
@@ -447,6 +448,12 @@ function Editor({
   const pageRefs = useRef([]);
   const [activePage, setActivePage] = useState(0);
   const [preview, setPreview] = useState(false);
+  // The last (trimmed) content+title we've persisted for this note — the autosave
+  // only fires when the doc has actually drifted from this, which stops it from
+  // looping on its own re-renders.
+  const savedRef = useRef({ content: "", title: "" });
+  // Latest values for the unmount flush, without re-subscribing the effect.
+  const flushRef = useRef({});
 
   const kind = form.kind;
   const isCred = kind === "credential";
@@ -479,25 +486,51 @@ function Editor({
       content: note.content || "",
       secret: "",
     });
+    savedRef.current = {
+      content: (note.content || "").trim(),
+      title: (note.title || "Untitled").trim(),
+    };
     pageRefs.current = [];
     setActivePage(0);
   }, [note && note.id]);
   useEffect(() => setPreview(false), [note && note.id]);
 
-  // Auto-save after 2 seconds of inactivity
+  // What a save for the current form looks like, or null when there's nothing
+  // worth persisting / nothing has changed since the last save.
+  const buildDirtyBody = () => {
+    if (!note) return null;
+    const content = form.content.trim();
+    const title = form.title.trim() || "Untitled";
+    const s = savedRef.current;
+    if (content === s.content && title === s.title) return null;
+    if (!content && !s.content) return null; // brand-new empty note
+    const body = { kind: form.kind, title, content };
+    if (form.kind === "credential" && form.secret) body.secret = form.secret;
+    return body;
+  };
+  flushRef.current = { buildDirtyBody, noteId: note?.id, onSave };
+
+  // Debounced autosave — only when the doc has actually drifted from the last
+  // persisted version, so it can't loop on its own state updates.
   useEffect(() => {
-    if (!note || !form.content.trim()) return;
+    const body = buildDirtyBody();
+    if (!body) return;
     const timer = setTimeout(() => {
-      const body = {
-        kind: form.kind,
-        title: form.title.trim() || "Untitled",
-        content: form.content.trim(),
-      };
-      if (kind === "credential" && form.secret) body.secret = form.secret;
-      onSave(body, { silent: true });
-    }, 2000);
+      savedRef.current = { content: body.content, title: body.title };
+      onSave(body, { silent: true, id: note.id });
+    }, 1500);
     return () => clearTimeout(timer);
-  }, [form.content, form.title, note?.id, kind, form.secret, onSave]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.content, form.title, form.secret, form.kind, note, onSave]);
+
+  // Flush a pending edit when the editor unmounts (e.g. "← all notes").
+  useEffect(() => {
+    return () => {
+      const { buildDirtyBody: build, noteId, onSave: save } = flushRef.current;
+      const body = build && build();
+      if (body && noteId != null) save(body, { silent: true, id: noteId });
+    };
+  }, []);
 
   const isRevealed = revealedId === note?.id;
 
@@ -558,6 +591,7 @@ function Editor({
       content: form.content.trim(),
     };
     if (isCred && form.secret) body.secret = form.secret;
+    savedRef.current = { content: body.content, title: body.title };
     onSave(body);
     setForm((f) => ({ ...f, secret: "" }));
   };
@@ -674,6 +708,13 @@ function Editor({
         {!isCred && (
           <span className="block font-mono text-[11px] text-cs-text-muted mb-3 px-1">
             {words} word{words === 1 ? "" : "s"} · {chars} chars
+            <span
+              className={`ml-2 transition-opacity ${
+                autosaving ? "opacity-100 text-cs-primary" : "opacity-0"
+              }`}
+            >
+              · saving…
+            </span>
           </span>
         )}
 
@@ -993,7 +1034,8 @@ function Notes() {
   const [sort, setSort] = useState("recent"); // "recent" | "oldest" by created_at
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false); // explicit "$ write" only
+  const [autosaving, setAutosaving] = useState(false); // background debounced save
   const [converting, setConverting] = useState(false);
   const [revealed, setRevealed] = useState(null); // { id, value }
   const [revealTarget, setRevealTarget] = useState(null); // note id awaiting password
@@ -1005,11 +1047,14 @@ function Notes() {
   // toast shown when the user goes back to the list (autosaves stay silent).
   const savedSinceOpen = useRef(false);
 
-  const load = () =>
-    noteService
-      .list()
-      .then((r) => setList(r.data))
-      .catch(() => {});
+  const load = useCallback(
+    () =>
+      noteService
+        .list()
+        .then((r) => setList(r.data))
+        .catch(() => {}),
+    [],
+  );
 
   useEffect(() => {
     load().finally(() => setLoading(false));
@@ -1065,20 +1110,47 @@ function Notes() {
     }
   };
 
-  const save = async (body, { silent = false } = {}) => {
-    setSaving(true);
-    try {
-      const r = await noteService.update(activeId, body);
-      setDetail(r.data);
-      await load();
-      if (silent) savedSinceOpen.current = true;
-      else toast.success("Saved");
-    } catch (e) {
-      toast.error("Could not save", apiError(e));
-    } finally {
-      setSaving(false);
-    }
-  };
+  const save = useCallback(
+    async (body, { silent = false, id } = {}) => {
+      const target = id ?? activeId;
+      if (target == null) return;
+      if (silent) setAutosaving(true);
+      else setSaving(true);
+      try {
+        const r = await noteService.update(target, body);
+        const d = r.data;
+        // Only touch the open editor if this save is for the note still on screen.
+        setDetail((cur) => (cur && cur.id === d.id ? d : cur));
+        // Patch the list row in place — no full refetch on every keystroke pause.
+        setList((cur) =>
+          cur.map((n) =>
+            n.id === d.id
+              ? {
+                  ...n,
+                  title: d.title,
+                  favorite: d.favorite,
+                  has_secret: d.has_secret,
+                  has_suggestion: !!d.ai_suggestion,
+                  snippet: (d.content || "").trim().slice(0, 120),
+                  updated_at: d.updated_at,
+                }
+              : n,
+          ),
+        );
+        if (silent) savedSinceOpen.current = true;
+        else {
+          toast.success("Saved");
+          load(); // manual save reconciles the full list
+        }
+      } catch (e) {
+        if (!silent) toast.error("Could not save", apiError(e));
+      } finally {
+        if (silent) setAutosaving(false);
+        else setSaving(false);
+      }
+    },
+    [activeId, load],
+  );
 
   const doDelete = async (id) => {
     setPendingDelete(null);
@@ -1406,6 +1478,7 @@ function Notes() {
               <Editor
                 note={detail}
                 busy={saving}
+                autosaving={autosaving}
                 onSave={save}
                 onConvert={convert}
                 converting={converting}

@@ -103,7 +103,10 @@ function Landing() {
         'Project workspace — the AI scopes a build to what you have actually learned',
         'Code, markdown notes and a task list, all in one place',
         'AI code review on your project before you call it done',
-        'CodeSquare Note: an encrypted vault for keys & snippets',
+        'CodeSquare Note: multi-page A4 notebooks — lined or grid paper, live Markdown preview',
+        'Star favourites, filter notes by the month you wrote them, autosave as you type',
+        'Turn a rough note into a scoped project plan with one click',
+        'Same place for keys & snippets — encrypted at rest',
       ],
     },
     {
@@ -191,26 +194,26 @@ function Landing() {
   return (
     <div className="min-h-screen overflow-x-hidden">
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-cs-dark/70 backdrop-blur-2xl border-b border-cs-line/10">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2 font-mono text-lg font-bold text-cs-text group">
-            <img src="/logo.png" alt="CodeSquare" className="h-8 w-auto object-contain" />
-            <span className="text-cs-text-muted">~/</span>codesphere
-            <span className="hidden sm:inline-flex items-center gap-1 ml-2 font-mono text-xs text-cs-text-muted">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-4 bg-cs-dark/70 backdrop-blur-2xl border-b border-cs-line/10">
+        <div className="max-w-6xl mx-auto flex justify-between items-center gap-3">
+          <Link to="/" className="flex items-center gap-2 font-mono text-base sm:text-lg font-bold text-cs-text group min-w-0 shrink">
+            <img src="/logo.png" alt="CodeSquare" className="h-7 sm:h-8 w-auto object-contain shrink-0" />
+            <span className="truncate"><span className="text-cs-text-muted">~/</span>codesphere</span>
+            <span className="hidden md:inline-flex items-center gap-1 ml-2 font-mono text-xs text-cs-text-muted">
               <span className="text-cs-green">$</span> <span className="text-cs-primary group-hover:text-cs-mint group-hover:shadow-[0_0_8px_rgb(var(--cs-primary)/0.5)] transition-all">status</span>
               <span className="w-1.5 h-3.5 bg-cs-primary/70 animate-pulse inline-block" aria-hidden="true" />
             </span>
           </Link>
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-2 sm:gap-3 items-center shrink-0">
             <ThemeMenu />
-            <Link to="/auth" className="btn btn-ghost btn-sm">Sign In</Link>
+            <Link to="/auth" className="btn btn-ghost btn-sm hidden sm:inline-flex">Sign In</Link>
             <Link to="/auth" className="btn btn-primary btn-sm">Get Started</Link>
           </div>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className="relative min-h-screen flex items-center px-6 pt-28 pb-20 overflow-hidden">
+      <section className="relative min-h-screen flex items-center px-4 sm:px-6 pt-28 pb-20 overflow-hidden">
         <div className="absolute inset-0 dev-grid" />
 
         {/* flying code — snippets drift up in the backdrop */}
@@ -242,17 +245,17 @@ function Landing() {
         <div className="absolute -top-40 -left-40 w-[36rem] h-[36rem] rounded-full bg-cs-primary/10 blur-[120px] neon-pulse" />
         <div className="absolute -bottom-40 -right-40 w-[36rem] h-[36rem] rounded-full bg-cs-violet/10 blur-[120px]" />
 
-        <div className="relative max-w-6xl mx-auto grid lg:grid-cols-2 gap-14 items-center w-full">
+        <div className="relative max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-14 items-center w-full">
           {/* left */}
-          <div>
+          <div className="min-w-0">
             <div className="mb-6">
-              <p className="flex items-center gap-2 font-mono text-sm text-cs-text-muted mb-3 whitespace-nowrap overflow-x-auto">
+              <p className="flex items-center gap-2 font-mono text-xs sm:text-sm text-cs-text-muted mb-3 whitespace-nowrap overflow-x-auto">
                 <span className="text-cs-green">$</span>
                 <span className="text-cs-text">codesphere</span>
                 <span className="text-cs-text-dim">learn</span>
                 <span className="text-cs-orange">--tutor</span>
               </p>
-              <h1 className="font-mono text-4xl md:text-6xl font-bold leading-[1.1]">
+              <h1 className="font-mono text-[1.75rem] sm:text-4xl md:text-6xl font-bold leading-[1.15] md:leading-[1.1] break-words">
                 <span className="text-cs-red/80 line-through decoration-cs-red/40">Traceback?</span>
                 <span className="text-cs-text-dim"> no sweat:</span>
                 <br />
@@ -262,7 +265,7 @@ function Landing() {
                 <span className="text-cs-mint animate-blink">_</span>
               </h1>
             </div>
-            <p className="text-lg text-cs-text-dim mb-8 max-w-xl">
+            <p className="text-base sm:text-lg text-cs-text-dim mb-8 max-w-xl">
               From <span className="font-mono text-cs-mint">"what is a variable?"</span> to shipping
               real projects. Structured lessons, a live editor, and a tutor that explains the
               <span className="text-cs-text"> why</span>.
@@ -275,14 +278,14 @@ function Landing() {
                 <FiTerminal /> $ watch demo
               </button>
             </div>
-            <div className="flex gap-10">
+            <div className="flex flex-wrap gap-x-8 gap-y-4 sm:gap-10">
               {[
                 { num: '9+', label: 'Structured Lessons' },
                 { num: '4', label: 'CodeSquareAgent Modes' },
                 { num: '∞', label: 'Challenges & Quizzes' },
               ].map((s) => (
                 <div key={s.label} className="flex flex-col">
-                  <span className="text-3xl font-extrabold text-gradient-dev font-mono">{s.num}</span>
+                  <span className="text-2xl sm:text-3xl font-extrabold text-gradient-dev font-mono">{s.num}</span>
                   <span className="text-xs text-cs-text-muted mt-1">{s.label}</span>
                 </div>
               ))}
@@ -298,7 +301,7 @@ function Landing() {
               <span className="terminal-dot bg-cs-green/80" />
               <span className="ml-3 font-mono text-xs text-cs-text-muted">tutor.py — codesphere</span>
             </div>
-            <div className="p-5 bg-cs-dark/60">
+            <div className="p-5 bg-cs-dark/60 overflow-x-auto">
               {heroCode.map((line) => (
                 <div key={line.n} className="code-line flex">
                   <span className="select-none text-cs-line/25 w-8 shrink-0">{line.n}</span>
@@ -331,7 +334,7 @@ function Landing() {
 
       {/* STACK STRIP */}
       <section className="border-y border-cs-line/10 bg-cs-darker/40">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="mono-label text-cs-text-muted mr-2"> stack</span>
           {stack.map((s) => (
             <span key={s} className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md glass text-cs-text-dim">
@@ -343,9 +346,9 @@ function Landing() {
       </section>
 
       {/* FEATURES */}
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <span className="mono-label"> capabilities</span>
-        <h2 className="text-4xl font-extrabold mt-3 mb-3">Four ways the AI actually helps</h2>
+        <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-3">Four ways the AI actually helps</h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
           Not a chatbot bolted on. Four distinct roles — teacher, reviewer, architect, debugger —
           working the same codebase you are.
@@ -373,9 +376,9 @@ function Landing() {
       </section>
 
       {/* FULL JOURNEY — every shipped feature, by stage */}
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <span className="mono-label"> the full path</span>
-        <h2 className="text-4xl font-extrabold mt-3 mb-3">
+        <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-3">
           From <span className="font-mono text-cs-mint">"what's a variable?"</span> to job-ready
         </h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
@@ -415,9 +418,9 @@ function Landing() {
       </section>
 
       {/* LANGUAGES */}
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <span className="mono-label"> choose your path</span>
-        <h2 className="text-4xl font-extrabold mt-3 mb-3">Pick a language, open the file</h2>
+        <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-3">Pick a language, open the file</h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
           Start with whichever one excites you. You can switch tracks any time.
         </p>
@@ -429,7 +432,7 @@ function Landing() {
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: lang.dot }} />
                 <span className="font-mono text-xs text-cs-text-muted">{lang.file}</span>
               </div>
-              <div className="p-5 bg-cs-dark/50">
+              <div className="p-5 bg-cs-dark/50 overflow-x-auto">
                 <div className="code-line mb-1">
                   <span className="select-none text-cs-line/25 mr-3">1</span>
                   {lang.lines.map((p, i) => (
@@ -453,11 +456,11 @@ function Landing() {
       </section>
 
       {/* BACKEND & DEVOPS TRACK */}
-      <section className="max-w-6xl mx-auto px-6 py-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <span className="mono-label"> beyond the basics</span>
-            <h2 className="text-4xl font-extrabold mt-3 mb-4">Backend &amp; DevOps track</h2>
+            <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-4">Backend &amp; DevOps track</h2>
             <p className="text-cs-text-dim mb-6 max-w-xl">
               Once the fundamentals click, keep going. CodeSquareAgent walks you through the
               stack real teams ship on — databases and SQL, schema migrations, REST APIs and their
@@ -481,7 +484,7 @@ function Landing() {
               <span className="terminal-dot bg-cs-green/80" />
               <span className="ml-3 font-mono text-xs text-cs-text-muted">codesphere-tracks/</span>
             </div>
-            <div className="p-5 bg-cs-dark/60 font-mono text-sm">
+            <div className="p-5 bg-cs-dark/60 font-mono text-sm overflow-x-auto">
               <div className="flex items-center gap-2 mb-2">
                 <span style={{ color: SYN.keyword }}>backend-foundations/</span>
                 <span className="text-cs-text-muted text-xs"> track</span>
@@ -505,9 +508,9 @@ function Landing() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="max-w-4xl mx-auto px-6 py-24">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <span className="mono-label"> getting started</span>
-        <h2 className="text-4xl font-extrabold mt-3 mb-14">Four commands to your first project</h2>
+        <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-14">Four commands to your first project</h2>
 
         <div className="terminal relative overflow-hidden">
           <div className="scanlines absolute inset-0 pointer-events-none opacity-50" aria-hidden="true" />
@@ -517,7 +520,7 @@ function Landing() {
             <span className="terminal-dot bg-cs-green/80" />
             <span className="ml-3 font-mono text-xs text-cs-text-muted">zsh — ~/codesphere</span>
           </div>
-          <div className="p-6 bg-cs-dark/60 space-y-4">
+          <div className="p-4 sm:p-6 bg-cs-dark/60 space-y-4 overflow-x-auto">
             {steps.map((s, i) => (
               <div key={s.cmd}>
                 <p className="font-mono text-sm">
@@ -542,7 +545,7 @@ function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="max-w-4xl mx-auto px-6 pb-28 relative">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-20 sm:pb-28 relative">
         <div className="absolute inset-0 code-rain-layer pointer-events-none opacity-35" aria-hidden="true">
           {[
             { text: 'npm run dev', left: '10%', dur: '24s', delay: '1s', op: 0.5 },
