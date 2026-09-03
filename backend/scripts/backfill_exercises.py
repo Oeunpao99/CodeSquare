@@ -18,6 +18,8 @@ Run standalone, or rely on ``seed_data.py`` which calls it at the end:
     python backfill_exercises.py            # add missing exercises
     python backfill_exercises.py --verify   # report only; exit 1 if any gap
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 import sys
 

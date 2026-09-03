@@ -9,6 +9,8 @@ exist for that language. Safe to re-run.
 
     python seed_bases.py
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 from sqlalchemy import select
 
 from database import async_session

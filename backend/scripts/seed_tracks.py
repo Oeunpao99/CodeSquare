@@ -11,6 +11,8 @@ Idempotent: safe to run repeatedly. Run directly for local/dev:
 In deployed environments the accompanying Alembic migration
 (<rev>_seed_backend_track.py) inserts the language + module shells.
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 from sqlalchemy import select
 
 from database import async_session

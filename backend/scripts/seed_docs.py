@@ -12,6 +12,8 @@ Run directly for local/dev (after `alembic upgrade head`):
 
     python seed_docs.py
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 import html as _htmllib
 import re

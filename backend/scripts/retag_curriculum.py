@@ -15,6 +15,8 @@ Authoritative + idempotent. Run after the seeds:
     python seed_data.py ...        # and the other seed_*.py
     python retag_curriculum.py
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 
 from sqlalchemy import select

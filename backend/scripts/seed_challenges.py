@@ -7,6 +7,8 @@ Run directly for local/dev (after `alembic upgrade head`):
 
     python seed_challenges.py
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 from datetime import datetime
 

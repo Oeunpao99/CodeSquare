@@ -1,3 +1,5 @@
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from models.models import Language, Module, Lesson, Exercise

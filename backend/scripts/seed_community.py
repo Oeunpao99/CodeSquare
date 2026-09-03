@@ -6,6 +6,8 @@ that user has none yet.
 
     python seed_community.py
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 from datetime import datetime, timedelta
 

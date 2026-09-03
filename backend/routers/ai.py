@@ -642,3 +642,233 @@ async def delete_session(
     if s:
         await db.delete(s)
         await db.commit()
+
+
+# ---------------------------------------------------------------------------
+#  VS Code extension — chat with file-tool support
+# ---------------------------------------------------------------------------
+
+class VscodeChatRequest(BaseModel):
+    message: str = Field(default="", max_length=16_000)
+    language: Optional[str] = Field(default=None, max_length=40)
+    active_file: Optional[str] = Field(default=None, max_length=500)
+    active_file_content: Optional[str] = Field(default=None, max_length=32_000)
+    workspace_path: Optional[str] = Field(default=None, max_length=500)
+    workspace_tree: Optional[str] = Field(default=None, max_length=20_000)
+    history: List[ChatMessage] = Field(default_factory=list, max_length=40)
+
+
+def _vscode_system_prompt() -> str:
+    return """You are CodeSquareAgent, a coding assistant that lives inside VS Code.
+
+You can help the user by:
+- Answering coding questions
+- Writing code examples
+- Debugging errors
+- Creating files in their project
+- Editing existing files
+
+## File Tools
+
+When the user asks you to create or edit a file, respond with a JSON tool call
+on its own line, wrapped in ```tool fences. The extension will intercept it and
+ask the user to confirm before writing.
+
+Only ONE tool call per message — the first ```tool block is the one that runs.
+
+Available tools:
+
+### read_file
+Reads one or more existing files so you can see them before editing. Reads apply
+automatically (no user confirmation) and the contents come back in the next
+message. Use this whenever you need to see a file that isn't already in context.
+
+```tool
+{"tool": "read_file", "paths": ["relative/path/one.py", "relative/path/two.py"]}
+```
+
+### create_file
+Creates a new file in the user's workspace.
+
+```tool
+{"tool": "create_file", "path": "relative/path/to/file.py", "content": "file content here"}
+```
+
+### edit_file
+Edits an existing file. Provide the EXACT old text to replace and the new text.
+
+```tool
+{"tool": "edit_file", "path": "relative/path/to/file.py", "old_text": "exact text to find", "new_text": "replacement text"}
+```
+
+## Rules
+- Use the "Project files" list to find paths. Paths are relative to the workspace root.
+- Before you edit or reference a file you have NOT already seen, request it with read_file first.
+- For edit_file, old_text must be an EXACT substring of the current file content, and unique enough to match once.
+- Always explain what you're doing before and after a tool call.
+- If the user asks to "create a file" or "write a file", use create_file.
+- If the user asks to "edit" or "change" or "fix" something in a file, use edit_file.
+- You can include both a tool call AND explanatory text in the same response.
+- Keep prose tight. Lead with the answer, then a short explanation.
+
+## Formatting
+- Use GitHub-flavoured Markdown.
+- Every code snippet goes in a fenced block with a language tag.
+- Use `inline code` for file paths, function names, and commands.
+- For a short, direct answer, skip headings — 1-3 sentences is best."""
+
+
+def _build_vscode_context(req: VscodeChatRequest) -> str:
+    parts: list[str] = []
+    if req.active_file:
+        parts.append(f"Active file: {req.active_file}")
+    if req.workspace_path:
+        parts.append(f"Workspace: {req.workspace_path}")
+    if req.active_file_content:
+        # Truncate to keep context manageable
+        content = req.active_file_content[:8000]
+        parts.append(f"Active file content:\n```\n{content}\n```")
+    if req.workspace_tree:
+        parts.append(
+            "Project files (relative paths — request any with the read_file tool):\n"
+            f"```\n{req.workspace_tree[:16000]}\n```"
+        )
+    return "\n\n".join(parts)
+
+
+class VscodeChatResponse(BaseModel):
+    response: str
+    tool_call: Optional[Dict[str, Any]] = None
+    suggestions: List[str] = []
+
+
+def _parse_tool_call(text: str) -> tuple[Optional[Dict[str, Any]], str]:
+    """Extract a ```tool JSON block from the response, returning (tool, clean_text)."""
+    import re
+    pattern = r'```tool\s*\n(\{.*?\})\s*\n```'
+    match = re.search(pattern, text, re.DOTALL)
+    if not match:
+        return None, text
+    try:
+        tool = json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return None, text
+    clean = text[:match.start()].rstrip() + "\n\n" + text[match.end():].lstrip()
+    clean = clean.strip()
+    return tool, clean
+
+
+@router.post("/vscode/chat", response_model=VscodeChatResponse)
+async def vscode_chat(
+    request: VscodeChatRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await _enforce_quota(db, current_user)
+
+    # Build context from workspace / active file
+    ctx = _build_vscode_context(request)
+
+    # Build messages
+    system = _vscode_system_prompt()
+    if ctx:
+        system += f"\n\n## Current VS Code Context\n{ctx}"
+
+    msgs: list[dict[str, str]] = [{"role": "system", "content": system}]
+    for turn in (request.history or [])[-8:]:
+        role = "assistant" if turn.role in ("assistant", "ai") else "user"
+        content = (turn.content or "").strip()
+        if content:
+            msgs.append({"role": role, "content": content[:4000]})
+    msgs.append({"role": "user", "content": request.message})
+
+    if not ai_tutor.client:
+        fallback = ai_tutor.chat_fallback(request.message)
+        return VscodeChatResponse(response=fallback["response"], suggestions=fallback.get("suggestions", []))
+
+    try:
+        full_text = await ai_tutor._complete(msgs, max_tokens=1500, temperature=0.4)
+        await _log_usage(db, current_user.id, "chat")
+
+        tool_call, clean_text = _parse_tool_call(full_text or "")
+
+        return VscodeChatResponse(
+            response=clean_text or full_text or "",
+            tool_call=tool_call,
+            suggestions=ai_tutor._generate_suggestions(request.message, full_text or ""),
+        )
+    except Exception:
+        fallback = ai_tutor.chat_fallback(request.message)
+        return VscodeChatResponse(response=fallback["response"])
+
+
+@router.post("/vscode/chat/stream")
+async def vscode_chat_stream(
+    request: VscodeChatRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """SSE streaming version of /vscode/chat for the VS Code extension."""
+    await _enforce_quota(db, current_user)
+    ctx = _build_vscode_context(request)
+    user_id = current_user.id
+
+    system = _vscode_system_prompt()
+    if ctx:
+        system += f"\n\n## Current VS Code Context\n{ctx}"
+
+    async def gen():
+        acc: list[str] = []
+        started = False
+        try:
+            async for token in ai_tutor.chat_stream(
+                request.message, None, request.language,
+                [m.model_dump() for m in request.history],
+                system=system,
+            ):
+                started = True
+                acc.append(token)
+                yield f"data: {json.dumps({'kind': 'token', 'token': token})}\n\n"
+        except Exception:
+            if not started:
+                canned = ai_tutor.chat_fallback(request.message)
+                try:
+                    async with async_session() as s:
+                        await _log_usage(s, user_id, "chat")
+                except Exception:
+                    pass
+                yield f"data: {json.dumps({'kind': 'reply', **canned})}\n\n"
+                return
+
+        full = "".join(acc).strip()
+        if not full:
+            canned = ai_tutor.chat_fallback(request.message)
+            try:
+                async with async_session() as s:
+                    await _log_usage(s, user_id, "chat")
+            except Exception:
+                pass
+            yield f"data: {json.dumps({'kind': 'reply', **canned})}\n\n"
+            return
+
+        try:
+            async with async_session() as s:
+                await _log_usage(s, user_id, "chat")
+        except Exception:
+            pass
+
+        tool_call, clean_text = _parse_tool_call(full)
+        payload: dict[str, Any] = {
+            "kind": "done",
+            "response": clean_text or full,
+            "suggestions": ai_tutor._generate_suggestions(request.message, full),
+        }
+        if tool_call:
+            payload["tool_call"] = tool_call
+        yield f"data: {json.dumps(payload)}\n\n"
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

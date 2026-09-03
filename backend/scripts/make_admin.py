@@ -7,6 +7,8 @@ Runs against the same DATABASE_URL the app uses. In Docker:
     docker compose --env-file .env.prod -f docker/docker-compose.prod.yml \
         run --rm --no-deps backend python make_admin.py someone@example.com
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 import sys
 

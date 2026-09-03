@@ -9,6 +9,8 @@ In Docker:
     docker compose --env-file .env.prod -f docker/docker-compose.prod.yml \
         run --rm --no-deps backend python set_admin_password.py you@example.com "new-password"
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 import sys
 

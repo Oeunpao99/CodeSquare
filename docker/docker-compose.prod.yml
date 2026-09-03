@@ -74,9 +74,10 @@ services:
       - |
         set -e
         for s in seed_data seed_bases seed_python_adv seed_react seed_linux seed_tracks seed_fullstack \
+                 seed_sql_data seed_dsa seed_ai_llm \
                  retag_curriculum backfill_exercises seed_docs \
                  seed_challenges seed_debug_challenges seed_quizzes ; do
-          echo "=== $$s ===" ; python "$$s.py" ;
+          echo "=== $$s ===" ; python "scripts/$$s.py" ;
         done
     depends_on:
       db:

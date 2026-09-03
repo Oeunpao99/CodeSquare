@@ -14,6 +14,8 @@ and rebuilt on every run):
 
 Login for the seeded account:  demo.ready@example.com  /  codesquare123
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 import random
 from datetime import datetime, timedelta

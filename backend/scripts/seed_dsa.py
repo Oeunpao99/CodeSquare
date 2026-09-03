@@ -16,6 +16,8 @@ Idempotent: skips if the track already exists.
     ./.venv/Scripts/python.exe seed_dsa.py
     ./.venv/Scripts/python.exe retag_curriculum.py
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 from sqlalchemy import select
 
 from database import async_session

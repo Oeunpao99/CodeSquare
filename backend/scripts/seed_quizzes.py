@@ -10,6 +10,8 @@ Run directly for local/dev (after `alembic upgrade head`):
     python seed_quizzes.py            # insert missing quizzes only
     python seed_quizzes.py --refresh  # + push edited content to existing ones
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 import sys
 from datetime import datetime

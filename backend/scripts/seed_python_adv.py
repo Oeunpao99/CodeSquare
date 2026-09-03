@@ -5,6 +5,8 @@ functions, async & await, Pydantic models, and working with JSON.
 
 Idempotent: safe to run repeatedly.
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 from sqlalchemy import select
 
 from database import async_session

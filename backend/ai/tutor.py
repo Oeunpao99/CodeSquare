@@ -501,9 +501,16 @@ Everywhere else, be generous with complete examples.{_GUARD}"""
         context: Optional[str],
         language: Optional[str],
         history: Optional[List[Dict[str, str]]],
+        system: Optional[str] = None,
     ) -> List[Dict[str, str]]:
+        # `system`, when given, is a fully-composed prompt (the caller has already
+        # folded in any context) and is used verbatim — e.g. the VS Code agent
+        # prompt, which carries its own file-tool instructions.
         msgs: List[Dict[str, str]] = [
-            {"role": "system", "content": self._chat_system_prompt(context, language)}
+            {
+                "role": "system",
+                "content": system or self._chat_system_prompt(context, language),
+            }
         ]
         for turn in (history or [])[-8:]:
             role = "assistant" if turn.get("role") in ("assistant", "ai") else "user"
@@ -597,6 +604,7 @@ Everywhere else, be generous with complete examples.{_GUARD}"""
         context: Optional[str],
         language: Optional[str],
         history: Optional[List[Dict[str, str]]] = None,
+        system: Optional[str] = None,
     ):
         """Async generator yielding answer text chunks as the model produces them.
         Raises before the first chunk if the model/client is unavailable so the
@@ -606,7 +614,7 @@ Everywhere else, be generous with complete examples.{_GUARD}"""
             raise RuntimeError("no client configured")
 
         self.last_usage = None
-        msgs = self._chat_messages(message, context, language, history)
+        msgs = self._chat_messages(message, context, language, history, system)
         stream = await self.client.chat.completions.create(
             model=self.model,
             messages=msgs,

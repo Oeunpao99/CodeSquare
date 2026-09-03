@@ -11,6 +11,8 @@ seed_challenges.py):
 
     python seed_debug_challenges.py
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio
 from datetime import datetime
 

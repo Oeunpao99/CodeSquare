@@ -5,6 +5,8 @@ Imported by seed_docs.py and appended to its STANDALONE list. Self-contained
 cycle with seed_docs. seed_standalone() is idempotent: these shelves are only
 created if their slug is missing, so re-running seed_docs.py is safe.
 """
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 from majors import MAJOR_TRACKS
 
 _MAJORS = list(MAJOR_TRACKS)

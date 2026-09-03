@@ -1,3 +1,5 @@
+
+import _bootstrap  # noqa: F401  -- put backend/ on sys.path (see scripts/_bootstrap.py)
 import asyncio, sys
 sys.stdout.reconfigure(encoding="utf-8")
 import httpx

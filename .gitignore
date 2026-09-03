@@ -1,14 +1,6 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-*.egg-info/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-
-# Environment / secrets
+# ─────────────────────────────────────────────────────────────
+# Secrets / environment
+# ─────────────────────────────────────────────────────────────
 .env
 .env.*
 !.env.example
@@ -16,31 +8,106 @@ venv/
 backend/.env
 frontend/.env
 frontend/.env.local
+*.pem
+*.key
+*.p12
+secrets.json
+service-account*.json
 
-# Node
+# ─────────────────────────────────────────────────────────────
+# Python (backend)
+# ─────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.ipynb_checkpoints/
+pip-log.txt
+
+# ─────────────────────────────────────────────────────────────
+# Node / frontend (Vite + React)
+# ─────────────────────────────────────────────────────────────
 node_modules/
 frontend/dist/
+frontend/build/
+.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.eslintcache
+vite.config.*.timestamp-*
 
+# ─────────────────────────────────────────────────────────────
+# VS Code extension (vscode-extension/)
+# ─────────────────────────────────────────────────────────────
+vscode-extension/out/
+vscode-extension/dist/
+vscode-extension/.vscode-test/
+vscode-extension/.vscode-test-web/
+*.vsix
+
+# ─────────────────────────────────────────────────────────────
 # Databases
+# ─────────────────────────────────────────────────────────────
 *.db
 *.sqlite
 *.sqlite3
 
-# Logs / scratch / OS
+# ─────────────────────────────────────────────────────────────
+# Logs / runtime / scratch
+# ─────────────────────────────────────────────────────────────
 *.log
 *.pid
 frontend/dev_out.txt
 frontend/dev_err.txt
 frontend/dev_*.txt
-.DS_Store
-Thumbs.db
 
-# IDE / tooling
+# ─────────────────────────────────────────────────────────────
+# Editors / IDE
+#   .vscode/ is ignored everywhere EXCEPT the extension's own
+#   launch.json, which you need to run it with F5.
+# ─────────────────────────────────────────────────────────────
 .vscode/
+!vscode-extension/.vscode/
+vscode-extension/.vscode/*
+!vscode-extension/.vscode/launch.json
 .idea/
 .claude/
+*.swp
+*.swo
+*~
 
-# design canvas scratch files
+# ─────────────────────────────────────────────────────────────
+# OS / OneDrive cruft
+# ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*~$*
+~$*
+
+# ─────────────────────────────────────────────────────────────
+# Design-canvas scratch files
+# ─────────────────────────────────────────────────────────────
 /Main.dc.html
 /canvas.json
 /codesquare-admin-users.html

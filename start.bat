@@ -38,5 +38,5 @@ echo.
 echo   NOTE: First time? Make sure you've done:
 echo     - uv sync          (in backend, installs all Python deps)
 echo     - npm install      (in frontend)
-echo     - Seeded data: uv run python -c "from seed_data import seed_database; import asyncio; asyncio.run(seed_database())"
+echo     - Seeded data: uv run python scripts\seed_data.py   (from the backend folder)
 pause
