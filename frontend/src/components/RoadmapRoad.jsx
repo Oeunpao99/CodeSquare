@@ -61,7 +61,9 @@ export default function RoadmapRoad({ data }) {
           <pattern id="rr-dots" width="22" height="22" patternUnits="userSpaceOnUse">
             <circle cx="2" cy="2" r="1.2" fill="rgb(var(--cs-overlay) / 0.10)" />
           </pattern>
-          <mask id="rr-reveal">
+          {/* userSpaceOnUse: a one-row (straight) road has a zero-height bounding box,
+              which would make the default objectBoundingBox mask hide everything. */}
+          <mask id="rr-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width={W} height={height}>
             <path d={d} pathLength="1" className="road-reveal" stroke="#fff" strokeWidth="80" fill="none" strokeLinecap="round"
               style={{ animationDuration: `${DRAW}s` }} />
           </mask>
@@ -111,7 +113,7 @@ export default function RoadmapRoad({ data }) {
               </foreignObject>
 
               {/* card */}
-              <foreignObject x={x - 118} y={y - 182} width="236" height="138">
+              <foreignObject x={x - 94} y={y - 182} width="188" height="138">
                 <Link to={`/learn/${t.slug}`}
                   className={`block h-full rounded-lg border px-3 py-2.5 text-left transition-colors ${
                     now ? 'border-cs-primary bg-cs-dark shadow-lg' : 'border-cs-line/15 bg-cs-dark hover:border-cs-primary/50'
