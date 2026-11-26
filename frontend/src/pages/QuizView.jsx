@@ -80,7 +80,7 @@ function QuizView() {
       if (r.data.passed) {
         toast.success(
           r.data.first_pass ? 'Quiz passed' : 'Passed again',
-          r.data.first_pass ? `+${r.data.xp_awarded} XP` : `${r.data.score}%`,
+          r.data.first_pass && r.data.xp_awarded ? `+${r.data.xp_awarded} XP` : `${r.data.score}%`,
         );
       } else {
         toast.error('Not passed yet', `${r.data.score}% — need ${r.data.pass_score}%`);
@@ -143,12 +143,15 @@ function QuizView() {
 
   const ext = fileExt(quiz.language);
 
+  // Class quizzes link back to their class instead of the public Quizzes list.
+  const backTo = quiz.class_id ? `/classes/${quiz.class_id}` : '/quizzes';
+
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Full-bleed sticky header */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/quizzes" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-3">
-          <FiArrowLeft /> ../quizzes
+        <Link to={backTo} className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-3">
+          <FiArrowLeft /> {quiz.class_id ? quiz.class_title : 'Quizzes'}
         </Link>
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <span className={`badge ${DIFF_BADGE[quiz.difficulty] || 'badge-cyan'}`}>{quiz.difficulty}</span>
@@ -158,9 +161,11 @@ function QuizView() {
             </span>
           )}
           {quiz.language && <span className="text-xs text-cs-text-muted">{quiz.language}</span>}
-          <span className="text-xs text-cs-primary inline-flex items-center gap-1">
-            <FiZap className="text-[11px]" /> {quiz.xp_reward} XP
-          </span>
+          {quiz.xp_reward > 0 && (
+            <span className="text-xs text-cs-primary inline-flex items-center gap-1">
+              <FiZap className="text-[11px]" /> {quiz.xp_reward} XP
+            </span>
+          )}
           <span className="text-xs text-cs-text-muted">pass ≥ {quiz.pass_score}%</span>
           {quiz.passed && (
             <span className="text-xs text-cs-green inline-flex items-center gap-1">
@@ -307,7 +312,7 @@ function QuizView() {
                 <button onClick={retake} className="btn btn-secondary btn-sm">
                   <FiRotateCcw /> Retake
                 </button>
-                <Link to="/quizzes" className="btn btn-ghost btn-sm">
+                <Link to={backTo} className="btn btn-ghost btn-sm">
                   Done <FiArrowRight />
                 </Link>
               </>
@@ -378,12 +383,12 @@ function ScoreBanner({ result }) {
         </div>
 
         {/* xp stamp */}
-        {good && result.first_pass && (
+        {good && result.first_pass && result.xp_awarded > 0 && (
           <div className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-cs-primary/30 bg-cs-primary/10 text-cs-primary text-sm font-bold">
             <FiAward /> +{result.xp_awarded} XP
           </div>
         )}
-        {(!good || !result.first_pass) && (
+        {(!good || !result.first_pass || !result.xp_awarded) && (
           <div className="shrink-0 text-[11px] text-cs-text-muted">
             best {result.best_score}%
           </div>

@@ -206,3 +206,83 @@ export const noteService = {
 };
 
 export default api;
+
+// ---- Classes (private classrooms) + teacher applications ----
+export const teacherService = {
+  me: () => api.get('/teachers/me'),
+  apply: (data) => api.post('/teachers/apply', data),
+};
+
+export const classService = {
+  mine: () => api.get('/classes/mine'),
+  create: (data) => api.post('/classes', data),
+  join: (code) => api.post('/classes/join', { code }),
+  get: (id) => api.get(`/classes/${id}`),
+  update: (id, patch) => api.patch(`/classes/${id}`, patch),
+  rotateCode: (id) => api.post(`/classes/${id}/rotate-code`),
+  leave: (id) => api.post(`/classes/${id}/leave`),
+  members: (id) => api.get(`/classes/${id}/members`),
+  removeMember: (id, userId) => api.delete(`/classes/${id}/members/${userId}`),
+  candidates: (id, q) => api.get(`/classes/${id}/candidates`, { params: { q } }),
+  addMember: (id, userId) => api.post(`/classes/${id}/members`, { user_id: userId }),
+  telegram: (id) => api.get(`/classes/${id}/telegram`),
+  telegramLink: (id) => api.post(`/classes/${id}/telegram/link`),
+  telegramVerify: (id) => api.post(`/classes/${id}/telegram/verify`),
+  telegramTest: (id, gid) => api.post(`/classes/${id}/telegram/${gid}/test`),
+  telegramRemove: (id, gid) => api.delete(`/classes/${id}/telegram/${gid}`),
+  addSection: (id, data) => api.post(`/classes/${id}/sections`, data),
+  updateSection: (id, sid, patch) => api.patch(`/classes/${id}/sections/${sid}`, patch),
+  deleteSection: (id, sid) => api.delete(`/classes/${id}/sections/${sid}`),
+  addMaterial: (id, sid, data) => api.post(`/classes/${id}/sections/${sid}/materials`, data),
+  uploadFile: (id, sid, file, title, onUploadProgress) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (title) form.append('title', title);
+    return api.post(`/classes/${id}/sections/${sid}/files`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress,
+    });
+  },
+  updateMaterial: (id, mid, patch) => api.patch(`/classes/${id}/materials/${mid}`, patch),
+  deleteMaterial: (id, mid) => api.delete(`/classes/${id}/materials/${mid}`),
+  // Files are members-only, so fetch with the auth header and hand back a Blob.
+  fileBlob: (id, mid, inline = false) =>
+    api.get(`/classes/${id}/materials/${mid}/file`, { params: inline ? { inline: 1 } : {}, responseType: 'blob' }),
+
+  // Stream (announcements)
+  posts: (id) => api.get(`/classes/${id}/posts`),
+  addPost: (id, body) => api.post(`/classes/${id}/posts`, { body }),
+  deletePost: (id, postId) => api.delete(`/classes/${id}/posts/${postId}`),
+
+  // Class quizzes (taken at /quizzes/<slug>)
+  quizzes: (id) => api.get(`/classes/${id}/quizzes`),
+  quizForEdit: (id, qid) => api.get(`/classes/${id}/quizzes/${qid}`),
+  createQuiz: (id, data) => api.post(`/classes/${id}/quizzes`, data),
+  saveQuiz: (id, qid, data) => api.put(`/classes/${id}/quizzes/${qid}`, data),
+  publishQuiz: (id, qid, published) => api.patch(`/classes/${id}/quizzes/${qid}`, null, { params: { published } }),
+  deleteQuiz: (id, qid) => api.delete(`/classes/${id}/quizzes/${qid}`),
+  quizResults: (id, qid) => api.get(`/classes/${id}/quizzes/${qid}/results`),
+
+  // Assignments
+  assignments: (id) => api.get(`/classes/${id}/assignments`),
+  createAssignment: (id, data) => api.post(`/classes/${id}/assignments`, data),
+  updateAssignment: (id, aid, patch) => api.patch(`/classes/${id}/assignments/${aid}`, patch),
+  deleteAssignment: (id, aid) => api.delete(`/classes/${id}/assignments/${aid}`),
+  submit: (id, aid, file, text, onUploadProgress) => {
+    const form = new FormData();
+    if (file) form.append('file', file);
+    form.append('text', text || '');
+    return api.post(`/classes/${id}/assignments/${aid}/submit`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress,
+    });
+  },
+  submissions: (id, aid) => api.get(`/classes/${id}/assignments/${aid}/submissions`),
+  grade: (id, sid, grade, feedback) => api.post(`/classes/${id}/submissions/${sid}/grade`, { grade, feedback }),
+  returnWork: (id, sid) => api.post(`/classes/${id}/submissions/${sid}/return`),
+  submissionBlob: (id, sid) => api.get(`/classes/${id}/submissions/${sid}/file`, { responseType: 'blob' }),
+
+  // Gradebook (teacher)
+  grades: (id) => api.get(`/classes/${id}/grades`),
+};
+

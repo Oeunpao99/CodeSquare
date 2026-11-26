@@ -5,10 +5,11 @@ import { useAuth } from '../context/AuthContext';
 import { useMajor } from '../context/MajorContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-import { progressService, usageService } from '../services/api';
+import { progressService, usageService, teacherService } from '../services/api';
+import TeacherApplyModal from './TeacherApplyModal';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  FiSun, FiMoon, FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
+  FiSun, FiMoon, FiGrid, FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
   FiUser, FiSettings, FiLayers, FiCircle, FiActivity, FiChevronRight, FiChevronUp,
   FiChevronsLeft, FiChevronsRight, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
   FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers, FiMessageSquare,
@@ -28,6 +29,12 @@ function getNavGroups(t) {
         { to: '/roadmap', label: t('nav.roadmap'), icon: FiTarget },
         { to: '/library', label: t('nav.library'), icon: FiBookOpen },
         { to: '/progress', label: t('nav.progress'), icon: FiActivity },
+      ],
+    },
+    {
+      id: 'classes',
+      items: [
+        { to: '/classes', label: t('nav.my_classes'), icon: FiGrid, match: ['/classes', '/teach'] },
       ],
     },
     {
@@ -69,6 +76,7 @@ function getNavGroups(t) {
 // "R G B" triples matched to the ACCENTS palette.
 const GROUP_COLORS = {
   learn: { rgb: '45 212 191', mint: '94 234 212' },   // teal
+  classes: { rgb: '59 130 246', mint: '96 165 250' },  // blue
   practice: { rgb: '139 92 246', mint: '167 139 250' }, // violet
   build: { rgb: '34 211 238', mint: '125 236 255' },   // cyan
   career: { rgb: '74 222 128', mint: '134 239 172' },  // green
@@ -81,6 +89,7 @@ const NAV_ITEMS_RAW = [
   { to: '/roadmap', icon: FiTarget },
   { to: '/library', icon: FiBookOpen },
   { to: '/progress', icon: FiActivity },
+  { to: '/classes', icon: FiGrid, match: ['/classes', '/teach'] },
   { to: '/practice', icon: FiZap },
   { to: '/quizzes', icon: FiHelpCircle },
   { to: '/tutor', icon: FiCpu },
@@ -248,6 +257,50 @@ function ModeToggle({ mode, toggleMode, theme, setTheme, themes, themeKeys }) {
   );
 }
 
+// Settings entry for becoming an instructor. Everyone starts as a student;
+// this is the one place that leads to the teacher application (/teach).
+function InstructorEntry({ status, onLoad, onNavigate, onApply }) {
+  useEffect(() => {
+    if (status !== undefined) return;
+    teacherService.me()
+      .then((r) => onLoad(r.data?.status || null))
+      .catch(() => onLoad(null));
+  }, [status, onLoad]);
+
+  if (status === undefined) return null;
+  const approved = status === 'approved';
+  const pending = status === 'pending';
+  // Approved: go straight to the classes. Otherwise open the application dialog.
+  const Tag = approved ? Link : 'button';
+  const tagProps = approved
+    ? { to: '/classes', onClick: onNavigate }
+    : { type: 'button', onClick: onApply };
+  return (
+    <div>
+      <p className="mono-label text-cs-text-muted mb-2">Instructor</p>
+      <Tag
+        {...tagProps}
+        className="w-full text-left flex items-center gap-3 p-3 rounded-xl border border-cs-line/10 hover:border-cs-primary/40 transition-colors"
+      >
+        <FiGrid className="text-cs-primary" />
+        <span className="min-w-0">
+          <span className="block text-sm font-medium">
+            {approved ? 'Manage my classes' : pending ? 'Instructor application pending' : 'Join as Instructor'}
+          </span>
+          <span className="block text-xs text-cs-text-dim">
+            {approved
+              ? 'You’re an approved instructor'
+              : pending
+                ? 'We’ll let you know once it’s reviewed'
+                : 'Create classes and share materials with your students'}
+          </span>
+        </span>
+        <FiChevronRight className="ml-auto text-cs-text-muted shrink-0" />
+      </Tag>
+    </div>
+  );
+}
+
 function LangToggle({ lang, setLang, languages }) {
   // Two-option segmented switch: EN | ខ្មែរ. Lives in the top header.
   const short = { en: 'EN', km: 'ខ្មែរ' };
@@ -280,6 +333,8 @@ function LangToggle({ lang, setLang, languages }) {
 function AppLayout() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
+  const [teacherStatus, setTeacherStatus] = useState(undefined); // undefined = not loaded
+  const [applyOpen, setApplyOpen] = useState(false);
   const { major, majorData, clearMajor } = useMajor();
   const { theme, setTheme, themes, themeKeys, mode, toggleMode } = useTheme();
   const { lang, setLang, languages } = useLanguage();
@@ -655,6 +710,10 @@ function AppLayout() {
         </div>
       </div>
 
+      {applyOpen && (
+        <TeacherApplyModal onClose={() => setApplyOpen(false)} onStatus={setTeacherStatus} />
+      )}
+
       {/* Mobile top bar */}
       <header className="sticky top-0 z-40 lg:hidden bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10">
         <div className="px-4 py-3 flex items-center justify-between">
@@ -839,6 +898,12 @@ function AppLayout() {
 
               {tab === 'settings' && (
                 <div className="space-y-4">
+                  <InstructorEntry
+                    status={teacherStatus}
+                    onLoad={setTeacherStatus}
+                    onNavigate={() => setPopup(false)}
+                    onApply={() => { setPopup(false); setApplyOpen(true); }}
+                  />
                   <div>
                     <p className="mono-label text-cs-text-muted mb-2"> {t('settings.settings')}</p>
                     <Link

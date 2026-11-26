@@ -252,6 +252,9 @@ class Quiz(Base):
     questions = Column(JSON, default=list)
     major_slugs = Column(JSON, default=list)          # relevant majors; [] = all
     order = Column(Integer, default=0)
+    # Set for a private class quiz (members only, no XP); NULL = public Practice quiz.
+    class_id = Column(Integer, ForeignKey("classrooms.id"), nullable=True, index=True)
+    published = Column(Boolean, default=True)         # class quizzes can be drafts
     created_at = Column(DateTime, default=datetime.utcnow)
 
     attempts = relationship(
@@ -522,8 +525,9 @@ class Notification(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)    # recipient
     actor_id = Column(Integer, ForeignKey("users.id"), index=True)   # the user who acted
-    kind = Column(String)              # "like" | "comment"
-    post_id = Column(Integer, ForeignKey("posts.id"), index=True)
+    kind = Column(String)              # "like" | "comment" | "class_added" | "class_post" | "class_assignment"
+    post_id = Column(Integer, ForeignKey("posts.id"), index=True)          # community notifications
+    class_id = Column(Integer, ForeignKey("classrooms.id"), nullable=True, index=True)  # class notifications
     read = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
@@ -562,3 +566,162 @@ class Payment(Base):
     status = Column(String, default="pending")        # pending | paid | failed | expired
     created_at = Column(DateTime, default=datetime.utcnow)
     paid_at = Column(DateTime, nullable=True)
+
+# --------------------------------------------------------------------------- #
+#  Classes — private classrooms run by approved teachers. Students join with a  #
+#  code; members see the class's sections (weeks) and materials. Public tracks, #
+#  Library and quizzes stay open to everyone.                                   #
+# --------------------------------------------------------------------------- #
+
+class TeacherProfile(Base):
+    """A user's application to teach. Only `status == "approved"` may create classes."""
+    __tablename__ = "teacher_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True, nullable=False)
+    full_name = Column(String)
+    organization = Column(String, default="")         # school / company
+    subject = Column(String, default="")              # what they teach
+    bio = Column(String, default="")
+    status = Column(String, default="pending", index=True)  # pending | approved | rejected
+    review_note = Column(String, nullable=True)       # admin's reason (shown on reject)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    reviewed_at = Column(DateTime, nullable=True)
+
+    user = relationship("User")
+
+
+class Classroom(Base):
+    __tablename__ = "classrooms"
+
+    id = Column(Integer, primary_key=True, index=True)
+    public_id = Column(String, unique=True, index=True, default=_public_id)  # used in URLs
+    owner_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, default="")
+    subject = Column(String, default="")
+    color = Column(String, default="#3B82F6")
+    join_code = Column(String, unique=True, index=True)
+    code_enabled = Column(Boolean, default=True)
+    # Pending Telegram "add bot to group" link (groups live in ClassTelegramGroup)
+    telegram_link_token = Column(String, nullable=True, index=True)
+    archived = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+    owner = relationship("User")
+    members = relationship("ClassMember", back_populates="classroom", cascade="all, delete-orphan")
+    sections = relationship("ClassSection", back_populates="classroom", cascade="all, delete-orphan")
+
+
+class ClassMember(Base):
+    __tablename__ = "class_members"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_id = Column(Integer, ForeignKey("classrooms.id"), index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    role = Column(String, default="student")          # teacher | student
+    joined_at = Column(DateTime, default=datetime.utcnow)
+
+    classroom = relationship("Classroom", back_populates="members")
+    user = relationship("User")
+
+
+class ClassSection(Base):
+    """A unit of the class, e.g. "Week 1 — Introduction". Hidden from students
+    until `published` is on and `release_at` (if set) has passed."""
+    __tablename__ = "class_sections"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_id = Column(Integer, ForeignKey("classrooms.id"), index=True, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, default="")
+    order = Column(Integer, default=0)
+    published = Column(Boolean, default=False)
+    release_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    classroom = relationship("Classroom", back_populates="sections")
+    materials = relationship("ClassMaterial", back_populates="section", cascade="all, delete-orphan")
+
+
+class ClassMaterial(Base):
+    """One item in a section: a written note, a link (slides, video, Drive), or
+    an uploaded file kept in storage.py's backend (local disk or Azure Blob)."""
+    __tablename__ = "class_materials"
+
+    id = Column(Integer, primary_key=True, index=True)
+    section_id = Column(Integer, ForeignKey("class_sections.id"), index=True, nullable=False)
+    kind = Column(String, default="note")             # note | link | file
+    title = Column(String, nullable=False)
+    body = Column(String, default="")                 # note text (markdown)
+    url = Column(String, nullable=True)               # link target
+    file_key = Column(String, nullable=True)          # storage key for kind == file
+    file_name = Column(String, nullable=True)
+    file_size = Column(Integer, nullable=True)
+    content_type = Column(String, nullable=True)
+    order = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    section = relationship("ClassSection", back_populates="materials")
+
+
+class ClassPost(Base):
+    """An announcement on a class's Stream, posted by its teacher."""
+    __tablename__ = "class_posts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_id = Column(Integer, ForeignKey("classrooms.id"), index=True, nullable=False)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    body = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    author = relationship("User")
+
+
+class Assignment(Base):
+    """Work students hand in (usually a file, e.g. a .pbix) for a grade."""
+    __tablename__ = "assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_id = Column(Integer, ForeignKey("classrooms.id"), index=True, nullable=False)
+    title = Column(String, nullable=False)
+    instructions = Column(String, default="")         # markdown
+    due_at = Column(DateTime, nullable=True)
+    max_points = Column(Integer, default=100)
+    published = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    submissions = relationship("Submission", back_populates="assignment", cascade="all, delete-orphan")
+
+
+class Submission(Base):
+    """One student's hand-in for an assignment (re-submitting replaces it until graded)."""
+    __tablename__ = "submissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    assignment_id = Column(Integer, ForeignKey("assignments.id"), index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    text = Column(String, default="")                 # optional comment / answer
+    file_key = Column(String, nullable=True)
+    file_name = Column(String, nullable=True)
+    file_size = Column(Integer, nullable=True)
+    content_type = Column(String, nullable=True)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+    grade = Column(Float, nullable=True)              # points out of Assignment.max_points
+    feedback = Column(String, nullable=True)
+    graded_at = Column(DateTime, nullable=True)
+
+    assignment = relationship("Assignment", back_populates="submissions")
+    user = relationship("User")
+
+
+class ClassTelegramGroup(Base):
+    """A Telegram group that receives a class's alerts (a class can have several)."""
+    __tablename__ = "class_telegram_groups"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_id = Column(Integer, ForeignKey("classrooms.id"), index=True, nullable=False)
+    chat_id = Column(String, nullable=False)
+    title = Column(String, default="Telegram group")
+    created_at = Column(DateTime, default=datetime.utcnow)

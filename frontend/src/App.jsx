@@ -40,6 +40,9 @@ import Notes from './pages/Notes';
 import LibraryCollection from './pages/LibraryCollection';
 import LibraryArticle from './pages/LibraryArticle';
 import AdminPortal from './pages/admin/AdminPortal';
+import Classes from './pages/Classes';
+import ClassView from './pages/ClassView';
+import NotFound from './pages/NotFound';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -107,6 +110,11 @@ function AppRoutes() {
           <Route path="/quizzes/:slug" element={<QuizView />} />
           <Route path="/tutor" element={<Tutor />} />
           <Route path="/notes" element={<Notes />} />
+          <Route path="/classes" element={<Classes />} />
+          <Route path="/classes/:id" element={<ClassView />} />
+          <Route path="/teach" element={<Navigate to="/classes" replace />} />
+          {/* Any other URL: friendly 404 inside the app shell. */}
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </AnimatePresence>
@@ -123,6 +131,7 @@ function App() {
         <Toaster
           position="top-right"
           gutter={10}
+          containerStyle={{ zIndex: 200 }}  /* above dialogs (z 100-120) so errors are never hidden */
           toastOptions={{
             duration: 3500,
             style: {
@@ -132,7 +141,7 @@ function App() {
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
               boxShadow: '0 1px 0 rgb(var(--cs-line) / 0.08), 0 12px 32px -16px rgb(var(--cs-line) / 0.25)',
-              fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+              fontFamily: 'Inter, "Kantumruy Pro", system-ui, sans-serif',
               fontSize: '13.5px',
               fontWeight: 500,
               padding: '10px 14px',

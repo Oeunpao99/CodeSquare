@@ -4,6 +4,7 @@ import { adminAuth, adminToken } from '../../services/adminApi';
 import AdminLogin from './AdminLogin';
 import AdminLayout from './AdminLayout';
 import AdminUsers from './AdminUsers';
+import AdminTeachers from './AdminTeachers';
 
 // Mounted at /admin-portal/* — its own session, separate from the learner app.
 export default function AdminPortal() {
@@ -38,6 +39,7 @@ export default function AdminPortal() {
       <Routes>
         <Route index element={<Navigate to="users" replace />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="teachers" element={<AdminTeachers />} />
         <Route path="*" element={<Navigate to="users" replace />} />
       </Routes>
     </AdminLayout>

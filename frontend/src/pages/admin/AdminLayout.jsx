@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FiShield, FiUsers, FiLogOut, FiBookOpen, FiZap, FiHelpCircle } from 'react-icons/fi';
+import { FiShield, FiUsers, FiLogOut, FiBookOpen, FiZap, FiHelpCircle, FiAward } from 'react-icons/fi';
 
 // Console shell for /admin-portal. New sections (content authoring, etc.) slot
 // into NAV — add a route in AdminPortal and flip `soon` off here.
 const NAV = [
   { to: '/admin-portal/users', label: 'Users', icon: FiUsers },
+  { to: '/admin-portal/teachers', label: 'Instructors', icon: FiAward },
   { label: 'Lessons', icon: FiBookOpen, soon: true },
   { label: 'Library', icon: FiBookOpen, soon: true },
   { label: 'Challenges', icon: FiZap, soon: true },

@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
-from models.models import Notification, Post, User
+from models.models import Classroom, Notification, Post, User
 from routers.auth import get_current_user
 
 router = APIRouter()
@@ -27,11 +27,13 @@ class Actor(BaseModel):
 
 class NotificationOut(BaseModel):
     id: int
-    kind: str                      # "like" | "comment"
+    kind: str                      # "like" | "comment" | "class_added" | "class_post" | "class_assignment"
     read: bool
     created_at: datetime
     actor: Actor
-    post_public_id: str
+    post_public_id: Optional[str] = None    # community notifications
+    class_public_id: Optional[str] = None   # class notifications
+    class_title: Optional[str] = None
 
 
 class NotificationsResponse(BaseModel):
@@ -55,8 +57,9 @@ async def list_notifications(
 ):
     rows = (
         await db.execute(
-            select(Notification, Post)
-            .join(Post, Post.id == Notification.post_id)
+            select(Notification, Post, Classroom)
+            .outerjoin(Post, Post.id == Notification.post_id)
+            .outerjoin(Classroom, Classroom.id == Notification.class_id)
             .where(Notification.user_id == current_user.id)
             .order_by(Notification.created_at.desc())
             .limit(min(max(limit, 1), 50))
@@ -64,7 +67,9 @@ async def list_notifications(
     ).all()
 
     items = []
-    for n, post in rows:
+    for n, post, cls in rows:
+        if not post and not cls:
+            continue  # target was deleted
         actor = (await db.execute(select(User).where(User.id == n.actor_id))).scalar_one_or_none()
         if not actor:
             continue
@@ -75,7 +80,9 @@ async def list_notifications(
                 read=bool(n.read),
                 created_at=n.created_at,
                 actor=_actor(actor),
-                post_public_id=post.public_id,
+                post_public_id=post.public_id if post else None,
+                class_public_id=cls.public_id if cls else None,
+                class_title=cls.title if cls else None,
             )
         )
 

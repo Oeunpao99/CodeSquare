@@ -115,3 +115,6 @@ $RECYCLE.BIN/
 
 # Library thumbnail raw illustrations (regenerable; titled copies ship in frontend/public)
 backend/scripts/.thumb_raw/
+
+# Uploaded class files (local storage backend)
+backend/uploads/

@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
-from models.models import Quiz, QuizAttempt, User
+from models.models import ClassMember, Classroom, Quiz, QuizAttempt, User
 from routers.auth import get_current_user
 
 router = APIRouter()
@@ -80,6 +80,9 @@ class QuizDetail(BaseModel):
     questions: List[QuizQuestionOut]
     best_score: float = 0.0
     passed: bool = False
+    # Set for a class quiz so the page can link back to its class.
+    class_id: Optional[str] = None
+    class_title: Optional[str] = None
 
 
 class SubmitRequest(BaseModel):
@@ -125,11 +128,22 @@ async def _attempts_by_quiz(db: AsyncSession, user_id: int) -> Dict[int, Dict[st
     }
 
 
-async def _get_by_slug(db: AsyncSession, slug: str) -> Quiz:
+async def _get_by_slug(db: AsyncSession, slug: str, user: Optional[User] = None) -> Quiz:
     row = await db.execute(select(Quiz).where(Quiz.slug == slug))
     quiz = row.scalar_one_or_none()
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found")
+    if quiz.class_id is not None:
+        # Private class quiz: members only; students only once it's published.
+        role = (
+            await db.execute(
+                select(ClassMember.role).where(
+                    ClassMember.class_id == quiz.class_id, ClassMember.user_id == (user.id if user else -1)
+                )
+            )
+        ).scalar_one_or_none()
+        if role is None or (role != "teacher" and not quiz.published):
+            raise HTTPException(status_code=404, detail="Quiz not found")
     return quiz
 
 
@@ -147,7 +161,7 @@ async def list_quizzes(
     current_user: User = Depends(get_current_user),
 ):
     limit = max(1, min(limit, 200))
-    q = select(Quiz)
+    q = select(Quiz).where(Quiz.class_id.is_(None))  # class quizzes are private
     if language:
         q = q.where(Quiz.language == language)
     if difficulty:
@@ -185,7 +199,7 @@ async def list_topics(
     current_user: User = Depends(get_current_user),
 ):
     rows = await db.execute(
-        select(Quiz.topic).where(Quiz.topic.is_not(None)).distinct()
+        select(Quiz.topic).where(Quiz.topic.is_not(None), Quiz.class_id.is_(None)).distinct()
     )
     return sorted({t for (t,) in rows.all() if t})
 
@@ -195,8 +209,9 @@ async def my_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    total = (await db.execute(select(func.count(Quiz.id)))).scalar() or 0
-    mine = await _attempts_by_quiz(db, current_user.id)
+    total = (await db.execute(select(func.count(Quiz.id)).where(Quiz.class_id.is_(None)))).scalar() or 0
+    public_ids = set((await db.execute(select(Quiz.id).where(Quiz.class_id.is_(None)))).scalars().all())
+    mine = {k: v for k, v in (await _attempts_by_quiz(db, current_user.id)).items() if k in public_ids}
     passed = sum(1 for v in mine.values() if v["passed"])
     avg = (
         round(sum(v["best_score"] for v in mine.values()) / len(mine), 1)
@@ -211,7 +226,10 @@ async def my_stats(
 async def _detail(db: AsyncSession, z: Quiz, user_id: int) -> QuizDetail:
     mine = await _attempts_by_quiz(db, user_id)
     state = mine.get(z.id, {})
+    cls = await db.get(Classroom, z.class_id) if z.class_id else None
     return QuizDetail(
+        class_id=cls.public_id if cls else None,
+        class_title=cls.title if cls else None,
         slug=z.slug,
         title=z.title,
         description=z.description or "",
@@ -235,7 +253,7 @@ async def get_quiz(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    quiz = await _get_by_slug(db, slug)
+    quiz = await _get_by_slug(db, slug, current_user)
     return await _detail(db, quiz, current_user.id)
 
 
@@ -246,7 +264,7 @@ async def submit_quiz(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    quiz = await _get_by_slug(db, slug)
+    quiz = await _get_by_slug(db, slug, current_user)
     questions = quiz.questions or []
     if not questions:
         raise HTTPException(status_code=400, detail="Quiz has no questions")

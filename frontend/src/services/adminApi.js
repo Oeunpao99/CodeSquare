@@ -57,4 +57,7 @@ export const adminService = {
   users: (params) => admin.get('/users', { params }),
   user: (id) => admin.get(`/users/${id}`),
   updateUser: (id, patch) => admin.patch(`/users/${id}`, patch),
+  teachers: (status) => admin.get('/teachers', { params: status ? { status } : {} }),
+  approveTeacher: (id, note) => admin.post(`/teachers/${id}/approve`, { note }),
+  rejectTeacher: (id, note) => admin.post(`/teachers/${id}/reject`, { note }),
 };

@@ -1,14 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { FiBell, FiHeart, FiMessageCircle, FiCheckCircle } from 'react-icons/fi';
+import { FiBell, FiHeart, FiMessageCircle, FiCheckCircle, FiGrid, FiVolume2, FiClipboard } from 'react-icons/fi';
 import { notificationService } from '../services/api';
 import { timeAgo } from './PostCard';
 
 const KIND_META = {
   like: { icon: FiHeart, cls: 'text-cs-red', text: (actor) => `${actor.display_name || actor.username} appreciated your post` },
   comment: { icon: FiMessageCircle, cls: 'text-cs-primary', text: (actor) => `@${actor.username} commented on your post` },
+  class_added: { icon: FiGrid, cls: 'text-cs-green', text: (actor, n) => `Added you to ${n.class_title}` },
+  class_post: { icon: FiVolume2, cls: 'text-cs-primary', text: (actor, n) => `New announcement in ${n.class_title}` },
+  class_assignment: { icon: FiClipboard, cls: 'text-cs-orange', text: (actor, n) => `New assignment in ${n.class_title}` },
 };
+
+// Where a notification opens: the class for class notifications, else the post.
+const targetOf = (n) => (n.class_public_id ? `/classes/${n.class_public_id}` : `/community/${n.post_public_id}`);
 
 /**
  * Dev-team notification bell. Polls the notifications API for a red unread
@@ -133,7 +139,7 @@ export default function NotificationBell() {
           <div className="max-h-80 overflow-y-auto">
             {items.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-cs-text-muted">
-                No dev-team activity yet.
+                No notifications yet.
               </p>
             ) : (
               items.map((n) => {
@@ -142,7 +148,7 @@ export default function NotificationBell() {
                 return (
                   <Link
                     key={n.id}
-                    to={`/community/${n.post_public_id}`}
+                    to={targetOf(n)}
                     onClick={() => setOpen(false)}
                     className={`flex items-start gap-3 px-4 py-3 hover:bg-cs-overlay/[0.06] transition-colors border-b border-cs-line/[0.06] last:border-0 ${
                       n.read ? 'opacity-55' : ''
@@ -154,7 +160,7 @@ export default function NotificationBell() {
                         {n.actor.display_name || n.actor.username}
                         {!n.read && <span className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-cs-red align-middle" />}
                       </span>
-                      <span className="block text-xs text-cs-text-dim leading-snug">{meta.text(n.actor)}</span>
+                      <span className="block text-xs text-cs-text-dim leading-snug">{meta.text(n.actor, n)}</span>
                       <span className="block text-[11px] text-cs-text-muted mt-0.5">
                         {timeAgo(n.created_at)}
                       </span>
