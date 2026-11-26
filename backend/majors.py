@@ -6,7 +6,7 @@ a major to its ordered learning path server-side.
 MAJOR_TRACKS = {
     "computer-science": ["python", "python-intermediate", "dsa", "javascript", "linux-shell"],
     "data-science": ["python", "python-intermediate", "sql-data", "backend-foundations", "linux-shell"],
-    "data-analyst": ["python", "python-intermediate", "sql-data", "linux-shell"],
+    "data-analyst": ["python", "python-intermediate", "sql-data", "power-bi", "linux-shell"],
     "ai-engineer": ["python", "python-intermediate", "sql-data", "backend-foundations", "linux-shell", "ai-llm"],
     "web-developer": ["html-css", "javascript", "react-typescript", "full-stack"],
     "backend-engineer": ["python", "python-intermediate", "sql-data", "backend-foundations", "linux-shell", "full-stack"],
@@ -77,6 +77,13 @@ SKILL_DEFS = [
         "challenge_topics": ["sql"],
     },
     {
+        "key": "bi",
+        "label": "Power BI & Reporting",
+        "tracks": ["power-bi"],
+        "challenge_langs": [],
+        "challenge_topics": ["power-bi", "dax"],
+    },
+    {
         "key": "shell",
         "label": "Linux & Shell",
         "tracks": ["linux-shell"],
@@ -117,7 +124,7 @@ SKILL_LABELS = {s["key"]: s["label"] for s in SKILL_DEFS}
 MAJOR_SKILLS = {
     "computer-science": ["dsa", "python", "problem-solving", "javascript", "shell"],
     "data-science": ["python", "sql", "problem-solving"],
-    "data-analyst": ["sql", "python", "problem-solving"],
+    "data-analyst": ["sql", "bi", "python", "problem-solving"],
     "ai-engineer": ["ai-llm", "python", "problem-solving", "sql", "backend"],
     "web-developer": ["javascript", "web", "problem-solving"],
     "backend-engineer": ["python", "backend", "sql", "shell", "problem-solving"],

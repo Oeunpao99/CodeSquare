@@ -40,9 +40,9 @@ export const MAJORS = {
     color: '#34D399',
     tagline: 'Answer business questions with data',
     blurb:
-      'Query databases directly, shape and aggregate the results, and turn them into clear answers. SQL-first, with just enough Python.',
-    focus: ['SQL queries', 'Joins & aggregation', 'Window functions', 'Python for data', 'Data cleaning', 'Reporting'],
-    tracks: ['python', 'python-intermediate', 'sql-data', 'linux-shell'],
+      'Query databases directly, shape and aggregate the results, and turn them into clear answers and Power BI dashboards. SQL-first, with just enough Python.',
+    focus: ['SQL queries', 'Joins & aggregation', 'Window functions', 'Power BI & DAX', 'Data cleaning', 'Dashboards'],
+    tracks: ['python', 'python-intermediate', 'sql-data', 'power-bi', 'linux-shell'],
     projectLang: 'python',
     projectFocus:
       'data analysis — writing SQL to pull and aggregate data, loading results in Python, computing metrics and summary tables, and producing a clear written report of the findings',

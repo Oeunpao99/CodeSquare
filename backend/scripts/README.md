@@ -20,7 +20,7 @@ the script is launched from.
 
 ```
 seed_data → seed_bases → seed_python_adv → seed_react → seed_linux → seed_tracks
-→ seed_fullstack → seed_sql_data → seed_dsa → seed_ai_llm
+→ seed_fullstack → seed_sql_data → seed_dsa → seed_ai_llm → seed_power_bi
 → retag_curriculum → backfill_exercises → seed_docs
 → seed_challenges → seed_debug_challenges → seed_quizzes
 ```

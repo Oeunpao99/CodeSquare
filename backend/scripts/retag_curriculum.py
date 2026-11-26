@@ -94,6 +94,14 @@ CURRICULUM = {
         ("Subqueries & CTEs", "intermediate", 5),
         ("Windows & Performance", "advanced", 6),
     ],
+    "power-bi": [
+        ("Getting Started & Data Sources", "beginner", 1),
+        ("Power Query: Clean & Shape", "beginner", 2),
+        ("Combine & Model", "beginner", 3),
+        ("DAX Fundamentals", "intermediate", 4),
+        ("Time Intelligence & Visuals", "intermediate", 5),
+        ("Publish, Share & Secure", "advanced", 6),
+    ],
     "dsa": [
         ("Complexity & Big-O", "beginner", 1),
         ("Arrays & Two Pointers", "beginner", 2),
