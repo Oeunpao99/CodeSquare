@@ -199,14 +199,6 @@ function Auth() {
           </div>
         </div>
 
-        <div className="flex justify-center gap-8 mt-8">
-          {[t('auth.free_start'), t('auth.no_credit_card'), t('auth.learn_pace')].map((feature) => (
-            <div key={feature} className="flex items-center gap-2 text-sm text-cs-text-muted">
-              <span className="text-cs-green font-bold">✓</span>
-              {feature}
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
