@@ -1,10 +1,12 @@
 .vscode/**
 .vscode-test/**
 src/**
+webview/**
 node_modules/**
 tsconfig.json
+tsconfig.webview.json
+tailwind.config.js
+esbuild.mjs
 **/*.map
 **/*.ts
 !out/**
-webview/**
-!webview/index.html

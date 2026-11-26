@@ -24,6 +24,39 @@ export interface UsageResponse {
     weekly: { used: number; limit: number; percent: number };
 }
 
+/** An HTTP error from the backend, with the status code attached and the
+ *  message pulled out of `{"detail": "..."}` instead of the raw JSON body. */
+export class ApiError extends Error {
+    constructor(public status: number, message: string) {
+        super(message);
+        this.name = 'ApiError';
+    }
+}
+
+/** Turn a non-OK response body into a clean error message: FastAPI's
+ *  `{"detail": "..."}` becomes just the detail text; anything else falls
+ *  back to a short, status-coded message instead of dumping raw JSON/HTML. */
+async function toApiError(resp: Response, fallback: string): Promise<ApiError> {
+    let detail = '';
+    try {
+        const text = await resp.text();
+        try {
+            const parsed = JSON.parse(text);
+            detail =
+                typeof parsed.detail === 'string'
+                    ? parsed.detail
+                    : Array.isArray(parsed.detail)
+                        ? parsed.detail.map((d: any) => d.msg || JSON.stringify(d)).join('; ')
+                        : '';
+        } catch {
+            detail = text.length < 200 ? text : '';
+        }
+    } catch {
+        /* body already consumed or unreadable — use the fallback */
+    }
+    return new ApiError(resp.status, detail || `${fallback} (${resp.status})`);
+}
+
 export class ApiClient {
     private baseUrl: string;
 
@@ -55,8 +88,7 @@ export class ApiClient {
         });
 
         if (!resp.ok) {
-            const text = await resp.text();
-            throw new Error(`API error ${resp.status}: ${text}`);
+            throw await toApiError(resp, 'Request failed');
         }
 
         return (await resp.json()) as T;
@@ -71,8 +103,7 @@ export class ApiClient {
         });
 
         if (!resp.ok) {
-            const text = await resp.text();
-            throw new Error(`Login failed: ${text}`);
+            throw await toApiError(resp, 'Login failed');
         }
 
         return (await resp.json()) as { access_token: string; user: any };
@@ -120,6 +151,7 @@ export class ApiClient {
             activeFileContent?: string;
             workspacePath?: string;
             workspaceTree?: string;
+            mode?: 'plan' | 'build';
         } = {}
     ): Promise<void> {
         const url = `${this.baseUrl}/api/ai/vscode/chat/stream`;
@@ -134,6 +166,7 @@ export class ApiClient {
                 active_file_content: options.activeFileContent,
                 workspace_path: options.workspacePath,
                 workspace_tree: options.workspaceTree,
+                mode: options.mode || 'build',
             });
         } catch (e) {
             onError(new Error('Failed to serialize request'));
@@ -151,8 +184,7 @@ export class ApiClient {
             });
 
             if (!resp.ok) {
-                const text = await resp.text();
-                onError(new Error(`Stream error ${resp.status}: ${text}`));
+                onError(await toApiError(resp, 'The agent is unavailable right now'));
                 return;
             }
 
