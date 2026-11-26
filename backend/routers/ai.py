@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -649,34 +650,57 @@ async def delete_session(
 # ---------------------------------------------------------------------------
 
 class VscodeChatRequest(BaseModel):
-    message: str = Field(default="", max_length=16_000)
+    message: str = Field(default="", max_length=64_000)
     language: Optional[str] = Field(default=None, max_length=40)
     active_file: Optional[str] = Field(default=None, max_length=500)
     active_file_content: Optional[str] = Field(default=None, max_length=32_000)
     workspace_path: Optional[str] = Field(default=None, max_length=500)
     workspace_tree: Optional[str] = Field(default=None, max_length=20_000)
-    history: List[ChatMessage] = Field(default_factory=list, max_length=40)
+    # Wide enough for a long build's explore/write loop (plan + many task turns +
+    # read_file results). The server still keeps only the most recent turns.
+    history: List[ChatMessage] = Field(default_factory=list, max_length=160)
+    mode: str = Field(default="build", max_length=10)  # "plan" | "build"
 
 
-def _vscode_system_prompt() -> str:
-    return """You are CodeSquareAgent, a coding assistant that lives inside VS Code.
+# How much history / per-turn text the agent path keeps — much larger than the
+# web tutor so a big scaffold doesn't lose earlier files or the plan.
+_VS_HISTORY_TURNS = int(os.getenv("VSCODE_AGENT_HISTORY_TURNS", "24"))
+_VS_TURN_CHARS = int(os.getenv("VSCODE_AGENT_TURN_CHARS", "24000"))
+_VS_MAX_TOKENS = int(os.getenv("VSCODE_AGENT_MAX_TOKENS", "6000"))
+_VS_REASONING = os.getenv("VSCODE_AGENT_REASONING_EFFORT", "medium")
+
+
+def _vscode_system_prompt(mode: str = "build") -> str:
+    base = """You are CodeSquareAgent, a coding assistant that lives inside VS Code.
 
 You can help the user by:
 - Answering coding questions
 - Writing code examples
 - Debugging errors
-- Creating files in their project
-- Editing existing files
+- Reading their project to understand it
+- Creating and editing files in their project
 
-## File Tools
+## Tools
 
-When the user asks you to create or edit a file, respond with a JSON tool call
-on its own line, wrapped in ```tool fences. The extension will intercept it and
-ask the user to confirm before writing.
-
+Respond with a JSON tool call on its own line, wrapped in ```tool fences, to act.
 Only ONE tool call per message — the first ```tool block is the one that runs.
 
-Available tools:
+### list_files
+Lists workspace files matching a glob — use it to explore an unfamiliar area
+before reading. Results come back in the next message.
+
+```tool
+{"tool": "list_files", "glob": "backend/routers/*.py"}
+```
+
+### search_code
+Greps the workspace for a string (or a regex when `"regex": true`), optionally
+narrowed by a glob. Use it to locate where a symbol / route / setting is defined
+or used before you read or edit. Results come back as `path:line: text`.
+
+```tool
+{"tool": "search_code", "query": "create_access_token", "glob": "backend/**/*.py"}
+```
 
 ### read_file
 Reads one or more existing files so you can see them before editing. Reads apply
@@ -687,27 +711,85 @@ message. Use this whenever you need to see a file that isn't already in context.
 {"tool": "read_file", "paths": ["relative/path/one.py", "relative/path/two.py"]}
 ```
 
+### run_command
+Runs a shell command in the workspace and returns its output (exit code +
+stdout/stderr). Use it to install dependencies, run the test suite, start and
+`curl` a server to check an endpoint, run `git`, etc. `cwd` is optional
+(relative to the workspace root). Commands are killed after 60s, so never start
+a long-running server without a timeout — use `timeout 8 uvicorn …` or run the
+check with `python -c` / a test client instead.
+
+```tool
+{"tool": "run_command", "command": "python -m pytest -q", "cwd": "notesapp"}
+```
+
+If command execution is turned off, you'll be told — then just print the exact
+command for the user to run and carry on; do NOT keep calling run_command.
+
 ### create_file
-Creates a new file in the user's workspace.
+Creates ONE new file in the user's workspace. The user reviews it before it's written.
 
 ```tool
 {"tool": "create_file", "path": "relative/path/to/file.py", "content": "file content here"}
 ```
 
+### plan_tasks
+When a request touches MORE THAN 2 files (scaffold a project, a feature across
+backend + frontend, a multi-file refactor), send a task list FIRST — one line
+per step, each naming the file(s) and the change. The user gets a checklist and
+you then implement the steps ONE AT A TIME (one create_file / edit_file per
+turn, in order), so nothing is truncated and the user can check each step.
+
+```tool
+{"tool": "plan_tasks", "tasks": [
+  "linkshort/db.py — SQLAlchemy engine, Base, get_db()",
+  "linkshort/models.py — Link model (slug, target_url, clicks)",
+  "linkshort/main.py — FastAPI app, mount the router"
+]}
+```
+
+### create_files
+Scaffolds MULTIPLE new files in ONE call. Use this only for a SMALL batch (≈2-4
+short files); for anything bigger use plan_tasks and build file by file so a
+long response can't be cut off mid-file. Parent folders are created
+automatically from each path.
+
+```tool
+{"tool": "create_files", "files": [
+  {"path": "backend/routers/feedback.py", "content": "..."},
+  {"path": "backend/models/feedback.py", "content": "..."},
+  {"path": "frontend/src/components/FeedbackForm.jsx", "content": "..."}
+]}
+```
+
 ### edit_file
-Edits an existing file. Provide the EXACT old text to replace and the new text.
+Edits an existing file — provide the EXACT old text to replace and the new text.
+The user reviews a diff before it's applied.
 
 ```tool
 {"tool": "edit_file", "path": "relative/path/to/file.py", "old_text": "exact text to find", "new_text": "replacement text"}
 ```
 
+## How to work a change
+1. Explore only if you need to: `list_files` to see an area, `search_code` to
+   find where something lives.
+2. `read_file` the file(s) you'll touch (and their close neighbours) so you have
+   the exact current text.
+3. Big job (>2 files)? Send `plan_tasks` first, then implement ONE task per turn.
+   Small job? Go straight to `edit_file` / `create_file` / small `create_files`.
+4. When it matters, verify with `run_command` — run the tests, or `curl` / a
+   TestClient call against the thing you changed — and fix what's broken.
+You may chain several explore/run steps (about 8) before you must act — one tool
+call per message, results come back in the next one. Don't re-read a file already
+in context, and stop as soon as you know enough.
+
 ## Rules
 - Use the "Project files" list to find paths. Paths are relative to the workspace root.
 - Before you edit or reference a file you have NOT already seen, request it with read_file first.
 - For edit_file, old_text must be an EXACT substring of the current file content, and unique enough to match once.
-- Always explain what you're doing before and after a tool call.
-- If the user asks to "create a file" or "write a file", use create_file.
-- If the user asks to "edit" or "change" or "fix" something in a file, use edit_file.
+- >2 files → plan_tasks first, then one write per turn. 2-4 tiny files → create_files. One file → create_file.
+  Never emit more than one ```tool block to work around the one-call limit.
+- After a plan_tasks list, each turn does the NEXT task with exactly one write tool call.
 - You can include both a tool call AND explanatory text in the same response.
 - Keep prose tight. Lead with the answer, then a short explanation.
 
@@ -716,6 +798,54 @@ Edits an existing file. Provide the EXACT old text to replace and the new text.
 - Every code snippet goes in a fenced block with a language tag.
 - Use `inline code` for file paths, function names, and commands.
 - For a short, direct answer, skip headings — 1-3 sentences is best."""
+
+    if mode == "plan":
+        return base + """
+
+## YOU ARE IN PLAN MODE
+In this mode you investigate and propose — you do NOT make changes.
+- You may use list_files, search_code and read_file freely to understand the project.
+- You must NOT use create_file, create_files, or edit_file in this mode, even if asked directly.
+  If the user asks you to build/apply something, still only produce a plan, and
+  say the plan is ready to build — don't write the files.
+- EVERY response (not just build requests — plain questions too, where it fits)
+  must end with a "## Plan" section: a numbered list of concrete steps. Each
+  step names the exact file(s) it touches and the change in one line, e.g.:
+  1. `backend/models.py` — add a `Feedback` model (user_id, message, rating, created_at).
+  2. `backend/routers/feedback.py` — new router: POST /feedback, GET /feedback/me.
+  3. `backend/main.py` — register the new router.
+- Keep steps concrete enough that they could be executed one-for-one in Build
+  mode without re-deciding anything. Note open questions as a step's caveat
+  rather than blocking the whole plan on them.
+- End with one line: "Switch to Build mode to have me implement this.\""""
+
+    return base + """
+
+## YOU ARE IN BUILD MODE
+Take action — don't just describe a change, make it with create_file/edit_file.
+Read what you need first, then implement. Prefer the smallest correct change.
+
+## Big-scope requests (a project, a feature across several files, a refactor)
+1. First send `plan_tasks` — one task per file, ordered so each builds on the
+   last (config/db → models → schemas → crud → routes → app wiring → docs). A
+   file that imports X comes after X. Name the exact file in each task.
+2. Then you get one message per task: "Implement task N of M: …". Do EXACTLY that
+   task — ONE write tool call for the file it names — and nothing from other tasks.
+3. For a file YOU created earlier in this same build, do NOT edit_file it — just
+   `create_file` it again with the full corrected content (overwrite). Only use
+   edit_file on pre-existing project files.
+4. Stay consistent with what you already built: same import paths, names, base
+   classes, style. `read_file` an earlier file if you're unsure what it looks like.
+5. Every file COMPLETE and runnable — no "# ... rest unchanged", no TODO stubs,
+   no placeholder bodies. Write the whole file; never split it across turns.
+6. Make the SECOND-TO-LAST task a real test file (e.g. `tests/test_api.py` with a
+   TestClient hitting each endpoint) whenever the project can be tested — you
+   will be asked to run it, and a build that proves itself is worth far more
+   than one that merely looks right.
+7. If `run_command` is available, after the last file: install deps and run that
+   test. If it fails, fix the offending file (one more create_file) and re-run.
+8. Finish with one short line ("All N files created — run with `…`.") and stop;
+   don't re-list the plan."""
 
 
 def _build_vscode_context(req: VscodeChatRequest) -> str:
@@ -742,20 +872,71 @@ class VscodeChatResponse(BaseModel):
     suggestions: List[str] = []
 
 
+def _scan_balanced_object(text: str, start: int) -> Optional[tuple[int, int]]:
+    """From `start`, find the first top-level {...} object, honouring strings and
+    escapes so nested braces / braces-in-strings (create_files!) don't break it.
+    Returns (obj_start, obj_end) or None."""
+    i, depth, obj_start = start, 0, None
+    in_str = esc = False
+    while i < len(text):
+        c = text[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+        elif c == "{":
+            if depth == 0:
+                obj_start = i
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0 and obj_start is not None:
+                return obj_start, i + 1
+        i += 1
+    return None
+
+
 def _parse_tool_call(text: str) -> tuple[Optional[Dict[str, Any]], str]:
     """Extract a ```tool JSON block from the response, returning (tool, clean_text)."""
     import re
-    pattern = r'```tool\s*\n(\{.*?\})\s*\n```'
-    match = re.search(pattern, text, re.DOTALL)
-    if not match:
+    open_fence = re.search(r"```tool[ \t]*\r?\n", text)
+    if not open_fence:
         return None, text
+
+    found = _scan_balanced_object(text, open_fence.end())
+    if not found:
+        # Malformed tool block — drop everything from the fence on so the raw
+        # JSON never reaches the user.
+        return None, text[: open_fence.start()].rstrip()
+
+    obj_start, obj_end = found
     try:
-        tool = json.loads(match.group(1))
+        tool = json.loads(text[obj_start:obj_end])
     except json.JSONDecodeError:
-        return None, text
-    clean = text[:match.start()].rstrip() + "\n\n" + text[match.end():].lstrip()
-    clean = clean.strip()
+        return None, text[: open_fence.start()].rstrip()
+
+    close = re.match(r"[ \t]*\r?\n?```", text[obj_end:])
+    fence_end = obj_end + (close.end() if close else 0)
+    clean = (text[: open_fence.start()].rstrip() + "\n\n" + text[fence_end:].lstrip()).strip()
     return tool, clean
+
+
+_BUILD_ONLY_TOOLS = {"create_file", "create_files", "edit_file", "run_command"}
+
+
+def _gate_tool_for_mode(
+    tool: Optional[Dict[str, Any]], mode: str
+) -> Optional[Dict[str, Any]]:
+    """Plan mode may only read — never write. Enforced here, not just by
+    prompt, in case the model ignores the instruction."""
+    if tool and mode == "plan" and tool.get("tool") in _BUILD_ONLY_TOOLS:
+        return None
+    return tool
 
 
 @router.post("/vscode/chat", response_model=VscodeChatResponse)
@@ -768,18 +949,19 @@ async def vscode_chat(
 
     # Build context from workspace / active file
     ctx = _build_vscode_context(request)
+    mode = "plan" if request.mode == "plan" else "build"
 
     # Build messages
-    system = _vscode_system_prompt()
+    system = _vscode_system_prompt(mode)
     if ctx:
         system += f"\n\n## Current VS Code Context\n{ctx}"
 
     msgs: list[dict[str, str]] = [{"role": "system", "content": system}]
-    for turn in (request.history or [])[-8:]:
+    for turn in (request.history or [])[-_VS_HISTORY_TURNS:]:
         role = "assistant" if turn.role in ("assistant", "ai") else "user"
         content = (turn.content or "").strip()
         if content:
-            msgs.append({"role": role, "content": content[:4000]})
+            msgs.append({"role": role, "content": content[:_VS_TURN_CHARS]})
     msgs.append({"role": "user", "content": request.message})
 
     if not ai_tutor.client:
@@ -787,13 +969,23 @@ async def vscode_chat(
         return VscodeChatResponse(response=fallback["response"], suggestions=fallback.get("suggestions", []))
 
     try:
-        full_text = await ai_tutor._complete(msgs, max_tokens=1500, temperature=0.4)
+        full_text = await ai_tutor._complete(
+            msgs,
+            max_tokens=_VS_MAX_TOKENS,
+            temperature=0.4,
+            reasoning_effort=_VS_REASONING,
+        )
         await _log_usage(db, current_user.id, "chat")
 
         tool_call, clean_text = _parse_tool_call(full_text or "")
+        tool_call = _gate_tool_for_mode(tool_call, mode)
+
+        # If a tool call was found, the cleaned text is authoritative even when
+        # empty — never fall back to `full_text` (that re-exposes the raw block).
+        response_text = clean_text if tool_call else (clean_text or full_text or "")
 
         return VscodeChatResponse(
-            response=clean_text or full_text or "",
+            response=response_text,
             tool_call=tool_call,
             suggestions=ai_tutor._generate_suggestions(request.message, full_text or ""),
         )
@@ -812,8 +1004,9 @@ async def vscode_chat_stream(
     await _enforce_quota(db, current_user)
     ctx = _build_vscode_context(request)
     user_id = current_user.id
+    mode = "plan" if request.mode == "plan" else "build"
 
-    system = _vscode_system_prompt()
+    system = _vscode_system_prompt(mode)
     if ctx:
         system += f"\n\n## Current VS Code Context\n{ctx}"
 
@@ -825,6 +1018,10 @@ async def vscode_chat_stream(
                 request.message, None, request.language,
                 [m.model_dump() for m in request.history],
                 system=system,
+                max_tokens=_VS_MAX_TOKENS,
+                history_turns=_VS_HISTORY_TURNS,
+                max_turn_chars=_VS_TURN_CHARS,
+                reasoning_effort=_VS_REASONING,
             ):
                 started = True
                 acc.append(token)
@@ -858,9 +1055,12 @@ async def vscode_chat_stream(
             pass
 
         tool_call, clean_text = _parse_tool_call(full)
+        tool_call = _gate_tool_for_mode(tool_call, mode)
         payload: dict[str, Any] = {
             "kind": "done",
-            "response": clean_text or full,
+            # With a tool call, the cleaned text wins even if empty — falling back
+            # to `full` would leak the raw ```tool block into the chat.
+            "response": clean_text if tool_call else (clean_text or full),
             "suggestions": ai_tutor._generate_suggestions(request.message, full),
         }
         if tool_call:

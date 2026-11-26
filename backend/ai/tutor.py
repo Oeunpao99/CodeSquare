@@ -97,6 +97,7 @@ class AITutor:
         *,
         max_tokens: int,
         temperature: float,
+        reasoning_effort: Optional[str] = None,
     ) -> str:
         """One place to paper over per-model parameter differences."""
         kwargs: Dict[str, Any] = {"model": self.model, "messages": messages}
@@ -104,7 +105,9 @@ class AITutor:
             # Reasoning tokens are drawn from this same budget, so the visible
             # answer needs a lot of headroom; keep the thinking short.
             kwargs["max_completion_tokens"] = max(max_tokens * 4, 4000)
-            kwargs["reasoning_effort"] = os.getenv("OPENAI_REASONING_EFFORT", "low")
+            kwargs["reasoning_effort"] = (
+                reasoning_effort or os.getenv("OPENAI_REASONING_EFFORT", "low")
+            )
         else:
             kwargs["max_tokens"] = max_tokens
             kwargs["temperature"] = temperature
@@ -502,21 +505,27 @@ Everywhere else, be generous with complete examples.{_GUARD}"""
         language: Optional[str],
         history: Optional[List[Dict[str, str]]],
         system: Optional[str] = None,
+        history_turns: int = 8,
+        max_turn_chars: int = 4000,
     ) -> List[Dict[str, str]]:
         # `system`, when given, is a fully-composed prompt (the caller has already
         # folded in any context) and is used verbatim — e.g. the VS Code agent
         # prompt, which carries its own file-tool instructions.
+        #
+        # `history_turns` / `max_turn_chars` are widened for the VS Code agent so a
+        # long build (plan → task 1 → task 2 → …) keeps sight of the plan and of
+        # files it read earlier, instead of losing them after a couple of steps.
         msgs: List[Dict[str, str]] = [
             {
                 "role": "system",
                 "content": system or self._chat_system_prompt(context, language),
             }
         ]
-        for turn in (history or [])[-8:]:
+        for turn in (history or [])[-history_turns:]:
             role = "assistant" if turn.get("role") in ("assistant", "ai") else "user"
             content = (turn.get("content") or "").strip()
             if content:
-                msgs.append({"role": role, "content": content[:4000]})
+                msgs.append({"role": role, "content": content[:max_turn_chars]})
         msgs.append({"role": "user", "content": message})
         return msgs
 
@@ -533,13 +542,17 @@ Everywhere else, be generous with complete examples.{_GUARD}"""
             "follow_up": None,
         }
 
-    def _stream_kwargs(self) -> Dict[str, Any]:
+    def _stream_kwargs(
+        self, max_tokens: int = 1100, reasoning_effort: Optional[str] = None
+    ) -> Dict[str, Any]:
         kwargs: Dict[str, Any] = {"stream": True}
         if self._is_reasoning_model:
-            kwargs["max_completion_tokens"] = max(1100 * 4, 4000)
-            kwargs["reasoning_effort"] = os.getenv("OPENAI_REASONING_EFFORT", "low")
+            kwargs["max_completion_tokens"] = max(max_tokens * 4, 4000)
+            kwargs["reasoning_effort"] = (
+                reasoning_effort or os.getenv("OPENAI_REASONING_EFFORT", "low")
+            )
         else:
-            kwargs["max_tokens"] = 1100
+            kwargs["max_tokens"] = max_tokens
             kwargs["temperature"] = 0.4
         return kwargs
 
@@ -605,6 +618,10 @@ Everywhere else, be generous with complete examples.{_GUARD}"""
         language: Optional[str],
         history: Optional[List[Dict[str, str]]] = None,
         system: Optional[str] = None,
+        max_tokens: int = 1100,
+        history_turns: int = 8,
+        max_turn_chars: int = 4000,
+        reasoning_effort: Optional[str] = None,
     ):
         """Async generator yielding answer text chunks as the model produces them.
         Raises before the first chunk if the model/client is unavailable so the
@@ -614,12 +631,14 @@ Everywhere else, be generous with complete examples.{_GUARD}"""
             raise RuntimeError("no client configured")
 
         self.last_usage = None
-        msgs = self._chat_messages(message, context, language, history, system)
+        msgs = self._chat_messages(
+            message, context, language, history, system, history_turns, max_turn_chars
+        )
         stream = await self.client.chat.completions.create(
             model=self.model,
             messages=msgs,
             stream_options={"include_usage": True},
-            **self._stream_kwargs(),
+            **self._stream_kwargs(max_tokens, reasoning_effort),
         )
         async for chunk in stream:
             # The final usage-only chunk carries no choices.

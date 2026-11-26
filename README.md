@@ -251,6 +251,27 @@ npm run dev
 
 Frontend is at **http://localhost:5173**.
 
+### 6. Run the VS Code extension
+
+The VS Code extension is located in `vscode-extension/`. Keep the backend running
+at `http://localhost:8000`, then open a second terminal and run:
+
+```bash
+cd vscode-extension
+npm install
+npm run compile
+```
+
+To launch the extension in development mode:
+
+1. Open the `vscode-extension` folder in VS Code, or open the repository root and select the extension folder in the Explorer.
+2. Press `F5` or open **Run and Debug** and choose **Run Extension**.
+3. A new **Extension Development Host** window opens. Click the CodeSquareAgent icon in the Activity Bar to open the Agent panel.
+4. If the panel's Login button does not respond, press `Ctrl+Shift+P` and run **CodeSquare: Login**. Enter your CodeSphere email and password in the prompts.
+
+After changing extension source files, run `npm run compile` again and reload the
+Extension Development Host window with **Developer: Reload Window**.
+
 ---
 
 ## 🔄 Alembic Migration Workflow
