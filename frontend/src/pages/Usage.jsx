@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usageService } from '../services/api';
 import {
-  FiTerminal, FiZap, FiCpu, FiCode, FiFileText, FiCheckCircle, FiArrowRight,
+  FiActivity, FiZap, FiCpu, FiCode, FiFileText, FiCheckCircle, FiArrowRight,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 import { formatDate } from '../utils/datetime';
@@ -114,9 +114,9 @@ function Usage() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary"> account</span>
+        <span className="mono-label">Account</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-          <FiTerminal className="text-cs-primary" /> Usage
+          <FiActivity className="text-cs-primary" /> Usage
         </h1>
       </div>
 

@@ -58,6 +58,9 @@ class LessonResponse(BaseModel):
     exercises: List[ExerciseResponse] = []
     completed: bool = False
     score: float = 0
+    # The module's position in its course (not its database id) + title, for headers.
+    module_level: Optional[int] = None
+    module_title: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -201,6 +204,10 @@ async def get_lesson(
     progress = progress_result.scalar_one_or_none()
     
     lesson_data = LessonResponse.model_validate(lesson)
+    module = await db.get(Module, module_id)
+    if module:
+        lesson_data.module_level = module.level or module.order
+        lesson_data.module_title = module.title
     if progress:
         lesson_data.completed = progress.completed
         lesson_data.score = progress.score

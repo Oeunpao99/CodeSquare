@@ -31,7 +31,7 @@ const csEditorTheme = EditorView.theme(
       fontFamily: "'JetBrains Mono', monospace",
     },
     '.cm-cursor, .cm-dropCursor': { borderLeftColor: V('cs-primary') },
-    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+    '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionLayer .cm-selectionBackground, .cm-content ::selection': {
       backgroundColor: 'rgb(var(--cs-primary) / 0.18)',
     },
     '.cm-activeLine': { backgroundColor: 'rgb(var(--cs-text) / 0.04)' },
@@ -97,11 +97,14 @@ function CodeEditor({ value, onChange, language = 'python', readOnly = false, on
 
   const extensions = useMemo(() => {
     const lang = {
-      javascript: javascript, js: javascript, typescript: javascript,
-      html: html, css: css,
-    }[language.toLowerCase()] || python;
+      python: python, py: python, 'python-intermediate': python, 'ai-llm': python, dsa: python,
+      'backend-foundations': python,
+      javascript: javascript, js: javascript, typescript: javascript, 'react-typescript': javascript,
+      'full-stack': javascript,
+      html: html, 'html-css': html, css: css,
+    }[(language || '').toLowerCase()];
     return [
-      lang(),
+      ...(lang ? [lang()] : []),
       csEditorTheme,
       ...(minimal ? [csMinimalTheme, EditorView.lineWrapping] : []),
       csHighlight,

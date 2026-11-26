@@ -101,6 +101,20 @@ function LessonView() {
   }, [lesson, slug]);
 
   const currentExercise = lesson?.exercises?.[activeExercise];
+  // File name shown above the editor, per course (and DAX vs Power Query M).
+  const fileName = (kind) => {
+    const src = (kind === 'example' ? lesson?.code_example : code) || '';
+    const byTrack = {
+      python: 'main.py', 'python-intermediate': 'main.py', 'ai-llm': 'main.py', dsa: 'main.py',
+      'backend-foundations': 'main.py', javascript: 'main.js', 'full-stack': 'app.js',
+      'react-typescript': 'App.tsx', 'html-css': 'index.html', 'linux-shell': 'script.sh',
+      'sql-data': 'query.sql',
+    };
+    if (slug === 'power-bi') return /\blet\b|Table\.|Csv\.|=\s*Table/.test(src) ? 'query.pq' : 'measure.dax';
+    const name = byTrack[slug] || 'main.py';
+    return kind === 'example' ? name.replace(/^(main|app|query|script|index)/, 'example') : name;
+  };
+
   const handleCodeChange = (newCode) => {
     setCode(newCode);
   };
@@ -118,9 +132,10 @@ function LessonView() {
         toast.success('Exercise complete! 🎉');
         handleLessonComplete();
       } else {
-        toast.error('Some tests failed. Keep trying!');
-        const failedTest = response.data.results.find((r) => !r.passed);
-        if (failedTest) setError(failedTest.error || "Code doesn't produce expected output");
+        const total = response.data.results.length;
+        const ok = response.data.results.filter((r) => r.passed).length;
+        toast.error(`${ok} of ${total} checks passed. Keep going!`);
+        setError(`${ok} of ${total} checks passed. Look at the red ones below, fix them and run again.`);
       }
     } catch (error) {
       console.error('Error submitting:', error);
@@ -216,7 +231,8 @@ function LessonView() {
 
   return (
     <div className="h-[calc(100vh-60px)] lg:h-screen bg-cs-dark flex flex-col overflow-hidden">
-      <header className="shrink-0 z-50 bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10 px-6 lg:px-8 py-4">
+      {/* z-30 + right padding: keeps the global theme / language / bell controls visible */}
+      <header className="shrink-0 z-30 bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10 px-6 lg:px-8 lg:pr-64 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6 min-w-0">
             <Link to={`/learn/${slug}`} className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary shrink-0">
@@ -225,7 +241,8 @@ function LessonView() {
             <div className="min-w-0">
               <h1 className="text-xl font-bold truncate">{lesson.title}</h1>
               <p className="text-sm text-cs-text-muted">
-                Module {moduleId} • Lesson {lesson.order}
+                {lesson.module_level ? `Module ${lesson.module_level}` : 'Module'}
+                {lesson.module_title ? ` · ${lesson.module_title}` : ''} • Lesson {lesson.order}
               </p>
             </div>
           </div>
@@ -288,7 +305,7 @@ function LessonView() {
                     <span className="w-2 h-2 rounded-full bg-cs-orange/70" />
                     <span className="w-2 h-2 rounded-full bg-cs-green/70" />
                     <span className="ml-3 text-cs-cyan inline-flex items-center gap-1.5">
-                      <FiCode /> example.{slug === 'python' ? 'py' : 'js'}
+                      <FiCode /> {fileName('example')}
                     </span>
                   </span>
                   <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-cs-text-muted">
@@ -337,7 +354,7 @@ function LessonView() {
 
             <div className="h-[300px] rounded-2xl bg-cs-darker border border-white border-opacity-10 overflow-hidden mb-4">
               <div className="flex items-center gap-2 px-4 py-3 bg-white bg-opacity-5">
-                <span className="font-mono text-sm text-cs-cyan">main.{slug === 'python' ? 'py' : 'js'}</span>
+                <span className="font-mono text-sm text-cs-cyan">{fileName('exercise')}</span>
               </div>
               <div className="h-[calc(100%-49px)]">
                 <CodeEditor
@@ -353,15 +370,15 @@ function LessonView() {
               <div className="mb-4 p-4 rounded-xl bg-cs-red bg-opacity-10 border border-cs-red border-opacity-30 flex items-start gap-3">
                 <FiXCircle className="text-cs-red mt-1 shrink-0" />
                 <div>
-                  <p className="font-semibold text-cs-red mb-1">Your code has an error</p>
+                  <p className="font-semibold text-cs-red mb-1">Not quite yet</p>
                   <p className="text-sm text-cs-text-dim">{error}</p>
                 </div>
               </div>
             )}
 
             {testResults.length > 0 && (
-              <div className="mb-4 p-4 rounded-xl bg-white bg-opacity-5 border border-white border-opacity-10">
-                <p className="text-sm text-cs-text-dim mb-3">Test Results:</p>
+              <div className="mb-4 p-4 rounded-xl bg-cs-overlay/[0.04] border border-cs-line/10">
+                <p className="text-sm font-semibold mb-3">Checks</p>
                 <div className="space-y-2">
                   {testResults.map((result, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
@@ -373,7 +390,7 @@ function LessonView() {
                       <span className={result.passed ? 'text-cs-green' : 'text-cs-red'}>
                         {result.description}
                       </span>
-                      {!result.passed && result.error && (
+                      {!result.passed && result.error && result.error !== 'content check failed' && (
                         <span className="text-xs text-cs-text-muted font-mono">{result.error}</span>
                       )}
                     </div>
