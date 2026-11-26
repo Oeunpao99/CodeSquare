@@ -69,8 +69,8 @@ function CodeBlock({ lang, body }) {
   return (
     <div className="rounded-lg border border-cs-line/15 bg-cs-darkest overflow-hidden my-2">
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-cs-line/10 bg-cs-overlay/[0.04]">
-        <span className="text-[10px] text-cs-text-muted">{lang || 'code'}</span>
-        <button onClick={copy} className="text-[10px] text-cs-text-muted hover:text-cs-text inline-flex items-center gap-1">
+        <span className="text-[0.625rem] text-cs-text-muted">{lang || 'code'}</span>
+        <button onClick={copy} className="text-[0.625rem] text-cs-text-muted hover:text-cs-text inline-flex items-center gap-1">
           {copied ? <FiCheck /> : <FiCopy />} {copied ? 'copied' : 'copy'}
         </button>
       </div>
@@ -123,9 +123,9 @@ function parseListTree(lines) {
 }
 
 function Heading({ level, text, k }) {
-  const cls = level <= 1 ? 'text-[15px] font-bold text-cs-text mt-4 mb-1.5'
+  const cls = level <= 1 ? 'text-[0.9375rem] font-bold text-cs-text mt-4 mb-1.5'
     : level === 2 ? 'text-sm font-bold text-cs-text mt-4 mb-1'
-    : 'text-[13px] font-semibold text-cs-text mt-3 mb-1';
+    : 'text-[0.8125rem] font-semibold text-cs-text mt-3 mb-1';
   const Tag = `h${Math.min(4, level + 1)}`;
   return <Tag className={cls}>{renderInline(text, k)}</Tag>;
 }

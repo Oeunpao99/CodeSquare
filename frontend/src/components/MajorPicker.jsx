@@ -70,7 +70,7 @@ function MajorPicker({ onboarding = false, onPicked }) {
                 {m.focus.slice(0, 4).map((f) => (
                   <span
                     key={f}
-                    className="text-[11px] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted"
+                    className="text-[0.6875rem] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted"
                   >
                     {f}
                   </span>

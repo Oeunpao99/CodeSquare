@@ -39,6 +39,9 @@
   }
 
   html {
+    /* App-wide scale: 80% of the browser default, so 100% zoom looks like the
+       old 80% view. Everything is in rem, so it all scales together. */
+    font-size: 80%;
     scroll-behavior: smooth;
     /* Clip (not hidden) so `body` never becomes a scroll container — otherwise
        position:sticky inside pages stops sticking to the viewport. */
@@ -80,7 +83,7 @@
   }
 
   button {
-    @apply font-sans cursor-pointer border-none outline-none;
+    @apply font-sans cursor-pointer border-0 outline-none;
   }
 
   input, textarea {
@@ -88,7 +91,7 @@
   }
 
   ::-webkit-scrollbar {
-    @apply w-[2px] h-[2px];
+    @apply w-[0.125rem] h-[0.125rem];
   }
 
   ::-webkit-scrollbar-track {
@@ -198,7 +201,7 @@
   }
 
   .card {
-    @apply bg-cs-darker border border-cs-line border-opacity-10 rounded-2xl p-6 transition-colors duration-300;
+    @apply bg-cs-darker border border-cs-line border-opacity-10 rounded-xl p-6 transition-colors duration-300;
   }
 
   .card-article {
@@ -254,7 +257,7 @@
   }
 
   .badge-outline {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border leading-none;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[0.6875rem] font-semibold border leading-none;
   }
   .badge-outline-green {
     @apply border-cs-green/40 bg-cs-green/10 text-cs-green;
@@ -399,7 +402,7 @@
   /* Modern dev-doc reading pane (lesson concept). A cleaner, Stripe/Linear-flavoured
      typographic treatment with accent callouts and polished code blocks. */
   .lesson-article {
-    @apply text-[14px] leading-relaxed text-cs-text-dim;
+    @apply text-[0.875rem] leading-relaxed text-cs-text-dim;
   }
 
   .lesson-article > *:first-child {
@@ -416,7 +419,7 @@
   }
 
   .lesson-article h3 {
-    @apply text-[15px] font-bold text-cs-text mt-6 mb-2 scroll-mt-24;
+    @apply text-[0.9375rem] font-bold text-cs-text mt-6 mb-2 scroll-mt-24;
   }
 
   .lesson-article h4 {
@@ -460,12 +463,12 @@
   }
 
   .lesson-article pre code {
-    @apply p-0 bg-transparent border-none text-cs-text text-[13.5px] leading-6 block;
+    @apply p-0 bg-transparent border-none text-cs-text text-[0.8438rem] leading-6 block;
   }
 
   /* copy button injected onto each <pre> by LibraryArticle */
   .lesson-article pre .doc-copy {
-    @apply absolute top-2 right-2 font-sans text-[11px] px-2 py-1 rounded-md border border-cs-line/10 bg-cs-darker/80 text-cs-text-muted cursor-pointer transition-colors;
+    @apply absolute top-2 right-2 font-sans text-[0.6875rem] px-2 py-1 rounded-md border border-cs-line/10 bg-cs-darker/80 text-cs-text-muted cursor-pointer transition-colors;
   }
   .lesson-article pre .doc-copy:hover {
     @apply text-cs-text border-cs-line/25;
@@ -507,7 +510,7 @@
 
   .lesson-article ul li::before {
     content: '';
-    @apply absolute -left-4 top-[0.6em] w-1.5 h-1.5 rounded-[2px] bg-cs-primary/70;
+    @apply absolute -left-4 top-[0.6em] w-1.5 h-1.5 rounded-[0.125rem] bg-cs-primary/70;
   }
 
   .lesson-article ol {
@@ -534,7 +537,7 @@
   .lesson-article blockquote.tip::before,
   .lesson-article blockquote[data-type="tip"]::before {
     content: 'TIP';
-    @apply block text-[11px] tracking-wider text-cs-green mb-1 font-bold;
+    @apply block text-[0.6875rem] tracking-wider text-cs-green mb-1 font-bold;
   }
   .lesson-article blockquote.warn,
   .lesson-article blockquote[data-type="warn"] {
@@ -543,7 +546,7 @@
   .lesson-article blockquote.warn::before,
   .lesson-article blockquote[data-type="warn"]::before {
     content: 'NOTE';
-    @apply block text-[11px] tracking-wider text-cs-orange mb-1 font-bold;
+    @apply block text-[0.6875rem] tracking-wider text-cs-orange mb-1 font-bold;
   }
 
   .lesson-article hr {

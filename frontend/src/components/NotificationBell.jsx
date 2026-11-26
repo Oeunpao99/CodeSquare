@@ -104,7 +104,7 @@ export default function NotificationBell() {
         <FiBell className="text-lg" />
         {count > 0 && (
           <>
-            <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-cs-red px-1 text-[10px] font-bold text-cs-dark ring-2 ring-cs-darkest">
+            <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-cs-red px-1 text-[0.625rem] font-bold text-cs-dark ring-2 ring-cs-darkest">
               {count > 9 ? '9+' : count}
             </span>
             <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-cs-red/50 animate-ping" />
@@ -129,7 +129,7 @@ export default function NotificationBell() {
                   setCount(0);
                   setItems((it) => it.map((n) => ({ ...n, read: true })));
                 }}
-                className="inline-flex items-center gap-1 text-[11px] text-cs-primary hover:text-cs-cyan"
+                className="inline-flex items-center gap-1 text-[0.6875rem] text-cs-primary hover:text-cs-cyan"
               >
                 <FiCheckCircle /> mark all read
               </button>
@@ -161,7 +161,7 @@ export default function NotificationBell() {
                         {!n.read && <span className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-cs-red align-middle" />}
                       </span>
                       <span className="block text-xs text-cs-text-dim leading-snug">{meta.text(n.actor, n)}</span>
-                      <span className="block text-[11px] text-cs-text-muted mt-0.5">
+                      <span className="block text-[0.6875rem] text-cs-text-muted mt-0.5">
                         {timeAgo(n.created_at)}
                       </span>
                     </span>

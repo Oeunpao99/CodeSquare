@@ -58,14 +58,14 @@ export default function PublishTerminal({ anchor, onDone, verb = 'publish', noun
       }}
     >
       <div
-        className="w-[268px] rounded-xl border border-cs-line/25 bg-cs-darker/95 backdrop-blur shadow-[0_12px_40px_rgba(0,0,0,.45)] overflow-hidden transition-transform"
+        className="w-[16.75rem] rounded-xl border border-cs-line/25 bg-cs-darker/95 backdrop-blur shadow-[0_12px_40px_rgba(0,0,0,.45)] overflow-hidden transition-transform"
         style={{ transform: closing ? 'scale(0.96) translateY(-4px)' : 'scale(1)' }}
       >
         <div className="flex items-center gap-1.5 px-3 py-2 border-b border-cs-line/10">
           <span className="w-2.5 h-2.5 rounded-full bg-cs-red/80" />
           <span className="w-2.5 h-2.5 rounded-full bg-cs-orange/80" />
           <span className="w-2.5 h-2.5 rounded-full bg-cs-green/80" />
-          <span className="ml-auto text-[10px] text-cs-text-muted tabular-nums">{verb} · {Math.round(pct)}%</span>
+          <span className="ml-auto text-[0.625rem] text-cs-text-muted tabular-nums">{verb} · {Math.round(pct)}%</span>
         </div>
         <div className="h-1 w-full bg-cs-line/10">
           <div
@@ -73,7 +73,7 @@ export default function PublishTerminal({ anchor, onDone, verb = 'publish', noun
             style={{ width: `${pct}%` }}
           />
         </div>
-        <div className="px-3 py-2.5 text-[11px] leading-relaxed space-y-1">
+        <div className="px-3 py-2.5 text-[0.6875rem] leading-relaxed space-y-1">
           <p className="text-cs-text-dim">
             {verb} {noun}
           </p>

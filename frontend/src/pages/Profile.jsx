@@ -130,7 +130,7 @@ function Profile() {
   return (
     <main className="w-full px-6 lg:px-10 py-6">
       {/* Sticky header — profile identity + tab switcher stay locked while scrolling */}
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-6 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-6 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
         <div className="flex items-center gap-5 flex-wrap">
           <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-main flex items-center justify-center text-2xl md:text-3xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40">
             {user?.avatar ? (
@@ -140,7 +140,6 @@ function Profile() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="mono-label"> {t('profile.profile_label')}</span>
             <h1 className="text-2xl md:text-3xl font-bold truncate flex items-center gap-3">
               {user?.display_name || user?.username}
             </h1>
@@ -220,7 +219,7 @@ function Profile() {
                   }`}
                 >
                   {stat.highlight && (
-                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-cs-orange">
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[0.625rem] uppercase tracking-wider text-cs-orange">
                       <FiAward className="animate-pulse" /> {t('profile.on_fire')}
                     </span>
                   )}
@@ -252,10 +251,10 @@ function Profile() {
                           : t('profile.activity_across', { year: selectedYear })}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-cs-text-muted">
+                    <div className="flex items-center gap-1.5 text-[0.6875rem] text-cs-text-muted">
                       {t('profile.less')}
                       {[0, 1, 2, 3, 4].map((lvl) => (
-                        <span key={lvl} className={`w-3 h-3 rounded-[3px] border border-cs-line/10 ${LEVEL_STYLES[lvl]}`} />
+                        <span key={lvl} className={`w-3 h-3 rounded-[0.1875rem] border border-cs-line/10 ${LEVEL_STYLES[lvl]}`} />
                       ))}
                       {t('profile.more')}
                     </div>
@@ -271,7 +270,7 @@ function Profile() {
                       <button
                         key={o.k}
                         onClick={() => setHeatYear(o.k)}
-                        className={`px-2.5 py-1 rounded-md text-[11px] border transition-colors ${
+                        className={`px-2.5 py-1 rounded-md text-[0.6875rem] border transition-colors ${
                           heatYear === o.k
                             ? 'border-cs-primary text-cs-primary bg-cs-primary/10'
                             : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
@@ -280,34 +279,34 @@ function Profile() {
                         {o.label}
                       </button>
                     ))}
-                    <span className="ml-2 text-[11px] text-cs-text-dim">{selectedYear}</span>
+                    <span className="ml-2 text-[0.6875rem] text-cs-text-dim">{selectedYear}</span>
                   </div>
 
                   <div className="overflow-x-auto mt-1">
-                    <div className="min-w-[780px]">
+                    <div className="min-w-[48.75rem]">
                       {/* month labels — aligned to the 10px cell + 3px gap grid */}
-                      <div className="flex gap-[3px] mb-1.5" style={{ marginLeft: '2.25rem' }}>
+                      <div className="flex gap-[0.1875rem] mb-1.5" style={{ marginLeft: '2.25rem' }}>
                         {monthLabel.map((m, i) => (
-                          <div key={i} className="w-2.5 text-[10px] text-cs-text-muted whitespace-nowrap">
+                          <div key={i} className="w-2.5 text-[0.625rem] text-cs-text-muted whitespace-nowrap">
                             {m != null ? MONTHS[m] : ''}
                           </div>
                         ))}
                       </div>
                       <div className="flex">
                         {/* weekday labels */}
-                        <div className="flex flex-col gap-[3px] mr-2 text-[9px] text-cs-text-muted pr-1 w-7">
+                        <div className="flex flex-col gap-[0.1875rem] mr-2 text-[0.5625rem] text-cs-text-muted pr-1 w-7">
                           {['Mon', '', 'Wed', '', 'Fri', '', 'Sun'].map((d, i) => (
                             <div key={i} className="h-2.5 flex items-center leading-none">{d}</div>
                           ))}
                         </div>
                         {/* grid */}
-                        <div className="flex gap-[3px]">
+                        <div className="flex gap-[0.1875rem]">
                           {grid.map((col, w) => (
-                            <div key={w} className="flex flex-col gap-[3px]">
+                            <div key={w} className="flex flex-col gap-[0.1875rem]">
                               {col.map((cell, d) => (
                                 <div
                                   key={d}
-                                  className={`w-2.5 h-2.5 rounded-[3px] transition-transform duration-150 ${
+                                  className={`w-2.5 h-2.5 rounded-[0.1875rem] transition-transform duration-150 ${
                                     cell.pad ? 'invisible' : LEVEL_STYLES[cell.level]
                                   } ${cell.future ? 'opacity-40' : ''} ${
                                     cell.today ? 'ring-1 ring-cs-primary scale-125' : ''
@@ -397,12 +396,12 @@ function Profile() {
                               </div>
                               <div className="flex-grow min-w-0">
                                 <p className="text-sm font-semibold truncate">{lesson.lesson_title}</p>
-                                <p className="text-[11px] text-cs-text-muted truncate">{lesson.module_title}</p>
+                                <p className="text-[0.6875rem] text-cs-text-muted truncate">{lesson.module_title}</p>
                               </div>
                               <span className={`badge-outline ${grade.cls} shrink-0`}>{grade.label}</span>
                               <div className="text-right shrink-0">
                                 <p className="text-sm font-semibold">{Math.round(lesson.score)}%</p>
-                                <p className="text-[11px] text-cs-text-muted">{Math.round(lesson.time_spent / 60)}m • {lesson.hints_used} hints</p>
+                                <p className="text-[0.6875rem] text-cs-text-muted">{Math.round(lesson.time_spent / 60)}m • {lesson.hints_used} hints</p>
                               </div>
                             </div>
                           );

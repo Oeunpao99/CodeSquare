@@ -7,9 +7,11 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { progressService, usageService, teacherService } from '../services/api';
 import TeacherApplyModal from './TeacherApplyModal';
+import CommandPalette from './CommandPalette';
+import AccountMenu from './AccountMenu';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  FiSun, FiMoon, FiGrid, FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
+  FiSun, FiMoon, FiGrid, FiSearch, FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
   FiUser, FiSettings, FiLayers, FiCircle, FiActivity, FiChevronRight, FiChevronUp,
   FiChevronsLeft, FiChevronsRight, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
   FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers, FiMessageSquare,
@@ -62,6 +64,8 @@ function getNavGroups(t) {
   ];
 }
 
+const GROUP_LABELS = { learn: 'Learn', practice: 'Practice', build: 'Build', grow: 'Grow', community: 'Community' };
+
 // Merged sections: a tab row shown above the page for each set of sibling pages.
 // Old URLs (/roadmap, /quizzes, /portfolio, /career, /leaderboard) still work and
 // simply open their tab.
@@ -73,30 +77,99 @@ const SECTION_TABS = [
   [['/devs', 'Directory'], ['/leaderboard', 'Leaderboard']],
 ];
 
+// Breadcrumb for the top bar, e.g. "Practice › Coding challenges", "Learn › Power BI › Lesson".
+const pretty = (slug) => decodeURIComponent(slug || '').replace(/[-_]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
+const CRUMBS = {
+  '/dashboard': [['Learn', '/dashboard'], ['My courses']],
+  '/roadmap': [['Learn', '/dashboard'], ['Roadmap']],
+  '/library': [['Library']],
+  '/classes': [['My Classes']],
+  '/practice': [['Practice', '/practice'], ['Coding challenges']],
+  '/quizzes': [['Practice', '/practice'], ['Quizzes']],
+  '/tutor': [['Practice', '/practice'], ['CodeSquareAgent']],
+  '/projects': [['Build', '/projects'], ['Projects']],
+  '/projects/generate': [['Build', '/projects'], ['Projects', '/projects'], ['Generate with AI']],
+  '/portfolio': [['Build', '/projects'], ['Portfolio']],
+  '/notes': [['Build', '/projects'], ['Notes']],
+  '/progress': [['Grow', '/progress'], ['Progress']],
+  '/career': [['Grow', '/progress'], ['Job readiness']],
+  '/community': [['Community']],
+  '/community/new': [['Community', '/community'], ['New post']],
+  '/devs': [['Community', '/community'], ['People']],
+  '/leaderboard': [['Community', '/community'], ['Leaderboard']],
+  '/profile': [['Account'], ['Profile & settings']],
+  '/usage': [['Account'], ['Usage']],
+};
+
+function crumbsFor(pathname) {
+  const path = pathname.replace(/\/+$/, '') || '/';
+  if (CRUMBS[path]) return CRUMBS[path];
+  const seg = path.split('/').filter(Boolean);
+  if (seg[0] === 'learn' && seg[1]) {
+    return seg.length > 2
+      ? [['Learn', '/dashboard'], [pretty(seg[1]), `/learn/${seg[1]}`], ['Lesson']]
+      : [['Learn', '/dashboard'], [pretty(seg[1])]];
+  }
+  if (seg[0] === 'library') {
+    const out = [['Library', '/library']];
+    if (seg[1]) out.push([pretty(seg[1]), seg[2] ? `/library/${seg[1]}` : undefined]);
+    if (seg[2]) out.push([pretty(seg[2])]);
+    return out;
+  }
+  if (seg[0] === 'classes' && seg[1]) return [['My Classes', '/classes'], ['Class']];
+  if (seg[0] === 'community' && seg[1] === 'post') return [['Community', '/community'], ['Post']];
+  if (seg[0] === 'u' && seg[1]) return [['Community', '/community'], ['People', '/devs'], [`@${seg[1]}`]];
+  if (seg[0] === 'projects' && seg[1]) return [['Build', '/projects'], ['Projects', '/projects'], ['Project']];
+  if (seg[0] === 'practice' && seg[1] === 'c') return [['Practice', '/practice'], ['Coding challenges', '/practice'], ['Challenge']];
+  if (seg[0] === 'quizzes' && seg[1]) return [['Practice', '/practice'], ['Quizzes', '/quizzes'], ['Quiz']];
+  return [[pretty(seg[0] || 'Home')]];
+}
+
+function Breadcrumb({ pathname }) {
+  const crumbs = crumbsFor(pathname);
+  return (
+    <nav aria-label="Breadcrumb" className="flex items-center gap-2 min-w-0 text-[0.9375rem]">
+      {crumbs.map(([label, to], i) => {
+        const last = i === crumbs.length - 1;
+        return (
+          <React.Fragment key={`${label}-${i}`}>
+            {i > 0 && <FiChevronRight className="text-cs-text-muted shrink-0" />}
+            {to && !last ? (
+              <Link to={to} className="text-cs-text-dim hover:text-cs-text truncate">{label}</Link>
+            ) : (
+              <span className={`truncate ${last ? 'text-cs-text font-medium' : 'text-cs-text-dim'}`}>{label}</span>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </nav>
+  );
+}
+
 function SectionTabs({ pathname }) {
   const path = pathname.replace(/\/+$/, '') || '/';
   const tabs = SECTION_TABS.find((set) => set.some(([to]) => to === path));
   if (!tabs) return null;
   return (
-    <nav className="px-6 lg:px-10 lg:pr-64 pt-3 flex gap-1 border-b border-cs-line/[0.07]" aria-label="Section">
+    <nav className="px-6 lg:px-10 flex gap-7 border-b border-cs-line/10" aria-label="Section">
       {tabs.map(([to, label]) => {
         const active = to === path;
         return (
           <Link
             key={to}
             to={to}
-            className={`relative h-11 px-4 inline-flex items-center text-sm whitespace-nowrap transition-colors ${
-              active ? 'text-cs-primary font-semibold' : 'text-cs-text-dim hover:text-cs-text'
+            className={`relative h-12 px-0.5 inline-flex items-center text-[0.9375rem] whitespace-nowrap transition-colors ${
+              active ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'
             }`}
           >
-            {label}
             {active && (
               <motion.span
                 layoutId={`section-tab-${tabs[0][0]}`}
-                className="absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-cs-primary"
+                className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary"
                 transition={{ type: 'spring', stiffness: 500, damping: 40 }}
               />
             )}
+            <span className="relative">{label}</span>
           </Link>
         );
       })}
@@ -209,7 +282,7 @@ function ModeToggle({ mode, toggleMode, theme, setTheme, themes, themeKeys }) {
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           className="h-full pl-2.5 pr-1.5 inline-flex items-center hover:text-cs-primary transition-colors"
         >
-          {isDark ? <FiSun className="text-[15px]" /> : <FiMoon className="text-[15px]" />}
+          {isDark ? <FiSun className="text-[0.9375rem]" /> : <FiMoon className="text-[0.9375rem]" />}
         </button>
         <button
           type="button"
@@ -220,7 +293,7 @@ function ModeToggle({ mode, toggleMode, theme, setTheme, themes, themeKeys }) {
           aria-expanded={open}
           className="h-full pl-1 pr-2 inline-flex items-center border-l border-cs-line/15 hover:text-cs-primary transition-colors"
         >
-          <FiChevronDown className={`text-[13px] transition-transform ${open ? 'rotate-180' : ''}`} />
+          <FiChevronDown className={`text-[0.8125rem] transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
@@ -240,7 +313,7 @@ function ModeToggle({ mode, toggleMode, theme, setTheme, themes, themeKeys }) {
                 type="button"
                 onClick={() => m !== mode && toggleMode()}
                 className={`inline-flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-colors ${
-                  mode === m ? 'bg-cs-primary text-cs-btn-text' : 'text-cs-text-dim hover:text-cs-text'
+                  mode === m ? 'bg-cs-overlay/[0.09] text-cs-text font-medium' : 'text-cs-text-dim hover:text-cs-text'
                 }`}
               >
                 <Icon /> {label}
@@ -248,7 +321,7 @@ function ModeToggle({ mode, toggleMode, theme, setTheme, themes, themeKeys }) {
             ))}
           </div>
 
-          <p className="px-2 pt-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-cs-text-muted">
+          <p className="px-2 pt-1 pb-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-cs-text-muted">
             {isDark ? 'Dark themes' : 'Light themes'}
           </p>
           <div className="max-h-72 overflow-y-auto">
@@ -273,7 +346,7 @@ function ModeToggle({ mode, toggleMode, theme, setTheme, themes, themeKeys }) {
                         {themes[key].label}
                       </span>
                       {themes[key].hint && (
-                        <span className="block text-[11px] text-cs-text-muted truncate">{themes[key].hint}</span>
+                        <span className="block text-[0.6875rem] text-cs-text-muted truncate">{themes[key].hint}</span>
                       )}
                     </span>
                     {active && <FiCheck className="text-cs-primary shrink-0" />}
@@ -365,6 +438,19 @@ function AppLayout() {
   const { user, logout } = useAuth();
   const [teacherStatus, setTeacherStatus] = useState(undefined); // undefined = not loaded
   const [applyOpen, setApplyOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Ctrl/Cmd+K opens the "jump to" search from anywhere in the app.
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const { major, majorData, clearMajor } = useMajor();
   const { theme, setTheme, themes, themeKeys, mode, toggleMode } = useTheme();
   const { lang, setLang, languages } = useLanguage();
@@ -477,23 +563,16 @@ function AppLayout() {
       return (
         <>
           {isActive && (
-            <motion.span
-              layoutId="sidebar-active"
-              className="absolute inset-0 rounded-[10px] bg-cs-primary/[0.10]"
-              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-            />
-          )}
-          {isActive && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-cs-primary" aria-hidden="true" />
+            <span className="absolute inset-0 rounded-lg bg-cs-overlay/[0.09]" />
           )}
           <span
-            className={`relative flex items-center gap-3 pl-3.5 pr-3 py-[7px] rounded-[10px] text-[14.5px] transition-colors duration-150 ${
+            className={`relative flex items-center gap-3 px-3 py-[0.4375rem] rounded-lg text-[0.9375rem] transition-colors duration-150 ${
               isActive
-                ? 'text-cs-primary font-semibold'
+                ? 'text-cs-text font-medium'
                 : 'text-cs-text-dim font-medium group-hover:bg-cs-overlay/[0.06] group-hover:text-cs-text'
             }`}
           >
-            <item.icon className={`text-[18px] shrink-0 transition-colors ${isActive ? 'text-cs-primary' : 'text-cs-text-muted group-hover:text-cs-cyan'}`} />
+            <item.icon className={`text-[1.125rem] shrink-0 transition-colors ${isActive ? 'text-cs-text' : 'text-cs-text-muted group-hover:text-cs-text'}`} />
             <span className="flex-grow truncate">{item.label}</span>
           </span>
         </>
@@ -529,7 +608,7 @@ function AppLayout() {
   );
 
   const sidebarContent = collapsed ? (
-    <div className="flex flex-col h-full relative overflow-hidden">
+    <div className="flex flex-col w-full min-w-0 h-full relative overflow-hidden">
       {sidebarBackdrop}
 
       {/* Brand (compact) + expand at top */}
@@ -538,7 +617,7 @@ function AppLayout() {
         <button
           onClick={toggleCollapsed}
           title={t('sidebar.expand_sidebar')}
-          className="w-full flex items-center justify-center py-2.5 rounded-[10px] text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.05] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary transition-all"
+          className="w-full flex items-center justify-center py-2.5 rounded-[0.625rem] text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.05] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary transition-all"
         >
           <FiChevronsRight className="text-lg" />
         </button>
@@ -563,16 +642,12 @@ function AppLayout() {
                 return (
               <>
                 {isActive && (
-                  <motion.span
-                    layoutId="sidebar-active"
-                    className="absolute inset-0 rounded-[10px] bg-cs-primary/[0.10]"
-                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                  />
+                  <span className="absolute inset-0 rounded-[0.625rem] bg-cs-overlay/[0.09]" />
                 )}
                 <span
-                  className={`relative flex items-center justify-center py-3.5 rounded-[10px] text-xl transition-colors duration-150 ${
+                  className={`relative flex items-center justify-center py-3.5 rounded-[0.625rem] text-xl transition-colors duration-150 ${
                     isActive
-                      ? 'text-cs-primary'
+                      ? 'text-cs-text'
                       : 'text-cs-text-muted group-hover:bg-cs-overlay/[0.06] group-hover:text-cs-cyan'
                   }`}
                 >
@@ -587,7 +662,7 @@ function AppLayout() {
       </nav>
     </div>
   ) : (
-    <div className="flex flex-col h-full relative overflow-hidden">
+    <div className="flex flex-col w-full min-w-0 h-full relative overflow-hidden">
       {sidebarBackdrop}
 
       {/* Brand — green brandmark on the same line as the collapse control */}
@@ -597,11 +672,11 @@ function AppLayout() {
             <img
               src="/logo.png"
               alt="CodeSquare"
-              className="h-12 w-auto object-contain shrink-0"
+              className="h-10 w-auto object-contain shrink-0"
             />
-            <span className="text-3xl font-bold tracking-tight leading-none text-cs-green whitespace-nowrap">
-              Code
-              <span className="text-cs-mint">Square</span>
+            {/* Neutral wordmark: calm grey, follows light/dark theme */}
+            <span className="text-2xl font-bold tracking-tight leading-none text-cs-text-dim whitespace-nowrap">
+              CodeSquare
             </span>
           </div>
           <button
@@ -612,12 +687,22 @@ function AppLayout() {
             <FiChevronsLeft className="text-lg" />
           </button>
         </div>
-        <span className="text-[11px] tracking-wide text-cs-text-muted">
-          {t('sidebar.build_boldly')}
-        </span>
       </div>
 
-      {/* Nav — terminal command list, grouped by journey stage */}
+      {/* Search / jump to (Ctrl K) */}
+      <div className="relative px-3 pb-2">
+        <button
+          type="button"
+          onClick={() => setPaletteOpen(true)}
+          className="w-full flex items-center gap-2.5 h-10 px-3 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.03] text-sm text-cs-text-muted hover:text-cs-text hover:border-cs-line/30 transition-colors"
+        >
+          <FiSearch className="shrink-0" />
+          <span className="flex-1 text-left">Search</span>
+          <kbd className="text-[0.6875rem] font-sans font-medium text-cs-text-muted">Ctrl K</kbd>
+        </button>
+      </div>
+
+      {/* Nav, grouped by journey stage */}
       <nav className="relative flex-1 px-3 space-y-1 overflow-y-auto pb-3">
         {NAV_GROUPS.map((grp) => {
           const isCollapsed = !!navGroups[grp.id];
@@ -625,13 +710,13 @@ function AppLayout() {
             <div key={grp.id} className="space-y-0.5">
               <button
                 onClick={() => toggleNavGroup(grp.id)}
-                className="w-full flex items-center gap-1.5 px-3.5 pt-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-cs-text-muted hover:text-cs-text transition-colors"
+                className="w-full flex items-center gap-1.5 px-3 pt-3 pb-1 text-[0.8125rem] font-medium text-cs-text-muted hover:text-cs-text transition-colors"
                 aria-expanded={!isCollapsed}
               >
+                <span>{GROUP_LABELS[grp.id] || grp.id}</span>
                 <FiChevronDown
-                  className={`text-xs shrink-0 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}
+                  className={`text-xs shrink-0 transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`}
                 />
-                <span>{grp.id}</span>
               </button>
               <AnimatePresence initial={false}>
                 {!isCollapsed && (
@@ -651,32 +736,6 @@ function AppLayout() {
         })}
       </nav>
 
-      {/* Profile — terminal-style status card opening the settings popup */}
-      <div className="relative border-t border-cs-line/10 px-3 pt-3 pb-3">
-        <button
-          onClick={() => openPopup('activity')}
-          className="w-full flex items-center gap-3 p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.06] backdrop-blur-md hover:border-cs-primary/40 hover:bg-cs-overlay/[0.1] transition-all text-left"
-        >
-          <span className="relative w-10 h-10 rounded-lg bg-cs-darkest border border-cs-primary/30 flex items-center justify-center font-bold text-cs-primary overflow-hidden shrink-0">
-            {user?.avatar ? (
-              <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-base">{(user?.display_name || user?.username)?.charAt(0).toUpperCase()}</span>
-            )}
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-cs-green ring-2 ring-cs-darkest" />
-          </span>
-          <span className="flex-grow min-w-0">
-            <span className="block text-sm font-semibold truncate">
-              {user?.username}
-              <span className="text-cs-text-muted font-normal">@local</span>
-            </span>
-            <span className="block text-[11px] text-cs-text-muted truncate">
-              {t('sidebar.status')}: <span className="text-cs-green">{t('sidebar.online')}</span>
-            </span>
-          </span>
-          <FiChevronUp className="text-cs-text-muted shrink-0" />
-        </button>
-      </div>
     </div>
   );
 
@@ -715,7 +774,7 @@ function AppLayout() {
             }}
           />
         </div>
-        <p className="mt-2 text-[11px] text-cs-text-muted">
+        <p className="mt-2 text-[0.6875rem] text-cs-text-muted">
           {(w.used || 0).toLocaleString()} / {(w.limit || 0).toLocaleString()} tokens · frees up in {fmtCountdown(w.resets_in_seconds)}
         </p>
       </div>
@@ -727,18 +786,12 @@ function AppLayout() {
       {/* Desktop notification bell — pinned top-right, vertically centered in an
           h-14 strip anchored at top-0 so it sits within the top band that pages'
           sticky headers keep clear on the right (the few pages with a top-right
-          control — e.g. Practice's mode toggle — add `lg:pr-64` to their header
+          control — e.g. Practice's mode toggle — add `lg:pr-72` to their header
           row to reserve this ~240px: theme + language toggles + bell). The strip is click-through
           (pointer-events-none) except for the bell itself. z sits above page
           sticky headers (30) but below the CodeSquareAgent dock (40), so an open
           dock on the library pages covers it instead of it floating over chat. */}
-      <div className="hidden lg:flex items-center justify-end fixed top-0 right-0 h-14 pr-6 z-[35] pointer-events-none">
-        <div className="pointer-events-auto flex items-center gap-2">
-          <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
-          <LangToggle lang={lang} setLang={setLang} languages={languages} />
-          <NotificationBell />
-        </div>
-      </div>
+      {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
 
       {applyOpen && (
         <TeacherApplyModal onClose={() => setApplyOpen(false)} onStatus={setTeacherStatus} />
@@ -755,6 +808,13 @@ function AppLayout() {
             <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
           <LangToggle lang={lang} setLang={setLang} languages={languages} />
             <NotificationBell />
+            <AccountMenu
+              user={user}
+              onLogout={handleLogout}
+              onOpenSettings={() => openPopup('settings')}
+              onOpenActivity={() => openPopup('activity')}
+              onInstructor={() => setApplyOpen(true)}
+            />
             <button
               onClick={() => setOpen(true)}
               className="p-2 rounded-lg border border-cs-line/10 text-cs-text-dim hover:text-cs-primary transition-colors"
@@ -803,10 +863,26 @@ function AppLayout() {
         {/* Fade-only (opacity, no transform) so position:sticky stays attached to
             the window scroll. Keyed by the first two path segments so
             within-section navigations swap without a remount. */}
+        {/* App top bar (desktop): breadcrumb left, controls right */}
+        <header className="hidden lg:flex sticky top-0 z-40 h-14 items-center justify-between gap-4 px-6 lg:px-10 bg-cs-dark/95 backdrop-blur-xl border-b border-cs-line/10">
+          <Breadcrumb pathname={location.pathname} />
+          <div className="flex items-center gap-2 shrink-0">
+          <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
+          <LangToggle lang={lang} setLang={setLang} languages={languages} />
+          <NotificationBell />
+          <AccountMenu
+            user={user}
+            onLogout={handleLogout}
+            onOpenSettings={() => openPopup('settings')}
+            onOpenActivity={() => openPopup('activity')}
+            onInstructor={() => setApplyOpen(true)}
+          />
+          </div>
+        </header>
         <SectionTabs pathname={location.pathname} />
         <div
           key={contentKey}
-          className="min-h-[calc(100vh-60px)] lg:min-h-screen animate-route-fade"
+          className="min-h-[calc(100vh-3.75rem)] lg:min-h-[calc(100vh-3.5rem)] animate-route-fade"
         >
           <Outlet />
         </div>
@@ -821,7 +897,7 @@ function AppLayout() {
         >
           <div className="absolute inset-0 bg-cs-dark/70 backdrop-blur-sm" onClick={() => setPopup(false)} />
 
-          <div className="relative flex w-[94vw] max-w-4xl h-[88vh] max-h-[720px] flex-col overflow-hidden rounded-2xl border border-cs-line/10 bg-cs-darkest shadow-2xl sm:w-[82vw] lg:w-[62vw]">
+          <div className="relative flex w-[94vw] max-w-4xl h-[88vh] max-h-[45rem] flex-col overflow-hidden rounded-2xl border border-cs-line/10 bg-cs-darkest shadow-2xl sm:w-[82vw] lg:w-[62vw]">
             {/* header */}
             <div className="px-4 sm:px-6 py-4 border-b border-cs-line/10 flex items-center gap-3 sm:gap-4">
               <span className="w-12 h-12 rounded-full bg-gradient-main flex items-center justify-center font-bold overflow-hidden text-cs-dark shrink-0">
@@ -901,7 +977,7 @@ function AppLayout() {
                   <div className="flex items-center justify-between mb-4">
                     <p className="mono-label text-cs-text-muted"> {t('usage.ai_token_usage')}</p>
                     {usage && (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
+                      <span className="px-2 py-0.5 rounded-md text-[0.625rem] font-semibold uppercase tracking-wide border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
                         {usage.plan_label}
                       </span>
                     )}
@@ -910,7 +986,7 @@ function AppLayout() {
                     <div className="space-y-3">
                       <UsageBar w={usage.session} />
                       <UsageBar w={usage.weekly} />
-                      <p className="text-[11px] text-cs-text-muted">
+                      <p className="text-[0.6875rem] text-cs-text-muted">
                         {t('usage.ai_calls_this_week', { count: usage.calls_this_week })}
                       </p>
                       <Link
@@ -979,7 +1055,7 @@ function AppLayout() {
                   <div className="flex justify-end">
                     <button
                       onClick={handleLogout}
-                      className="flex items-center justify-center gap-2 w-[100px] p-2.5 rounded-xl border border-cs-red/30 text-cs-red text-sm hover:bg-cs-red/10 transition-colors"
+                      className="flex items-center justify-center gap-2 w-[6.25rem] p-2.5 rounded-xl border border-cs-red/30 text-cs-red text-sm hover:bg-cs-red/10 transition-colors"
                     >
                       <FiLogOut /> {t('settings.log_out')}
                     </button>
@@ -1057,7 +1133,7 @@ function AppLayout() {
                           className="w-9 h-9 rounded-full"
                           style={{ background: `rgb(${a.token})` }}
                         />
-                        <span className="text-[11px] text-cs-text-muted">{a.name}</span>
+                        <span className="text-[0.6875rem] text-cs-text-muted">{a.name}</span>
                       </button>
                     ))}
                   </div>

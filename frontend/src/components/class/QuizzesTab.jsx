@@ -136,7 +136,7 @@ function Results({ cid, quizId, onClose }) {
               ) : (
                 <>
                   <span className="text-xs text-cs-text-dim">{s.attempts} attempt{s.attempts === 1 ? '' : 's'}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold text-white ${s.passed ? 'bg-cs-green' : 'bg-cs-orange'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white ${s.passed ? 'bg-cs-green' : 'bg-cs-orange'}`}>
                     {Math.round(s.best_score)}%
                   </span>
                 </>
@@ -186,7 +186,7 @@ export default function QuizzesTab({ cid, isTeacher }) {
                 </div>
                 {isTeacher ? (
                   <>
-                    {!z.published && <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-cs-overlay/10 text-cs-text-dim">Draft</span>}
+                    {!z.published && <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-cs-overlay/10 text-cs-text-dim">Draft</span>}
                     <button onClick={() => setResults(z.id)} className="btn btn-ghost btn-sm"><FiBarChart2 /> Results</button>
                     <button onClick={() => setEditing(z.id)} className="p-2 text-cs-text-dim hover:text-cs-primary" title="Edit" aria-label="Edit"><FiEdit2 /></button>
                     <button
@@ -209,7 +209,7 @@ export default function QuizzesTab({ cid, isTeacher }) {
                 ) : (
                   <>
                     {z.best_score != null && (
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold text-white ${z.passed ? 'bg-cs-green' : 'bg-cs-orange'}`}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white ${z.passed ? 'bg-cs-green' : 'bg-cs-orange'}`}>
                         {z.passed && <FiCheckCircle />} {Math.round(z.best_score)}%
                       </span>
                     )}

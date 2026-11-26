@@ -65,96 +65,56 @@ function Roadmap() {
   };
 
   return (
-    <main className="w-full px-6 lg:px-10 py-6">
-      {/* Sticky header — just the back link + title (compact, like every other
-          page). The major blurb/chips scroll away in the card below. */}
-      <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-6 mb-6">
-        <p className="mono-label text-cs-text-muted"> {t('roadmap.your_roadmap')}</p>
-        <div className="flex items-end justify-between gap-4 flex-wrap lg:pr-64">
-          <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-            {majorData && (
-              <span
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-xl shrink-0"
-                style={{ background: `${majorData.color}1f`, color: majorData.color }}
-              >
-                <MajorIcon major={major} />
+    <main className="w-full px-6 lg:px-10 py-8">
+      <section className="rounded-xl border border-cs-line/10 px-5 mb-6">
+        {/* View tabs + overall progress */}
+        <div className="flex flex-wrap items-center gap-x-7 gap-y-2 border-b border-cs-line/10">
+          {[['flow', 'Map', FiShare2], ['list', 'List', FiList]].map(([v, label, Icon]) => (
+            <button key={v} onClick={() => setViewPersist(v)}
+              className={`relative h-12 px-0.5 inline-flex items-center gap-2 text-[0.9375rem] transition-colors ${view === v ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+              <Icon /> {label}
+              {view === v && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+            </button>
+          ))}
+          {data && (
+            <div className="ml-auto flex items-center gap-3 py-2 text-sm">
+              <FiAward className="text-cs-primary" />
+              <span className="text-cs-text-dim">
+                {data.percent === 100 ? t('roadmap.major_complete') : t('roadmap.lessons', { done: data.completed_lessons, total: data.total_lessons })}
               </span>
-            )}
-            {majorData ? majorData.label : 'Your'} <span className="text-cs-primary">Roadmap</span>
-          </h1>
-          <div className="inline-flex rounded-lg border border-cs-line/15 overflow-hidden text-xs">
-            <button
-              onClick={() => setViewPersist('flow')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
-                view === 'flow' ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-muted hover:text-cs-text'
-              }`}
-            >
-              <FiShare2 /> Map
-            </button>
-            <button
-              onClick={() => setViewPersist('list')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 border-l border-cs-line/15 transition-colors ${
-                view === 'list' ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-muted hover:text-cs-text'
-              }`}
-            >
-              <FiList /> List
-            </button>
-          </div>
+              <span className="w-32 h-1.5 rounded-full bg-cs-overlay/[0.12] overflow-hidden">
+                <span className="block h-full rounded-full bg-cs-primary transition-all duration-700" style={{ width: `${data.percent}%` }} />
+              </span>
+              <span className="font-semibold tabular-nums">{data.percent}%</span>
+            </div>
+          )}
         </div>
-      </div>
 
-      {majorData && (
-        <div className="card mb-8">
-          <p className="text-sm text-cs-text-dim">{majorData.blurb}</p>
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {majorData.focus.map((f) => (
-              <span key={f} className="text-[11px] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted">
-                {f}
-              </span>
-            ))}
+        {/* Major focus */}
+        {majorData && (
+          <div className="py-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="text-sm text-cs-text-dim flex-1 min-w-[16rem]">{majorData.blurb}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {majorData.focus.map((f) => (
+                <span key={f} className="text-xs px-2.5 py-1 rounded-md border border-cs-line/15 text-cs-text-dim">{f}</span>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </section>
 
         {loading ? (
-          <div className="min-h-[40vh] flex flex-col items-center justify-center gap-4">
-            <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-            <p className="text-cs-text-muted">{t('roadmap.loading')}</p>
+          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-72 rounded-xl" />)}
           </div>
         ) : (
           <>
-            {data && (
-              <div className="card mb-10 p-6">
-                <div className="flex items-center gap-4 mb-3">
-                  <FiAward className="text-xl text-cs-primary" />
-                  <div className="flex-grow">
-                    <p className="font-semibold">
-                      {data.percent === 100 ? t('roadmap.major_complete') : t('roadmap.overall_progress')}
-                    </p>
-                    <p className="text-sm text-cs-text-dim">
-                      {t('roadmap.lessons', { done: data.completed_lessons, total: data.total_lessons })}
-                    </p>
-                  </div>
-                  <span className="text-2xl font-bold text-cs-primary">{data.percent}%</span>
-                </div>
-                <div className="h-3 bg-cs-overlay/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${data.percent}%`,
-                      background: 'rgb(var(--cs-primary))',
-                    }}
-                  ></div>
-                </div>
-              </div>
-            )}
-
             {view === 'flow' ? (
               <RoadmapFlow data={data} />
             ) : (
             <>
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-cs-text-muted">
-              <FiBook /> {t('roadmap.suggested_path')}
+            <h2 className="text-base font-semibold mb-5 flex items-center gap-2">
+              <FiBook className="text-cs-text-muted" /> {t('roadmap.suggested_path')}
             </h2>
 
             <div className="relative">
@@ -191,7 +151,7 @@ function Roadmap() {
                               <span className="text-xs text-cs-text-muted">{index + 1}.</span>
                               <h3 className="text-lg font-bold">{track.name}</h3>
                               <span
-                                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${meta.cls}`}
+                                className={`text-[0.6875rem] font-semibold px-2 py-0.5 rounded-full border ${meta.cls}`}
                               >
                                 {meta.label}
                               </span>
@@ -240,7 +200,7 @@ function Roadmap() {
                                     <span className="flex items-center gap-2 shrink-0">
                                       {mod.difficulty && (
                                         <span
-                                          className={`text-[10px] uppercase tracking-wider ${
+                                          className={`text-[0.625rem] uppercase tracking-wider ${
                                             mod.difficulty === 'beginner'
                                               ? 'text-cs-green'
                                               : mod.difficulty === 'intermediate'

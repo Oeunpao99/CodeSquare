@@ -66,8 +66,8 @@ const csEditorTheme = EditorView.theme(
 // The surrounding page/chat is the only scroll surface; lines wrap so there's
 // no horizontal scroll either.
 const csMinimalTheme = EditorView.theme({
-  '&': { height: 'auto', fontSize: '13px', backgroundColor: V('cs-darkest') },
-  '.cm-scroller': { overflowX: 'hidden', fontSize: '13px' },
+  '&': { height: 'auto', fontSize: '0.8125rem', backgroundColor: V('cs-darkest') },
+  '.cm-scroller': { overflowX: 'hidden', fontSize: '0.8125rem' },
   '.cm-content': { padding: '10px 12px' },
   '.cm-line': { padding: '0' },
 });
@@ -156,7 +156,7 @@ function CodeEditor({ value, onChange, language = 'python', readOnly = false, on
       readOnly={readOnly}
       editable={!readOnly}
       theme="none"
-      style={minimal ? { fontSize: '13px' } : { height: '100%' }}
+      style={minimal ? { fontSize: '0.8125rem' } : { height: '100%' }}
       basicSetup={basicSetup}
     />
   );

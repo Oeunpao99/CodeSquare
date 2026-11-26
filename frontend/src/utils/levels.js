@@ -18,7 +18,7 @@ export const LEVEL_PILL = {
   Strong: 'bg-cs-green text-white',
 };
 
-export const PILL_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0';
+export const PILL_BASE = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0';
 
 // Progress bars: blue while in progress, green once complete.
 export const progressColor = (done) => (done ? 'rgb(var(--cs-green))' : 'rgb(var(--cs-primary))');

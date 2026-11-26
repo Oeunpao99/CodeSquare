@@ -230,9 +230,9 @@ function LessonView() {
   );
 
   return (
-    <div className="h-[calc(100vh-60px)] lg:h-screen bg-cs-dark flex flex-col overflow-hidden">
+    <div className="h-[calc(100vh-3.75rem)] lg:h-[calc(100vh-3.5rem)] bg-cs-dark flex flex-col overflow-hidden">
       {/* z-30 + right padding: keeps the global theme / language / bell controls visible */}
-      <header className="shrink-0 z-30 bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10 px-6 lg:px-8 lg:pr-64 py-4">
+      <header className="shrink-0 z-30 bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10 px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6 min-w-0">
             <Link to={`/learn/${slug}`} className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary shrink-0">
@@ -273,7 +273,7 @@ function LessonView() {
                   <FiBook className="text-cs-dark" />
                 </div>
                 <div>
-                  <p className="mono-label text-[10px]"> concepts</p>
+                  <p className="mono-label text-[0.625rem]"> concepts</p>
                   <h2 className="text-lg font-bold leading-tight">Lesson {lesson.order}</h2>
                 </div>
               </div>
@@ -300,7 +300,7 @@ function LessonView() {
             {lesson.code_example && (
               <div className="mt-8 card-code overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-2.5 code-tab">
-                  <span className="text-[13px] text-cs-text flex items-center gap-2">
+                  <span className="text-[0.8125rem] text-cs-text flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-cs-red/70" />
                     <span className="w-2 h-2 rounded-full bg-cs-orange/70" />
                     <span className="w-2 h-2 rounded-full bg-cs-green/70" />
@@ -308,7 +308,7 @@ function LessonView() {
                       <FiCode /> {fileName('example')}
                     </span>
                   </span>
-                  <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-cs-text-muted">
+                  <span className="hidden sm:inline-flex items-center gap-1.5 text-[0.625rem] uppercase tracking-wider text-cs-text-muted">
                     <FiBook /> read-only
                   </span>
                 </div>
@@ -352,11 +352,11 @@ function LessonView() {
 
             <p className="text-sm text-cs-text-dim mb-4">{currentExercise?.description}</p>
 
-            <div className="h-[300px] rounded-2xl bg-cs-darker border border-white border-opacity-10 overflow-hidden mb-4">
+            <div className="h-[18.75rem] rounded-2xl bg-cs-darker border border-white border-opacity-10 overflow-hidden mb-4">
               <div className="flex items-center gap-2 px-4 py-3 bg-white bg-opacity-5">
                 <span className="font-mono text-sm text-cs-cyan">{fileName('exercise')}</span>
               </div>
-              <div className="h-[calc(100%-49px)]">
+              <div className="h-[calc(100%-3.0625rem)]">
                 <CodeEditor
                   value={code}
                   onChange={handleCodeChange}
@@ -485,7 +485,7 @@ function LessonView() {
               animate={{ x: 0 }}
               exit={{ x: 420 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="absolute top-0 right-0 h-full w-full sm:w-[400px] shadow-2xl"
+              className="absolute top-0 right-0 h-full w-full sm:w-[25rem] shadow-2xl"
             >
               {tutorPanel}
             </motion.div>

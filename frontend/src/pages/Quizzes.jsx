@@ -63,13 +63,9 @@ function Quizzes() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-64">
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <span className="mono-label">Practice</span>
-            <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-              <FiHelpCircle className="text-cs-primary" /> Quizzes
-            </h1>
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -138,7 +134,7 @@ function Quizzes() {
                     <FiCheckCircle className="text-cs-green shrink-0 mt-0.5" title="Passed" />
                   ) : (
                     <span className="text-xs text-cs-text-dim inline-flex items-center gap-0.5 shrink-0 mt-0.5">
-                      <FiZap className="text-[11px]" /> {z.xp_reward}
+                      <FiZap className="text-[0.6875rem]" /> {z.xp_reward}
                     </span>
                   )}
                 </div>
@@ -194,7 +190,7 @@ function FilterDropdown({ label, value, onChange, options }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-52 max-h-72 overflow-y-auto rounded-xl border border-cs-line/15 bg-cs-darkest p-1.5 shadow-xl">
+          <div className="absolute right-0 top-[calc(100%+0.375rem)] z-50 w-52 max-h-72 overflow-y-auto rounded-xl border border-cs-line/15 bg-cs-darkest p-1.5 shadow-xl">
             {options.map(([val, text]) => {
               const selected = value === val;
               return (
@@ -204,7 +200,7 @@ function FilterDropdown({ label, value, onChange, options }) {
                   onClick={() => { onChange(val); setOpen(false); }}
                   className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-sm transition-colors ${
                     selected
-                      ? 'bg-cs-primary/15 text-cs-primary'
+                      ? 'bg-cs-overlay/[0.09] text-cs-text font-medium'
                       : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
                   }`}
                 >

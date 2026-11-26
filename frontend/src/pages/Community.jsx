@@ -28,14 +28,14 @@ function Preview({ kind, body, images, tagList, link }) {
   return (
     <div className="rounded-xl border border-cs-line/15 bg-cs-darkest/40 p-4">
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] uppercase tracking-wide ${ACCENT[m.accent]}`}>
-          <Icon className="text-[10px]" /> {m.label}
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[0.625rem] uppercase tracking-wide ${ACCENT[m.accent]}`}>
+          <Icon className="text-[0.625rem]" /> {m.label}
         </span>
         {tagList.map((t) => (
-          <span key={t} className="text-[11px] text-cs-text-muted">#{t}</span>
+          <span key={t} className="text-[0.6875rem] text-cs-text-muted">#{t}</span>
         ))}
-        {link && <span className="text-[11px] text-cs-primary truncate max-w-[180px]">{link}</span>}
-        <span className="ml-auto text-[10px] text-cs-text-muted uppercase tracking-wide">preview</span>
+        {link && <span className="text-[0.6875rem] text-cs-primary truncate max-w-[11.25rem]">{link}</span>}
+        <span className="ml-auto text-[0.625rem] text-cs-text-muted uppercase tracking-wide">preview</span>
       </div>
       {body.trim() ? (
         <Markdown>{body}</Markdown>
@@ -155,11 +155,11 @@ export function Composer({ onPosted, sendRef }) {
               key={k}
               type="button"
               onClick={() => setKind(k)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] uppercase tracking-wide transition-colors ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[0.6875rem] uppercase tracking-wide transition-colors ${
                 active ? ACCENT[km.accent] : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
               }`}
             >
-              <Icon className="text-[11px]" /> {km.label}
+              <Icon className="text-[0.6875rem]" /> {km.label}
             </button>
           );
         })}
@@ -198,7 +198,7 @@ export function Composer({ onPosted, sendRef }) {
           >
             <FiX className="text-xs" />
           </button>
-          <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[10px] text-cs-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[0.625rem] text-cs-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
             click image to view full size
           </span>
         </div>
@@ -235,7 +235,7 @@ export function Composer({ onPosted, sendRef }) {
       )}
 
       <div className="flex flex-wrap items-center gap-2 mt-3">
-        <div className="flex flex-1 flex-wrap items-center gap-2 min-w-[200px]">
+        <div className="flex flex-1 flex-wrap items-center gap-2 min-w-[12.5rem]">
           <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-cs-line/25 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 text-xs cursor-pointer transition-colors">
             <FiImage /> {images.length ? `+ image (${images.length}/${MAX_IMAGES})` : 'add images · click or drop'}
             <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
@@ -244,14 +244,14 @@ export function Composer({ onPosted, sendRef }) {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="tags: python, sql"
-            className="flex-1 min-w-[140px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50"
+            className="flex-1 min-w-[8.75rem] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50"
           />
           {!showLink ? (
             <button type="button" onClick={() => setShowLink(true)} className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary text-xs">
               <FiLink /> add link
             </button>
           ) : (
-            <div className="flex items-center gap-1 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1 flex-1 min-w-[12.5rem]">
               <input
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
@@ -264,7 +264,7 @@ export function Composer({ onPosted, sendRef }) {
         </div>
 
         <div className="flex items-center gap-2 ml-auto shrink-0">
-          <span className="text-[10px] text-cs-text-muted tabular-nums">{body.length}/4000</span>
+          <span className="text-[0.625rem] text-cs-text-muted tabular-nums">{body.length}/4000</span>
           <button
             type="button"
             onClick={() => setShowPreview((p) => !p)}
@@ -365,13 +365,9 @@ function Community() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Same sticky page header as the other pages */}
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 -mt-8 mb-4 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/10">
-        <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-64">
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 -mt-8 mb-4 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/10">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <span className="mono-label">Community</span>
-            <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-              <FiMessageSquare className="text-cs-primary" /> Community
-            </h1>
           </div>
         </div>
           {/* Filter tabs live in the pinned header, so they never move while scrolling */}
@@ -386,19 +382,19 @@ function Community() {
                     <button
                       key={k || 'all'}
                       onClick={() => setKind(k)}
-                      className={`relative h-11 px-3 inline-flex items-center gap-1.5 text-sm whitespace-nowrap transition-colors ${
-                        active ? 'text-cs-primary font-semibold' : 'text-cs-text-dim hover:text-cs-text'
+                      className={`relative h-12 px-0.5 mr-6 inline-flex items-center gap-2 text-[0.9375rem] whitespace-nowrap transition-colors ${
+                        active ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'
                       }`}
                     >
-                      <Icon className="text-[13px]" />
-                      {k ? Meta.label : 'All'}
                       {active && (
                         <motion.span
                           layoutId="feed-kind-underline"
-                          className="absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-cs-primary"
+                          className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary"
                           transition={{ type: 'spring', stiffness: 500, damping: 40 }}
                         />
                       )}
+                      <Icon className="relative text-[0.8125rem]" />
+                      <span className="relative">{k ? Meta.label : 'All'}</span>
                     </button>
                   );
                 })}
@@ -439,7 +435,7 @@ function Community() {
                     title="Search the feed"
                     aria-label="Search the feed"
                     className={`h-8 inline-flex items-center gap-1.5 px-2.5 rounded-lg text-sm transition-colors ${
-                      search ? 'bg-cs-primary/10 text-cs-primary' : 'text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06]'
+                      search ? 'bg-cs-overlay/[0.09] text-cs-text' : 'text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06]'
                     }`}
                   >
                     <FiSearch />

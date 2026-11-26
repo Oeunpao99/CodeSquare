@@ -342,11 +342,11 @@ function Landing() {
                 <div className="text-xs text-cs-cyan mb-1.5 flex items-center gap-1.5">
                   <AiIcon className="text-sm" /> ai_tutor
                 </div>
-                <p className="text-[13px] leading-6 text-cs-text-dim">
+                <p className="text-[0.8125rem] leading-6 text-cs-text-dim">
                   <span className="text-cs-text-muted">❯ </span>{typedText}
                   <span className="inline-block w-2 h-4 bg-cs-primary align-middle ml-0.5 animate-blink" />
                 </p>
-                <p className="text-[13px] leading-6 text-cs-text-dim mt-2 error-shake">
+                <p className="text-[0.8125rem] leading-6 text-cs-text-dim mt-2 error-shake">
                   <span className="text-cs-green">total</span> is never set before line 3. Add{' '}
                   <span className="text-cs-mint">total = 0</span> above the loop — the name has to
                   exist before you add to it.
@@ -428,7 +428,7 @@ function Landing() {
                 {col.items.map((it, i) => (
                   <li key={i} className="flex gap-2.5 text-sm text-cs-text-dim leading-relaxed">
                     <span
-                      className="mt-[7px] w-1.5 h-1.5 rounded-full shrink-0"
+                      className="mt-[0.4375rem] w-1.5 h-1.5 rounded-full shrink-0"
                       style={{ background: col.color }}
                     />
                     <span>{it}</span>

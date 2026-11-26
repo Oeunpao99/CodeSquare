@@ -32,15 +32,6 @@ function Portfolio() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary"> portfolio</span>
-        <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-          <FiGlobe className="text-cs-primary" /> Portfolio
-        </h1>
-        <p className="text-sm text-cs-text-dim mt-1">
-          Your finished projects · {items ? items.length : 0} {items && items.length === 1 ? 'entry' : 'entries'}
-        </p>
-      </div>
 
       {/* identity card — pulled from your profile */}
       <div className="card border-cs-primary/15 mb-6 flex flex-col sm:flex-row gap-5">
@@ -109,14 +100,14 @@ function Portfolio() {
               )}
 
               {p.snippet && (
-                <pre className={`text-[11px] leading-4 font-mono text-cs-text-muted bg-cs-darkest/80 rounded-lg p-3 max-h-20 overflow-hidden border border-cs-line/10 ${
+                <pre className={`text-[0.6875rem] leading-4 font-mono text-cs-text-muted bg-cs-darkest/80 rounded-lg p-3 max-h-20 overflow-hidden border border-cs-line/10 ${
                   p.language === 'python' ? 'text-emerald-300/80' : p.language === 'javascript' ? 'text-yellow-200/80' : 'text-sky-300/80'
                 }`}>
                   {p.snippet}
                 </pre>
               )}
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-auto pt-2 text-[11px] border-t border-cs-line/10 text-cs-text-muted">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-auto pt-2 text-[0.6875rem] border-t border-cs-line/10 text-cs-text-muted">
                 <span className="inline-flex items-center gap-1">
                   <FiFolder className="text-cs-primary" /> {p.language}
                 </span>

@@ -86,7 +86,7 @@ function Dashboard() {
     <div>
       <main className="w-full px-6 lg:px-10 py-8">
         {/* Sticky header — locked while the dashboard scrolls beneath it */}
-        <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+        <div className="mb-6">
           <div className="animate-slide-up">
             <h1 className="text-3xl font-bold mb-2">{getGreeting()}, {user?.username}!</h1>
             <p className="text-cs-text-dim">{t('dashboard.ready_continue')}</p>
@@ -105,7 +105,7 @@ function Dashboard() {
                 <h2 className="text-xl font-bold">{majorData.label}</h2>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {majorData.focus.map((f) => (
-                    <span key={f} className="text-[11px] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted">
+                    <span key={f} className="text-[0.6875rem] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted">
                       {f}
                     </span>
                   ))}
@@ -144,7 +144,7 @@ function Dashboard() {
                     style={{ width: `${Math.round((resume.completed_in_track / Math.max(1, resume.total_in_track)) * 100)}%` }}
                   />
                 </div>
-                <span className="text-[11px] text-cs-text-muted shrink-0">
+                <span className="text-[0.6875rem] text-cs-text-muted shrink-0">
                   {resume.completed_in_track}/{resume.total_in_track} {t('dashboard.in_track')}
                 </span>
               </div>
@@ -216,7 +216,7 @@ function Dashboard() {
                 }`}
               >
                 {inPath(lang.slug) && (
-                  <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-cs-primary/15 text-cs-primary">
+                  <span className="absolute top-3 right-3 text-[0.625rem] uppercase tracking-wider px-2 py-0.5 rounded bg-cs-primary/15 text-cs-primary">
                     {t('dashboard.for_your_major')}
                   </span>
                 )}

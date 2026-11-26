@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-  FiArrowLeft, FiZap, FiBook, FiCode, FiCheckSquare, FiAward, FiStar,
+  FiZap, FiBook, FiCode, FiCheckSquare, FiAward, FiStar,
   FiUser, FiUsers, FiUserPlus, FiUserCheck, FiActivity, FiMessageSquare,
   FiGithub, FiGlobe, FiLinkedin, FiFileText, FiChevronLeft, FiChevronRight,
   FiRepeat, FiBookmark, FiHeart,
@@ -248,10 +248,7 @@ export default function UserProfile() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky profile header */}
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/community" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-text mb-4">
-          <FiArrowLeft /> Community
-        </Link>
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
 
         {/* Hero */}
         <div className="flex items-start gap-5">
@@ -266,8 +263,8 @@ export default function UserProfile() {
               <h1 className="text-3xl font-bold truncate">{name}</h1>
               {data.verified && <VerifiedBadge />}
               {data.is_staff && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-cs-violet/40 bg-cs-violet/10 text-cs-violet text-[10px] uppercase tracking-wide">
-                  <FiAward className="text-[11px]" /> dev team
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-cs-violet/40 bg-cs-violet/10 text-cs-violet text-[0.625rem] uppercase tracking-wide">
+                  <FiAward className="text-[0.6875rem]" /> dev team
                 </span>
               )}
             </div>
@@ -282,9 +279,9 @@ export default function UserProfile() {
 
             {/* Full stats row */}
             <div className="flex items-center gap-5 mt-4">
-              <FollowerChip icon={<FiUsers className="text-[11px]" />} count={data.follower_count} label="followers" />
-              <FollowerChip icon={<FiUserPlus className="text-[11px]" />} count={data.following_count} label="following" />
-              <FollowerChip icon={<FiCode className="text-[11px]" />} count={data.recent_projects?.length ?? 0} label="projects" />
+              <FollowerChip icon={<FiUsers className="text-[0.6875rem]" />} count={data.follower_count} label="followers" />
+              <FollowerChip icon={<FiUserPlus className="text-[0.6875rem]" />} count={data.following_count} label="following" />
+              <FollowerChip icon={<FiCode className="text-[0.6875rem]" />} count={data.recent_projects?.length ?? 0} label="projects" />
             </div>
           </div>
 
@@ -447,14 +444,14 @@ export default function UserProfile() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold truncate">{p.title}</p>
-                      <p className="text-[11px] text-cs-text-muted truncate capitalize">
+                      <p className="text-[0.6875rem] text-cs-text-muted truncate capitalize">
                         {p.language || 'unknown'}
                         {p.status ? ` · ${p.status}` : ''}
                       </p>
                     </div>
                   </div>
                   {p.updated_at && (
-                    <p className="mt-3 pt-3 border-t border-cs-line/8 text-[11px] text-cs-text-muted">
+                    <p className="mt-3 pt-3 border-t border-cs-line/8 text-[0.6875rem] text-cs-text-muted">
                       updated {formatDate(p.updated_at)}
                     </p>
                   )}
@@ -507,34 +504,34 @@ export default function UserProfile() {
                 <h3 className="text-base font-bold flex items-center gap-2"><FiActivity /> Coding activity · {selectedYear}</h3>
                 <p className="text-xs text-cs-text-muted mt-0.5">Estimated from total XP — {data.xp} XP earned</p>
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-cs-text-muted">
+              <div className="flex items-center gap-1.5 text-[0.6875rem] text-cs-text-muted">
                 Less
                 {[0, 1, 2, 3, 4].map((lvl) => (
-                  <span key={lvl} className={`w-3 h-3 rounded-[3px] border border-cs-line/10 ${LEVEL_STYLES[lvl]}`} />
+                  <span key={lvl} className={`w-3 h-3 rounded-[0.1875rem] border border-cs-line/10 ${LEVEL_STYLES[lvl]}`} />
                 ))}
                 More
               </div>
             </div>
             <div className="overflow-x-auto">
-              <div className="min-w-[680px]">
-                <div className="flex gap-[3px] mb-1.5" style={{ marginLeft: '1.75rem' }}>
+              <div className="min-w-[42.5rem]">
+                <div className="flex gap-[0.1875rem] mb-1.5" style={{ marginLeft: '1.75rem' }}>
                   {heat.monthLabel.map((m, i) => (
-                    <div key={i} className="w-2.5 text-[10px] text-cs-text-muted whitespace-nowrap">{m != null ? MONTHS[m] : ''}</div>
+                    <div key={i} className="w-2.5 text-[0.625rem] text-cs-text-muted whitespace-nowrap">{m != null ? MONTHS[m] : ''}</div>
                   ))}
                 </div>
                 <div className="flex">
-                  <div className="flex flex-col gap-[3px] mr-2 text-[9px] text-cs-text-muted pr-1 w-7">
+                  <div className="flex flex-col gap-[0.1875rem] mr-2 text-[0.5625rem] text-cs-text-muted pr-1 w-7">
                     {['Mon', '', 'Wed', '', 'Fri', '', 'Sun'].map((d, i) => (
                       <div key={i} className="h-2.5 flex items-center leading-none">{d}</div>
                     ))}
                   </div>
-                  <div className="flex gap-[3px]">
+                  <div className="flex gap-[0.1875rem]">
                     {heat.grid.map((col, w) => (
-                      <div key={w} className="flex flex-col gap-[3px]">
+                      <div key={w} className="flex flex-col gap-[0.1875rem]">
                         {col.map((cell, d) => (
                           <div
                             key={d}
-                            className={`w-2.5 h-2.5 rounded-[3px] ${cell.pad ? 'invisible' : LEVEL_STYLES[cell.level]} ${cell.future ? 'opacity-40' : ''} ${cell.today ? 'ring-1 ring-cs-primary scale-125' : ''}`}
+                            className={`w-2.5 h-2.5 rounded-[0.1875rem] ${cell.pad ? 'invisible' : LEVEL_STYLES[cell.level]} ${cell.future ? 'opacity-40' : ''} ${cell.today ? 'ring-1 ring-cs-primary scale-125' : ''}`}
                           />
                         ))}
                       </div>

@@ -48,7 +48,7 @@ export default function AdminTeachers() {
       <div className="inline-flex gap-0.5 p-0.5 mb-5 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04]">
         {TABS.map(([k, label]) => (
           <button key={k} onClick={() => setStatus(k)}
-            className={`h-9 px-4 rounded-md text-sm ${status === k ? 'bg-cs-primary text-cs-btn-text font-semibold' : 'text-cs-text-dim hover:text-cs-text'}`}>
+            className={`h-9 px-4 rounded-md text-sm ${status === k ? 'bg-cs-overlay/[0.09] text-cs-text font-medium' : 'text-cs-text-dim hover:text-cs-text'}`}>
             {label}
           </button>
         ))}
@@ -64,7 +64,7 @@ export default function AdminTeachers() {
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-bold">{t.full_name}</p>
                 <span className="text-sm text-cs-text-dim">@{t.username} · {t.email}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_CLS[t.status] || ''}`}>{t.status}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold ${STATUS_CLS[t.status] || ''}`}>{t.status}</span>
               </div>
               <p className="text-sm mt-1">
                 {[t.organization, t.subject].filter(Boolean).join(' · ') || <span className="text-cs-text-dim">No organisation or subject given</span>}

@@ -91,7 +91,7 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
           placeholder="A couple of sentences about what you're working toward."
           className="mt-1.5 w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/60 resize-y"
         />
-        <span className="text-[11px] text-cs-text-muted">{form.bio.length}/600</span>
+        <span className="text-[0.6875rem] text-cs-text-muted">{form.bio.length}/600</span>
       </label>
 
       <div className="space-y-3">

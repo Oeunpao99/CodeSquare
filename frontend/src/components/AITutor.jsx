@@ -564,7 +564,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
 
   return (
     <div
-      className={`relative flex flex-col ${embedded ? "h-full" : "h-[440px]"}`}
+      className={`relative flex flex-col ${embedded ? "h-full" : "h-[27.5rem]"}`}
     >
       {/* Session history — /session */}
       {showSessions && (
@@ -576,7 +576,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
             </span>
             <button
               onClick={newChat}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] text-cs-primary border border-cs-primary/40 hover:bg-cs-primary/10 transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[0.6875rem] text-cs-primary border border-cs-primary/40 hover:bg-cs-primary/10 transition-colors"
             >
               <FiPlus /> new chat
             </button>
@@ -613,7 +613,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
                   <span className="text-sm font-semibold truncate flex-grow">
                     {s.title}
                   </span>
-                  <span className="text-[10px] text-cs-text-muted shrink-0">
+                  <span className="text-[0.625rem] text-cs-text-muted shrink-0">
                     {timeAgo(s.updated_at)}
                   </span>
                   <span
@@ -624,10 +624,10 @@ function AITutor({ language, context, embedded = false, persist = false }) {
                     <FiTrash2 className="text-xs" />
                   </span>
                 </div>
-                <p className="text-[11px] text-cs-text-dim truncate mt-1 pl-5">
+                <p className="text-[0.6875rem] text-cs-text-dim truncate mt-1 pl-5">
                   {s.preview}
                 </p>
-                <p className="text-[10px] text-cs-text-muted mt-0.5 pl-5">
+                <p className="text-[0.625rem] text-cs-text-muted mt-0.5 pl-5">
                   {s.turns} messages
                 </p>
               </button>
@@ -646,7 +646,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
               <span className="text-cs-mint select-none">❯&nbsp;</span>
               codesquare_agent --live
             </div>
-            <div className="text-[11px] text-cs-green flex items-center gap-1.5">
+            <div className="text-[0.6875rem] text-cs-green flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-cs-green rounded-full animate-pulse"></span>
               ready for input
             </div>
@@ -661,7 +661,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
         {messages.map((msg, index) =>
           msg.role === "user" ? (
             <div key={index} className="flex justify-end">
-              <div className="max-w-[88%] w-fit rounded-lg px-4 py-2.5 text-[13px] leading-6 whitespace-pre-wrap bg-cs-primary/15 text-cs-primary border border-cs-primary/30">
+              <div className="max-w-[88%] w-fit rounded-lg px-4 py-2.5 text-[0.8125rem] leading-6 whitespace-pre-wrap bg-cs-primary/15 text-cs-primary border border-cs-primary/30">
                 <span className="text-cs-mint font-bold select-none">
                   ❯&nbsp;
                 </span>
@@ -671,12 +671,12 @@ function AITutor({ language, context, embedded = false, persist = false }) {
           ) : msg.sys ? (
             <div key={index} className="flex justify-start">
               <div className="max-w-full w-full text-sm rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] px-4 py-3">
-                <div className="flex items-center gap-1.5 mb-1.5 text-[10px] uppercase tracking-wider text-cs-text-muted">
+                <div className="flex items-center gap-1.5 mb-1.5 text-[0.625rem] uppercase tracking-wider text-cs-text-muted">
                   <span> system</span>
                 </div>
                 <Markdown
                   text={msg.content}
-                  size="text-[13px]"
+                  size="text-[0.8125rem]"
                   className="space-y-1 text-cs-text-dim"
                 />
               </div>
@@ -684,13 +684,13 @@ function AITutor({ language, context, embedded = false, persist = false }) {
           ) : (
             <div key={index} className="flex justify-start">
               <div className="max-w-full w-full text-sm">
-                <div className="flex items-center gap-1.5 mb-1.5 text-[10px] uppercase tracking-wider text-cs-cyan">
+                <div className="flex items-center gap-1.5 mb-1.5 text-[0.625rem] uppercase tracking-wider text-cs-cyan">
                   <AiIcon className="text-xs" /> <span> codesquare_agent</span>
                 </div>
                 <>
                   <Markdown
                     text={msg.content}
-                    size="text-[13px]"
+                    size="text-[0.8125rem]"
                     className="space-y-1 leading-6 text-cs-text-dim"
                   />
                   {msg.streaming && (
@@ -713,7 +713,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
         {/* Slash-command menu — appears while typing "/…" */}
         {slashMenu.length > 0 && (
           <div className="absolute bottom-full left-3 right-3 mb-2 rounded-lg border border-cs-line/20 bg-cs-darkest overflow-hidden z-20">
-            <div className="px-3 py-1.5 border-b border-cs-line/10 text-[10px] uppercase tracking-wider text-cs-text-muted">
+            <div className="px-3 py-1.5 border-b border-cs-line/10 text-[0.625rem] uppercase tracking-wider text-cs-text-muted">
               // commands
             </div>
             {slashMenu.map((c, i) => (
@@ -734,12 +734,12 @@ function AITutor({ language, context, embedded = false, persist = false }) {
                     <span className="text-cs-text-muted"> {c.arg}</span>
                   )}
                 </span>
-                <span className="text-[11px] text-cs-text-muted truncate">
+                <span className="text-[0.6875rem] text-cs-text-muted truncate">
                   {c.desc}
                 </span>
               </button>
             ))}
-            <div className="px-3 py-1.5 border-t border-cs-line/10 text-[10px] text-cs-text-muted">
+            <div className="px-3 py-1.5 border-t border-cs-line/10 text-[0.625rem] text-cs-text-muted">
               ↑↓ select · Tab complete · ↵ run
             </div>
           </div>
@@ -752,7 +752,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
               type="button"
               onClick={() => quick(q)}
               disabled={loading}
-              className="px-2.5 py-1 rounded-md text-[11px] text-cs-text-dim glass border border-cs-line/15 hover:text-cs-primary hover:border-cs-primary/40 disabled:opacity-40 transition-all"
+              className="px-2.5 py-1 rounded-md text-[0.6875rem] text-cs-text-dim glass border border-cs-line/15 hover:text-cs-primary hover:border-cs-primary/40 disabled:opacity-40 transition-all"
             >
               {q.label}
             </button>
@@ -765,7 +765,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
         >
           {/* Row 1 — text input; grows upward as you type, the $ hugs the first line. */}
           <div className="flex items-start gap-2 px-3.5 pt-3 pb-1.5">
-            <span className="text-cs-green text-[13px] select-none shrink-0 leading-6">
+            <span className="text-cs-green text-[0.8125rem] select-none shrink-0 leading-6">
               $
             </span>
             <textarea
@@ -775,7 +775,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
               placeholder="ask, paste an error, or type / for commands…"
-              className="flex-grow resize-none block bg-transparent outline-none border-none text-[13px] leading-6 text-cs-text placeholder:text-cs-text-muted py-0"
+              className="flex-grow resize-none block bg-transparent outline-none border-none text-[0.8125rem] leading-6 text-cs-text placeholder:text-cs-text-muted py-0"
               style={{ maxHeight: "200px" }}
             />
           </div>
@@ -788,7 +788,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
               title="Slash commands"
               className="h-8 px-2 inline-flex items-center gap-1.5 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] text-sm text-cs-text-dim hover:text-cs-primary hover:border-cs-primary/40 transition-colors"
             >
-              / <span className="hidden sm:inline text-[11px]">commands</span>
+              / <span className="hidden sm:inline text-[0.6875rem]">commands</span>
             </button>
 
             {realMsgs.length > 1 && (
@@ -802,7 +802,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
 
             <span className="flex-grow" />
 
-            <span className="hidden md:inline text-[10px] text-cs-text-muted mr-1">
+            <span className="hidden md:inline text-[0.625rem] text-cs-text-muted mr-1">
               Shift+Enter = newline
             </span>
             <button
@@ -815,7 +815,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
             </button>
           </div>
         </form>
-        <p className="text-[10px] text-cs-text-muted mt-1">
+        <p className="text-[0.625rem] text-cs-text-muted mt-1">
           Try <span className="text-cs-primary">/session</span>{" "}
           <span className="text-cs-primary">/new</span>{" "}
           <span className="text-cs-primary">/usage</span>

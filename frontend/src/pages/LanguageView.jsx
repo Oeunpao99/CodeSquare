@@ -70,14 +70,6 @@ function LanguageView() {
   return (
     <main className="w-full px-6 lg:px-10 py-6">
       {/* Compact sticky bar */}
-      <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 lg:pr-64 py-3 -mt-4 mb-6 flex items-center gap-3">
-        <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-cs-text-dim hover:text-cs-text shrink-0">
-          <FiArrowLeft /> Learn
-        </Link>
-        <span className="text-cs-text-muted">/</span>
-        <LangLogo name={language.slug || language.name} className="text-xl shrink-0" />
-        <span className="font-semibold truncate">{language.name}</span>
-      </div>
 
       {/* Hero */}
       <section className="card overflow-hidden mb-8">

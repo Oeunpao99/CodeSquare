@@ -42,12 +42,12 @@ function Row({ r, highlight }) {
           </span>
           {highlight && <span className="text-cs-primary font-normal"> · you</span>}
         </p>
-        <p className="text-[11px] text-cs-text-muted truncate">{major || '—'}</p>
+        <p className="text-[0.6875rem] text-cs-text-muted truncate">{major || '—'}</p>
       </div>
       <span
         className="inline-flex items-center gap-1.5 text-sm font-bold text-cs-primary shrink-0 bg-cs-primary/10 border border-cs-primary/20 rounded-lg px-2.5 py-1"
       >
-        <FiZap className="text-[11px]" /> {r.xp.toLocaleString()} <span className="text-[10px] font-medium text-cs-text-muted">xp</span>
+        <FiZap className="text-[0.6875rem]" /> {r.xp.toLocaleString()} <span className="text-[0.625rem] font-medium text-cs-text-muted">xp</span>
       </span>
     </Link>
   );
@@ -62,15 +62,6 @@ function Leaderboard() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary"> community</span>
-        <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-          <FiTerminal className="text-cs-primary" /> Leaderboard
-        </h1>
-        <p className="text-sm text-cs-text-dim mt-1">
-          Ranked by total XP — completed lessons + solved challenges.
-        </p>
-      </div>
 
       {data === null && (
         <p className="text-cs-text-muted text-sm">Loading leaderboard…</p>
@@ -105,14 +96,14 @@ function Leaderboard() {
                 <FiChevronUp />
               </div>
               <Row r={data.me} highlight />
-              <p className="text-center text-[11px] text-cs-text-muted mt-3">
+              <p className="text-center text-[0.6875rem] text-cs-text-muted mt-3">
                 {data.total_ranked} learners ranked
               </p>
             </>
           )}
 
           {!data.me && (
-            <p className="text-center text-[11px] text-cs-text-muted mt-3">
+            <p className="text-center text-[0.6875rem] text-cs-text-muted mt-3">
               {data.total_ranked} learner{data.total_ranked === 1 ? '' : 's'} ranked
             </p>
           )}

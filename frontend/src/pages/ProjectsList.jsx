@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  FiPlus, FiStar, FiTrash2, FiCode, FiZap, FiCheckSquare, FiClipboard, FiX,
+  FiPlus, FiStar, FiTrash2, FiCode, FiZap, FiCheckSquare, FiClipboard, FiX, FiSearch,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 import { projectService, lessonService } from '../services/api';
@@ -12,9 +12,9 @@ import { stacksForMajor } from '../projectStacks';
 import { timeAgo } from '../utils/datetime';
 
 const STATUS = {
-  active: { label: 'Active', cls: 'text-cs-primary bg-cs-primary/10' },
-  done: { label: 'Done', cls: 'text-cs-green bg-cs-green/10' },
-  archived: { label: 'Archived', cls: 'text-cs-text-muted bg-cs-overlay/10' },
+  active: { label: 'Active', cls: 'text-cs-primary bg-cs-primary/10', text: 'text-cs-primary' },
+  done: { label: 'Done', cls: 'text-cs-green bg-cs-green/10', text: 'text-cs-green' },
+  archived: { label: 'Archived', cls: 'text-cs-text-muted bg-cs-overlay/10', text: 'text-cs-text-muted' },
 };
 
 function NewProjectModal({ onClose, onCreated, languageOptions, tracks }) {
@@ -111,6 +111,7 @@ function ProjectsList() {
   const [showNew, setShowNew] = useState(false);
   const [tracks, setTracks] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
   const [pendingDelete, setPendingDelete] = useState(null);
 
   const languageOptions = useMemo(() => stacksForMajor(majorData), [majorData]);
@@ -147,120 +148,103 @@ function ProjectsList() {
     }
   };
 
-  const shown = projects.filter((p) => filter === 'all' || p.status === filter);
+  const q = search.trim().toLowerCase();
+  const shown = projects.filter((p) => (filter === 'all' || p.status === filter)
+    && (!q || `${p.title} ${p.language}`.toLowerCase().includes(q)));
+  const count = (f) => (f === 'all' ? projects.length : projects.filter((p) => p.status === f).length);
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-cs-text-dim">Loading your projects...</p>
-      </div>
+      <main className="w-full px-6 lg:px-10 py-8">
+        <div className="skeleton h-12 rounded-xl mb-5" />
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-[9rem] rounded-lg" />)}
+        </div>
+      </main>
     );
   }
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 lg:pr-64 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <span className="mono-label"> workspace</span>
-          <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-            <FiCode className="text-cs-primary" /> Projects
-          </h1>
-          <p className="text-cs-text-dim mt-1">Code, notes, tasks and AI reviews — all saved.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/projects/generate" className="btn btn-ghost">
-            <FiZap /> Generate with AI
-          </Link>
-          <button onClick={() => setShowNew(true)} className="btn btn-primary">
-            <FiPlus /> New project
-          </button>
-        </div>
-      </div>
-
-      {projects.length > 0 && (
-        <div className="flex gap-2 mb-6">
+      <section className="rounded-xl border border-cs-line/10 px-5 pt-2 pb-6">
+        {/* Status tabs + actions */}
+        <div className="flex flex-wrap items-center gap-x-7 border-b border-cs-line/10">
           {['all', 'active', 'done', 'archived'].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-full text-xs capitalize transition-colors ${
-                filter === f
-                  ? 'bg-cs-primary/15 text-cs-primary border border-cs-primary/30'
-                  : 'text-cs-text-dim border border-cs-line/10 hover:text-cs-text'
-              }`}
-            >
-              {f}
+            <button key={f} onClick={() => setFilter(f)}
+              className={`relative h-12 px-0.5 text-[0.9375rem] capitalize transition-colors ${filter === f ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+              {f}<span className="ml-1.5 text-xs text-cs-text-muted">{count(f)}</span>
+              {filter === f && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
             </button>
           ))}
+          <div className="ml-auto flex items-center gap-2 py-2">
+            <Link to="/projects/generate" className="btn btn-ghost btn-sm"><FiZap /> Generate with AI</Link>
+            <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm"><FiPlus /> New project</button>
+          </div>
         </div>
-      )}
 
-      {shown.length === 0 ? (
-        <div className="card-dev text-center py-16">
-          <FiClipboard className="text-4xl text-cs-text-muted mx-auto mb-4" />
-          <p className="text-cs-text-dim mb-4">
-            {projects.length === 0 ? 'No projects yet.' : `No ${filter} projects.`}
-          </p>
-          <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm">
-            <FiPlus /> Create your first project
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {shown.map((p) => {
-            const st = STATUS[p.status] || STATUS.active;
-            return (
-              <Link
-                key={p.id}
-                to={`/projects/${p.id}`}
-                className="card group relative flex flex-col"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <LangLogo name={p.language} className="text-2xl shrink-0" />
-                  <h3 className="font-bold text-[15px] flex-grow min-w-0 truncate">{p.title}</h3>
-                  <button
-                    onClick={(e) => togglePin(p, e)}
-                    className={`shrink-0 ${p.pinned ? 'text-cs-orange' : 'text-cs-text-muted hover:text-cs-text-muted'}`}
-                    title={p.pinned ? 'Unpin' : 'Pin'}
-                  >
-                    <FiStar className={p.pinned ? 'fill-current' : ''} />
-                  </button>
-                </div>
+        {/* Search */}
+        {projects.length > 0 && (
+          <label className="mt-5 mb-5 h-10 flex items-center gap-2 px-3 rounded-lg border border-cs-line/15 focus-within:border-cs-primary/50 transition-colors">
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search projects"
+              className="flex-1 min-w-0 bg-transparent outline-none text-[0.9375rem] placeholder:text-cs-text-muted" />
+            {search
+              ? <button type="button" onClick={() => setSearch('')} className="text-cs-text-muted hover:text-cs-text"><FiX /></button>
+              : <FiSearch className="text-cs-text-muted" />}
+          </label>
+        )}
 
-                {p.snippet ? (
-                  <pre className="text-[11px] font-mono text-cs-text-muted bg-cs-darkest rounded-lg p-2.5 mb-3 overflow-hidden line-clamp-3 whitespace-pre-wrap">
-                    {p.snippet}
-                  </pre>
-                ) : (
-                  <p className="text-xs text-cs-text-muted italic mb-3">No code yet</p>
-                )}
+        {shown.length === 0 ? (
+          <div className="text-center py-16">
+            <FiClipboard className="text-3xl text-cs-text-muted mx-auto mb-3" />
+            <p className="text-cs-text-dim mb-4">
+              {projects.length === 0 ? 'No projects yet.' : search ? `No projects match “${search}”.` : `No ${filter} projects.`}
+            </p>
+            {projects.length === 0 && (
+              <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm"><FiPlus /> Create your first project</button>
+            )}
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {shown.map((p) => {
+              const st = STATUS[p.status] || STATUS.active;
+              const pct = p.task_total ? Math.round((p.task_done / p.task_total) * 100) : 0;
+              return (
+                <Link key={p.id} to={`/projects/${p.id}`}
+                  className="group rounded-lg border border-cs-line/10 p-5 text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/20 transition-colors flex flex-col">
+                  <div className="flex items-center gap-3">
+                    <LangLogo name={p.language} className="text-xl shrink-0" />
+                    <p className="text-base font-bold flex-1 min-w-0 truncate">{p.title}</p>
+                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(p.id); }}
+                      className="shrink-0 text-cs-text-muted opacity-0 group-hover:opacity-100 hover:!text-cs-red transition"
+                      title="Delete">
+                      <FiTrash2 />
+                    </button>
+                    <button onClick={(e) => togglePin(p, e)}
+                      className={`shrink-0 transition ${p.pinned ? 'text-cs-orange' : 'text-cs-text-muted opacity-0 group-hover:opacity-100 hover:text-cs-text'}`}
+                      title={p.pinned ? 'Unpin' : 'Pin'}>
+                      <FiStar className={p.pinned ? 'fill-current' : ''} />
+                    </button>
+                  </div>
 
-                <div className="flex items-center gap-2 flex-wrap text-[11px] mt-auto">
-                  <span className={`px-2 py-0.5 rounded ${st.cls}`}>{st.label}</span>
-                  {p.task_total > 0 && (
-                    <span className="inline-flex items-center gap-1 text-cs-text-muted">
-                      <FiCheckSquare /> {p.task_done}/{p.task_total}
+                  <div className="flex items-center justify-between gap-3 mt-4 text-sm text-cs-text-dim">
+                    <span className="truncate capitalize">
+                      {p.language}{p.has_review && <span className="normal-case text-cs-cyan"> · AI reviewed</span>}
                     </span>
-                  )}
-                  {p.has_review && (
-                    <span className="inline-flex items-center gap-1 text-cs-cyan"><FiZap /> reviewed</span>
-                  )}
-                  <span className="text-cs-text-muted ml-auto">{timeAgo(p.updated_at)}</span>
-                </div>
-
-                <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(p.id); }}
-                  className="absolute top-3 right-9 text-cs-text-muted group-hover:text-cs-text-muted hover:!text-cs-red transition-colors"
-                  title="Delete"
-                >
-                  <FiTrash2 />
-                </button>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+                    <span className={`shrink-0 font-medium ${st.text}`}>{st.label}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 mt-2 text-sm text-cs-text-dim">
+                    <span>{p.task_total > 0 ? `${p.task_done}/${p.task_total} tasks` : p.snippet ? 'Has code' : 'No code yet'}</span>
+                    <span className="text-xs text-cs-text-muted">{timeAgo(p.updated_at)}</span>
+                  </div>
+                  <div className="mt-3 h-1.5 rounded-full bg-cs-overlay/[0.12] overflow-hidden">
+                    <div className={`h-full rounded-full ${pct === 100 ? 'bg-cs-green' : 'bg-cs-primary'}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {showNew && (
         <NewProjectModal

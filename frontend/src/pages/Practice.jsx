@@ -7,7 +7,7 @@ import CodeEditor from '../components/CodeEditor';
 import {
   FiArrowRight, FiPlay, FiRefreshCw, FiZap, FiTarget, FiChevronRight,
   FiCheckCircle, FiXCircle, FiHelpCircle, FiCalendar, FiAward, FiX,
-  FiChevronDown, FiCheck,
+  FiChevronDown, FiCheck, FiSearch,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 
@@ -50,6 +50,8 @@ function Practice() {
   const [fLang, setFLang] = useState('');
   const [fDiff, setFDiff] = useState('');
   const [langNames, setLangNames] = useState({});
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all'); // all | todo | solved
 
   useEffect(() => {
     challengeService.daily().then((r) => setDaily(r.data)).catch(() => setDaily(null));
@@ -140,174 +142,142 @@ function Practice() {
   const correct = answered.filter(Boolean).length;
 
   // -------------------------------------------------------------------- view
+  const q = search.trim().toLowerCase();
+  const shown = (list || []).filter((c) => (
+    (!q || `${c.title} ${c.topic || ''} ${c.language}`.toLowerCase().includes(q))
+    && (status === 'all' || (status === 'solved' ? c.solved : !c.solved))
+  ));
+  const counts = list && {
+    all: list.length,
+    todo: list.filter((c) => !c.solved).length,
+    solved: list.filter((c) => c.solved).length,
+  };
+
   return (
-    <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        {/* lg:pr-64 reserves the top-right corner for the global notification bell */}
-        <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-64">
-          <div>
-            <span className="mono-label">{t('practice.practice_label')}</span>
-            <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-              <FiTarget className="text-cs-primary" /> {t('practice.practice_title')}
-            </h1>
+    <main className="w-full px-6 lg:px-10 py-8 space-y-6">
+      {/* Daily challenge: slim bar */}
+      {mode === 'browse' && daily === undefined && <div className="skeleton h-16 rounded-xl" />}
+      {mode === 'browse' && daily && (
+        <div className="rounded-xl border border-cs-line/10 bg-cs-overlay/[0.03] px-5 py-4 flex flex-wrap items-center gap-4">
+          <FiCalendar className="text-cs-primary shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[0.9375rem] truncate">
+              <span className="font-semibold">Today’s challenge</span>
+              <span className="text-cs-text-dim"> · {daily.title}</span>
+            </p>
           </div>
-          {/* Filters first, mode switch last: the switch never moves when the
-              filters hide in Quick-fire. All controls share one height (h-9). */}
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {mode === 'browse' && (
-              <>
-                {(fLang || fDiff) && (
-                  <button
-                    onClick={() => { setFLang(''); setFDiff(''); }}
-                    className="h-9 px-2 text-sm text-cs-text-dim hover:text-cs-text transition-colors inline-flex items-center gap-1"
-                  >
-                    Clear <FiX />
-                  </button>
-                )}
-                <FilterDropdown label="Language" value={fLang} onChange={setFLang}
-                  options={[['', 'All'], ...LANGS.map((s) => [s, LANG_NAMES[s] || langLabel(s)])]} />
-                <FilterDropdown label="Level" value={fDiff} onChange={setFDiff}
-                  options={[['', 'All'], ...DIFFS.map((d) => [d, cap(d)])]} />
-              </>
-            )}
-            <div className="h-9 inline-flex items-center gap-0.5 p-0.5 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04]">
-              {[['browse', t('practice.challenges')], ['quickfire', t('practice.quickfire')]].map(([m, label]) => (
-                <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className={`h-full px-3 rounded-md text-sm transition-colors ${
-                    mode === m ? 'bg-cs-primary text-cs-btn-text font-semibold' : 'text-cs-text-dim hover:text-cs-text'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {mode === 'browse' && (
-        <div className="space-y-5">
-          {/* Daily challenge */}
-          {daily === undefined && (
-            <div className="rounded-2xl border border-cs-line/10 bg-cs-darker/60 p-5 flex flex-col gap-3">
-              <span className="skeleton h-3 w-28 rounded" />
-              <span className="skeleton h-5 w-2/3 rounded" />
-              <span className="skeleton h-4 w-40 rounded" />
-            </div>
-          )}
-          {daily && (
-            <div className="card flex flex-col sm:flex-row sm:items-center gap-4">
-              <span className="w-12 h-12 rounded-xl bg-cs-primary/10 text-cs-primary grid place-items-center text-xl shrink-0">
-                <FiCalendar />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-cs-primary">{t('practice.todays_challenge')}</p>
-                <h2 className="text-lg font-bold mt-0.5 truncate">{daily.title}</h2>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-cs-text-dim">
-                  <Difficulty level={daily.difficulty} />
-                  {daily.topic && <span>{cap(daily.topic)}</span>}
-                  <span className="inline-flex items-center gap-1"><FiZap className="text-xs" /> {daily.xp_reward} XP</span>
-                </div>
-              </div>
-              {daily.solved ? (
-                <Link to={`/practice/c/${daily.slug}`} className="btn btn-secondary btn-sm shrink-0">
-                  <FiCheckCircle className="text-cs-green" /> {t('practice.solved')}
-                </Link>
-              ) : (
-                <Link to={`/practice/c/${daily.slug}`} className="btn btn-primary btn-sm shrink-0">
-                  Solve now <FiArrowRight />
-                </Link>
-              )}
-            </div>
-          )}
-
-          {/* Stats: one card, four inline numbers */}
-          {stats && (
-            <div className="card grid grid-cols-2 md:grid-cols-4 gap-y-4 md:divide-x divide-cs-line/10 !py-4">
-              <Stat icon={FiCheckCircle} cls="text-cs-green" label={t('practice.solved_label')} value={`${stats.solved}/${stats.total}`} />
-              <Stat icon={FiAward} cls="text-cs-primary" label={t('practice.day_streak')} value={stats.daily_streak} />
-              {DIFFS.slice(0, 2).map((d) => (
-                stats.by_difficulty?.[d] && (
-                  <Stat
-                    key={d}
-                    icon={FiZap}
-                    cls={DIFF_COLOR[d]}
-                    label={cap(d)}
-                    value={`${stats.by_difficulty[d].solved}/${stats.by_difficulty[d].total}`}
-                  />
-                )
-              ))}
-            </div>
-          )}
-
-          {/* List */}
-          {/* Loading skeletons */}
-          {list === null && (
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="rounded-2xl border border-cs-line/10 bg-cs-darker/60 p-4 flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <span className="skeleton h-5 w-16 rounded-full" />
-                    <span className="skeleton h-4 w-8 rounded" />
-                  </div>
-                  <span className="skeleton h-4 w-3/4 rounded" />
-                  <span className="skeleton h-3 w-1/2 rounded" />
-                  <div className="mt-auto pt-2 border-t border-cs-line/8">
-                    <span className="skeleton h-3 w-24 rounded" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {list && list.length === 0 && (
-            <div className="card text-center py-14">
-              <p className="text-4xl mb-3">🗂️</p>
-              <p className="text-cs-text-dim mb-4">{t('practice.no_match')}</p>
-              <button
-                onClick={() => { setFLang(''); setFDiff(''); }}
-                className="btn btn-ghost btn-sm"
-              >
-                {t('practice.clear_filters')}
-              </button>
-            </div>
-          )}
-          {list && list.length > 0 && (
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {list.map((c) => (
-                <Link
-                  key={c.slug}
-                  to={`/practice/c/${c.slug}`}
-                  className="group card !p-5 flex flex-col gap-2 text-cs-text hover:border-cs-primary/40 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-semibold leading-snug line-clamp-2 group-hover:text-cs-primary transition-colors">
-                      {c.title}
-                    </p>
-                    {c.solved ? (
-                      <FiCheckCircle className="text-cs-green shrink-0 mt-0.5" title={t('library.done')} />
-                    ) : (
-                      <span className="text-xs text-cs-text-dim inline-flex items-center gap-0.5 shrink-0 mt-0.5">
-                        <FiZap className="text-[11px]" /> {c.xp_reward}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-cs-text-dim">
-                    <Difficulty level={c.difficulty} />
-                    <span>{LANG_NAMES[c.language] || c.language}</span>
-                    {c.topic && c.topic !== c.language && <span>{cap(c.topic.replace(/-/g, ' '))}</span>}
-                    {c.kind === 'debug' && (
-                      <span className="px-1.5 py-0.5 rounded bg-cs-orange/10 text-cs-orange font-medium">Debug</span>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+          <span className="text-sm text-cs-text-dim inline-flex items-center gap-3">
+            <Difficulty level={daily.difficulty} />
+            <span className="inline-flex items-center gap-1"><FiZap className="text-xs" /> {daily.xp_reward} XP</span>
+          </span>
+          <Link to={`/practice/c/${daily.slug}`} className={`btn btn-sm shrink-0 ${daily.solved ? 'btn-secondary' : 'btn-primary'}`}>
+            {daily.solved ? <><FiCheckCircle className="text-cs-green" /> {t('practice.solved')}</> : <>Solve now <FiArrowRight /></>}
+          </Link>
         </div>
       )}
 
+      <section className="rounded-xl border border-cs-line/10 px-5 pt-2 pb-6">
+        {/* Mode tabs */}
+        <div className="flex items-center gap-7 border-b border-cs-line/10">
+          {[['browse', t('practice.challenges'), FiTarget], ['quickfire', t('practice.quickfire'), FiZap]].map(([m, label, Icon]) => (
+            <button key={m} onClick={() => setMode(m)}
+              className={`relative h-12 px-0.5 inline-flex items-center gap-2 text-[0.9375rem] transition-colors ${mode === m ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+              <Icon /> {label}
+              {mode === m && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+            </button>
+          ))}
+          {stats && (
+            <span className="text-sm text-cs-text-dim ml-auto hidden sm:inline-flex items-center gap-4">
+              <span className="inline-flex items-center gap-1.5"><FiCheckCircle className="text-cs-green" /> {stats.solved}/{stats.total} solved</span>
+              <span className="inline-flex items-center gap-1.5"><FiAward className="text-cs-primary" /> {stats.daily_streak} day streak</span>
+            </span>
+          )}
+        </div>
+
+        {mode === 'browse' && (
+          <>
+            {/* Search + filters */}
+            <div className="flex flex-wrap items-center gap-2 mt-5">
+              <label className="flex-1 min-w-[14rem] h-10 flex items-center gap-2 px-3 rounded-lg border border-cs-line/15 focus-within:border-cs-primary/50 transition-colors">
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search challenges"
+                  className="flex-1 min-w-0 bg-transparent outline-none text-[0.9375rem] placeholder:text-cs-text-muted" />
+                {search
+                  ? <button type="button" onClick={() => setSearch('')} className="text-cs-text-muted hover:text-cs-text"><FiX /></button>
+                  : <FiSearch className="text-cs-text-muted" />}
+              </label>
+              <FilterDropdown label="Language" value={fLang} onChange={setFLang}
+                options={[['', 'All'], ...LANGS.map((s) => [s, LANG_NAMES[s] || langLabel(s)])]} />
+              <FilterDropdown label="Level" value={fDiff} onChange={setFDiff}
+                options={[['', 'All'], ...DIFFS.map((d) => [d, cap(d)])]} />
+              {(fLang || fDiff || search) && (
+                <button onClick={() => { setFLang(''); setFDiff(''); setSearch(''); }}
+                  className="h-10 px-2 text-sm text-cs-text-dim hover:text-cs-text inline-flex items-center gap-1">
+                  Clear <FiX />
+                </button>
+              )}
+            </div>
+
+            {/* Status tabs */}
+            <div className="flex gap-7 mt-4 mb-5 border-b border-cs-line/10">
+              {[['all', 'All'], ['todo', 'To do'], ['solved', 'Solved']].map(([k, label]) => (
+                <button key={k} onClick={() => setStatus(k)}
+                  className={`relative h-11 px-0.5 text-[0.9375rem] transition-colors ${status === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+                  {label}{counts && <span className="ml-1.5 text-xs text-cs-text-muted">{counts[k]}</span>}
+                  {status === k && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+                </button>
+              ))}
+            </div>
+
+            {list === null && (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-[8.5rem] rounded-lg" />)}
+              </div>
+            )}
+            {list && shown.length === 0 && (
+              <div className="text-center py-14">
+                <p className="text-cs-text-dim mb-4">{t('practice.no_match')}</p>
+                <button onClick={() => { setFLang(''); setFDiff(''); setSearch(''); setStatus('all'); }} className="btn btn-ghost btn-sm">
+                  {t('practice.clear_filters')}
+                </button>
+              </div>
+            )}
+            {shown.length > 0 && (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {shown.map((c) => {
+                  const step = DIFFS.indexOf(c.difficulty) + 1;
+                  return (
+                    <Link key={c.slug} to={`/practice/c/${c.slug}`}
+                      className="group rounded-lg border border-cs-line/10 p-5 text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/20 transition-colors">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-base font-bold leading-snug line-clamp-1">{c.title}</p>
+                        {c.solved
+                          ? <span className="text-sm text-cs-green inline-flex items-center gap-1 shrink-0"><FiCheckCircle /> Solved</span>
+                          : <span className="text-[0.9375rem] shrink-0">{c.xp_reward} XP</span>}
+                      </div>
+                      <div className="flex items-center justify-between gap-3 mt-4 text-sm text-cs-text-dim">
+                        <span className="truncate">
+                          {LANG_NAMES[c.language] || c.language}
+                          {c.topic && c.topic !== c.language && <> · {cap(c.topic.replace(/-/g, ' '))}</>}
+                        </span>
+                        {c.kind === 'debug' && <span className="text-cs-orange shrink-0">Debug</span>}
+                      </div>
+                      <div className="flex items-center justify-between gap-3 mt-2 text-sm">
+                        <span className="text-cs-text-dim">{cap(c.difficulty)}</span>
+                        <span className="flex gap-1" title={cap(c.difficulty)}>
+                          {DIFFS.map((d, i) => (
+                            <span key={d} className={`w-5 h-2 rounded-full ${i < step ? 'bg-cs-primary' : 'bg-cs-overlay/[0.12]'}`} />
+                          ))}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {mode === 'quickfire' && <div className="mt-5">
       {mode === 'quickfire' && (
         <>
           <p className="text-sm text-cs-text-dim mb-5">
@@ -353,7 +323,7 @@ function Practice() {
                     practice.{current.language === 'javascript' ? 'js' : current.language === 'html-css' ? 'html' : 'py'}
                   </span>
                 </div>
-                <div className="h-[280px]">
+                <div className="h-[17.5rem]">
                   <CodeEditor value={code} onChange={setCode} language={current.language} onSubmit={runQuickfire} />
                 </div>
               </div>
@@ -398,7 +368,7 @@ function Practice() {
                     <FiHelpCircle /> {showHints ? t('practice.hide_hints') : `Hints (${current.hints?.length || 0})`}
                   </button>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline text-[10px] text-cs-text-muted">⌘/Ctrl+↵</span>
+                  <span className="hidden sm:inline text-[0.625rem] text-cs-text-muted">⌘/Ctrl+↵</span>
                   <button onClick={runQuickfire} disabled={running} title="Run (Ctrl+Enter)" className="btn btn-primary btn-sm">
                     <FiPlay /> {running ? t('practice.running') : t('practice.run')}
                   </button>
@@ -431,6 +401,8 @@ function Practice() {
           )}
         </>
       )}
+        </div>}
+      </section>
     </main>
   );
 }
@@ -456,10 +428,10 @@ function FilterDropdown({ label, value, onChange, options }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border text-sm transition-colors ${
+        className={`h-10 inline-flex items-center gap-1.5 px-3 rounded-lg border text-[0.9375rem] transition-colors ${
           active
-            ? 'border-cs-primary/50 bg-cs-primary/10 text-cs-primary'
-            : 'border-cs-line/15 bg-cs-overlay/[0.04] text-cs-text-dim hover:text-cs-text hover:border-cs-primary/30'
+            ? 'border-cs-primary/50 text-cs-text'
+            : 'border-cs-line/15 text-cs-text hover:border-cs-line/30'
         }`}
       >
         <span className="text-cs-text-muted">{label}:</span>
@@ -470,7 +442,7 @@ function FilterDropdown({ label, value, onChange, options }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-52 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5">
+          <div className="absolute right-0 top-[calc(100%+0.375rem)] z-50 w-52 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5">
             {options.map(([val, text]) => {
               const selected = value === val;
               return (
@@ -480,7 +452,7 @@ function FilterDropdown({ label, value, onChange, options }) {
                   onClick={() => { onChange(val); setOpen(false); }}
                   className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-sm transition-all ${
                     selected
-                      ? 'bg-cs-primary/15 text-cs-primary'
+                      ? 'bg-cs-overlay/[0.09] text-cs-text font-medium'
                       : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
                   }`}
                 >

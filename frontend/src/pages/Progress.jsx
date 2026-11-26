@@ -6,7 +6,7 @@ import {
   FiActivity, FiZap, FiAward, FiBookOpen, FiTarget, FiArrowRight,
   FiRefreshCw,
 } from 'react-icons/fi';
-import { LEVEL_COLOR, LEVEL_PILL, PILL_BASE } from '../utils/levels';
+import { LEVEL_COLOR } from '../utils/levels';
 
 function Bar({ value, color = 'rgb(var(--cs-primary))', className = '' }) {
   return (
@@ -33,10 +33,10 @@ function Progress() {
   }, []);
 
   const tiles = summary && [
-    { label: 'total_xp', value: summary.total_xp, icon: FiZap, cls: 'text-cs-primary' },
-    { label: 'day_streak', value: summary.current_streak, icon: FiAward, cls: 'text-cs-green' },
-    { label: 'lessons_done', value: summary.total_lessons_completed, icon: FiBookOpen, cls: 'text-cs-cyan' },
-    { label: 'challenges_solved', value: summary.challenges_solved ?? 0, icon: FiTarget, cls: 'text-cs-orange' },
+    { label: 'Total XP', value: summary.total_xp, icon: FiZap, cls: 'text-cs-primary' },
+    { label: 'Day streak', value: summary.current_streak, icon: FiAward, cls: 'text-cs-green' },
+    { label: 'Lessons done', value: summary.total_lessons_completed, icon: FiBookOpen, cls: 'text-cs-cyan' },
+    { label: 'Challenges solved', value: summary.challenges_solved ?? 0, icon: FiTarget, cls: 'text-cs-orange' },
   ];
 
   const skillMeta = (sk) => {
@@ -47,94 +47,93 @@ function Progress() {
     return bits.join(' · ');
   };
 
-  return (
-    <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary"> {t('progress.progress_label')}</span>
-        <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-          <FiActivity className="text-cs-primary" /> {t('progress.progress_title')}
-        </h1>
-      </div>
+  // 4-step meter like a capacity gauge: Novice 1, Learning 2, Proficient 3, Strong 4
+  const LEVELS = ['Novice', 'Learning', 'Proficient', 'Strong'];
 
-      {/* Stat tiles */}
-      {tiles && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          {tiles.map((s) => (
-            <div key={s.label} className="rounded-xl bg-cs-darker/60 border border-cs-line/10 p-4 relative overflow-hidden">
-              <div className={`text-lg mb-1.5 ${s.cls}`}><s.icon /></div>
-              <div className="text-2xl font-bold leading-tight">{s.value}</div>
-              <div className="text-[11px] text-cs-text-muted mt-0.5">{s.label}</div>
-            </div>
-          ))}
+  return (
+    <main className="w-full px-6 lg:px-10 py-8 space-y-6">
+
+      {/* Next step banner */}
+      {summary && summary.recommended_action && (
+        <div className="rounded-xl border border-cs-line/10 bg-cs-overlay/[0.03] px-5 py-4 flex flex-wrap items-center gap-4">
+          <FiRefreshCw className="text-cs-primary shrink-0" />
+          <p className="flex-1 min-w-0 text-[0.9375rem]">
+            <span className="font-semibold">Next step</span>
+            <span className="text-cs-text-dim"> · {summary.recommended_action}</span>
+          </p>
+          <Link to="/practice" className="btn btn-primary btn-sm">{t('progress.practice')} <FiArrowRight /></Link>
         </div>
       )}
 
-      <div className="max-w-none grid lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
-        {/* Skills */}
-        <div className="card">
-          <span className="mono-label text-cs-text-dim"> {t('progress.skills')}</span>
-          <div className="mt-3">
-            {skills === null && <p className="text-cs-text-muted text-sm">{t('progress.loading_skills')}</p>}
-            {skills && skills.skills?.length === 0 && (
-              <p className="text-sm text-cs-text-dim">{t('progress.no_skill_data')}</p>
-            )}
-            {skills && skills.skills?.length > 0 && (
-              <div className="divide-y divide-cs-line/10">
-                {skills.skills.map((sk) => (
-                  <div key={sk.key} className="py-3">
-                    <div className="flex items-center justify-between gap-3 mb-1.5">
-                      <span className="text-sm font-semibold text-cs-text truncate">{sk.label}</span>
-                      <span className={`${PILL_BASE} ${LEVEL_PILL[sk.level] || LEVEL_PILL.Novice}`}>
-                        {sk.level}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Bar
-                        value={sk.score}
-                        color={LEVEL_COLOR[sk.level]}
-                        className="flex-1 h-1.5"
-                      />
-                      <span className="text-xs text-cs-text-dim w-10 text-right shrink-0">{sk.score}</span>
-                    </div>
-                    {skillMeta(sk) && (
-                      <p className="mt-1 text-[11px] text-cs-text-muted">{skillMeta(sk)}</p>
-                    )}
-                  </div>
-                ))}
+      {/* Stats */}
+      {tiles && (
+        <section className="rounded-xl border border-cs-line/10">
+          <h2 className="px-5 pt-5 text-lg font-semibold">Overview</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5">
+            {tiles.map((s) => (
+              <div key={s.label} className="rounded-lg border border-cs-line/10 p-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-cs-text-dim">{s.label}</span>
+                  <s.icon className={s.cls} />
+                </div>
+                <div className="text-3xl font-bold mt-3 leading-none">{s.value}</div>
               </div>
-            )}
+            ))}
           </div>
-        </div>
+        </section>
+      )}
 
-        {/* Right column */}
-        <div className="space-y-6">
-          {summary && summary.weak_concepts?.length > 0 && (
-            <div className="card border-cs-orange/25">
-              <span className="mono-label text-cs-orange"> {t('progress.worth_look')}</span>
-              <div className="mt-3 rounded-lg bg-cs-darkest/60 border border-cs-line/10 p-3 space-y-1.5">
-                {summary.weak_concepts.map((w, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-cs-orange shrink-0 mt-0.5">!</span>
-                    <span className="text-cs-text-dim">{w}</span>
+      {/* Worth another look */}
+      {summary && summary.weak_concepts?.length > 0 && (
+        <section className="rounded-xl border border-cs-line/10 p-5">
+          <h2 className="text-lg font-semibold">Worth another look</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {summary.weak_concepts.map((w, i) => (
+              <span key={i} className="px-3 py-1.5 rounded-lg border border-cs-line/10 text-sm text-cs-text-dim">{w}</span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Skills */}
+      <section className="rounded-xl border border-cs-line/10">
+        <h2 className="px-5 pt-5 text-lg font-semibold">Skills</h2>
+        <div className="p-5">
+          {skills === null && <p className="text-cs-text-muted text-sm">{t('progress.loading_skills')}</p>}
+          {skills === false && <p className="text-sm text-cs-text-dim">Couldn’t load your skills. Try again in a bit.</p>}
+          {skills && skills.skills?.length === 0 && (
+            <p className="text-sm text-cs-text-dim">{t('progress.no_skill_data')}</p>
+          )}
+          {skills && skills.skills?.length > 0 && (
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {skills.skills.map((sk) => {
+                const step = Math.max(1, LEVELS.indexOf(sk.level) + 1);
+                return (
+                  <div key={sk.key} className="rounded-lg border border-cs-line/10 p-5 hover:bg-cs-overlay/[0.03] transition-colors">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-base font-bold truncate">{sk.label}</span>
+                      <span className="text-[0.9375rem] shrink-0">{sk.score}<span className="text-cs-text-muted">/100</span></span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 mt-3 text-sm text-cs-text-dim">
+                      <span className="truncate">{skillMeta(sk) || 'Not started'}</span>
+                      <span className="shrink-0">{sk.level}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 mt-2">
+                      <Bar value={sk.score} color={LEVEL_COLOR[sk.level]} className="flex-1 h-1.5" />
+                      <div className="flex gap-1 shrink-0" title={sk.level}>
+                        {LEVELS.map((l, i) => (
+                          <span key={l} className="w-5 h-2 rounded-full"
+                            style={{ background: i < step ? LEVEL_COLOR[sk.level] : 'rgb(var(--cs-overlay) / 0.12)' }} />
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {summary && summary.recommended_action && (
-            <div className="card border-cs-primary/25">
-              <span className="mono-label text-cs-primary flex items-center gap-1.5">
-                <FiRefreshCw className="text-[10px]" /> {t('progress.next_label')}
-              </span>
-              <p className="text-sm mt-3 text-cs-text-dim">{summary.recommended_action}</p>
-              <div className="flex mt-4">
-                <Link to="/practice" className="btn btn-primary btn-sm"><FiTarget /> {t('progress.practice')} <FiArrowRight /></Link>
-              </div>
+                );
+              })}
             </div>
           )}
         </div>
-      </div>
+      </section>
     </main>
   );
 }

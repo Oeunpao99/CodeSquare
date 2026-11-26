@@ -278,7 +278,7 @@ function LibraryArticle() {
       />
 
       {/* locked breadcrumb header */}
-      <div className="hidden lg:block sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/10 px-6 lg:px-10">
+      <div className="hidden lg:block sticky top-[3.75rem] lg:top-14 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/10 px-6 lg:px-10">
         <nav className="flex items-center gap-2 h-12 text-xs text-cs-text-muted whitespace-nowrap overflow-hidden">
           <Link to="/library" className="hover:text-cs-text shrink-0">Library</Link>
           <span className="text-cs-line/20 shrink-0">/</span>
@@ -299,13 +299,13 @@ function LibraryArticle() {
         }`}
       >
         {/* ---------- chapter nav ---------- */}
-        <aside className="hidden lg:block sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 text-sm">
+        <aside className="hidden lg:block sticky top-36 self-start max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 text-sm">
           <div className="flex items-center gap-2.5 px-2 mb-5">
             <span className="w-7 h-7 rounded-lg bg-cs-primary/10 flex items-center justify-center text-base shrink-0">
               <CollectionLogo slug={data.collection_slug} fallback={data.collection_title.slice(0, 2)} />
             </span>
             <b className="text-sm font-medium truncate">{data.collection_title}</b>
-            <span className="ml-auto text-[11px] text-cs-text-muted shrink-0">
+            <span className="ml-auto text-[0.6875rem] text-cs-text-muted shrink-0">
               {data.position} / {data.total}
             </span>
           </div>
@@ -313,7 +313,7 @@ function LibraryArticle() {
           {navGroups.map(([label, items]) => (
             <div key={label} className="mb-5">
               <div className="flex items-center gap-2 px-2 mb-1.5">
-                <span className="text-[10px] tracking-wider text-cs-text-muted">
+                <span className="text-[0.625rem] tracking-wider text-cs-text-muted">
                   {label.toUpperCase()}
                 </span>
                 <span className="flex-1 h-px bg-cs-line/10" />
@@ -326,7 +326,7 @@ function LibraryArticle() {
                     to={`/library/${data.collection_slug}/${s.slug}`}
                     className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg leading-tight transition-colors ${
                       on
-                        ? 'bg-cs-primary/10 text-cs-primary font-medium'
+                        ? 'bg-cs-overlay/[0.09] text-cs-text font-medium'
                         : 'text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/5'
                     }`}
                   >
@@ -339,7 +339,7 @@ function LibraryArticle() {
                           : 'border-cs-line/20'
                       }`}
                     >
-                      {s.completed && <FiCheck className="text-[9px]" strokeWidth={3} />}
+                      {s.completed && <FiCheck className="text-[0.5625rem]" strokeWidth={3} />}
                       {!s.completed && on && <span className="w-1 h-1 rounded-full bg-cs-primary" />}
                     </span>
                     <span className="truncate">{s.title}</span>
@@ -353,10 +353,10 @@ function LibraryArticle() {
         {/* ---------- article ---------- */}
         <article className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-5">
-            <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border border-cs-orange/25 bg-cs-orange/[0.07] text-cs-orange">
-              <FiClock className="text-[11px]" /> {data.reading_minutes} min read
+            <span className="inline-flex items-center gap-1.5 text-[0.6875rem] px-2.5 py-1 rounded-full border border-cs-orange/25 bg-cs-orange/[0.07] text-cs-orange">
+              <FiClock className="text-[0.6875rem]" /> {data.reading_minutes} min read
             </span>
-            <span className="text-[11px] px-2.5 py-1 rounded-full border border-cs-line/10 bg-cs-darker text-cs-text-dim">
+            <span className="text-[0.6875rem] px-2.5 py-1 rounded-full border border-cs-line/10 bg-cs-darker text-cs-text-dim">
               {data.position} of {data.total}
             </span>
             <span className="flex-1" />
@@ -364,42 +364,42 @@ function LibraryArticle() {
               onClick={toggleBookmark}
               aria-pressed={bookmarked}
               title={bookmarked ? 'Remove bookmark' : 'Bookmark this article'}
-              className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-[0.6875rem] px-2.5 py-1 rounded-full border transition-colors ${
                 bookmarked
                   ? 'border-cs-primary/40 bg-cs-primary/10 text-cs-primary'
                   : 'border-cs-line/15 text-cs-text-dim hover:text-cs-text hover:border-cs-line/30'
               }`}
             >
-              <FiBookmark className={`text-[11px] ${bookmarked ? 'fill-current' : ''}`} />
+              <FiBookmark className={`text-[0.6875rem] ${bookmarked ? 'fill-current' : ''}`} />
               {bookmarked ? 'Saved' : 'Save'}
             </button>
             <button
               onClick={() => toggleRead()}
               aria-pressed={read}
-              className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-[0.6875rem] px-2.5 py-1 rounded-full border transition-colors ${
                 read
                   ? 'border-cs-green/40 bg-cs-green/10 text-cs-green'
                   : 'border-cs-line/15 text-cs-text-dim hover:text-cs-text hover:border-cs-line/30'
               }`}
             >
-              <FiCheckCircle className="text-[11px]" />
+              <FiCheckCircle className="text-[0.6875rem]" />
               {read ? 'Read' : 'Mark as read'}
             </button>
           </div>
 
-          <h1 className="text-[32px] leading-[1.14] font-medium tracking-tight text-cs-text">
+          <h1 className="text-[2rem] leading-[1.14] font-medium tracking-tight text-cs-text">
             {data.title}
           </h1>
 
           {data.summary && (
-            <p className="mt-3.5 text-[17px] leading-relaxed text-cs-text-dim max-w-[62ch]">
+            <p className="mt-3.5 text-[1.0625rem] leading-relaxed text-cs-text-dim max-w-[62ch]">
               {data.summary}
             </p>
           )}
 
           {majorLabels.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-5">
-              <span className="text-[10px] tracking-[0.1em] text-cs-text-muted mr-1">
+              <span className="text-[0.625rem] tracking-[0.1em] text-cs-text-muted mr-1">
                 SHOWS UP IN
               </span>
               {majorLabels.map((l) => (
@@ -432,17 +432,17 @@ function LibraryArticle() {
                 <div className="flex items-center gap-2 px-3.5 py-2.5 bg-cs-darkest border-b border-cs-line/15">
                   <FiPlay className="text-cs-orange text-xs" />
                   <b className="text-xs font-medium">Playground</b>
-                  <span className="ml-auto text-[11px] text-cs-text-muted">Python 3.12</span>
+                  <span className="ml-auto text-[0.6875rem] text-cs-text-muted">Python 3.12</span>
                 </div>
                 <div className="grid md:grid-cols-2">
                   <textarea
                     value={editor}
                     onChange={(e) => setEditor(e.target.value)}
                     spellCheck={false}
-                    className="w-full min-h-[20rem] p-3.5 bg-cs-darker text-cs-text text-[13px] leading-[22px] resize-y outline-none border-0"
+                    className="w-full min-h-[20rem] p-3.5 bg-cs-darker text-cs-text text-[0.8125rem] leading-[1.375rem] resize-y outline-none border-0"
                   />
                   <div
-                    className="border-t md:border-t-0 md:border-l border-cs-line/10 p-3.5 bg-[#05070c] text-[12.5px] leading-[22px] whitespace-pre-wrap min-h-[20rem]"
+                    className="border-t md:border-t-0 md:border-l border-cs-line/10 p-3.5 bg-[#05070c] text-[0.7812rem] leading-[1.375rem] whitespace-pre-wrap min-h-[20rem]"
                     style={{
                       color: output.ran
                         ? output.error
@@ -494,7 +494,7 @@ function LibraryArticle() {
               </div>
               <Link
                 to={`/learn/${rel.slug}/module/${rel.module_id}/lesson/${rel.lesson_id}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-medium bg-cs-orange text-cs-dark hover:brightness-110 transition whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[0.8438rem] font-medium bg-cs-orange text-cs-dark hover:brightness-110 transition whitespace-nowrap"
               >
                 Do the lesson <FiArrowRight />
               </Link>
@@ -511,7 +511,7 @@ function LibraryArticle() {
               >
                 <FiArrowLeft className="shrink-0 text-lg text-cs-text-muted transition-all group-hover:-translate-x-0.5 group-hover:text-cs-primary" />
                 <span className="min-w-0">
-                  <span className="block text-[10px] tracking-wider text-cs-text-muted mb-0.5">
+                  <span className="block text-[0.625rem] tracking-wider text-cs-text-muted mb-0.5">
                     PREVIOUS
                   </span>
                   <span className="block text-sm font-medium text-cs-text truncate transition-colors group-hover:text-cs-primary">
@@ -523,7 +523,7 @@ function LibraryArticle() {
               <span className="flex items-center gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 opacity-40">
                 <FiArrowLeft className="shrink-0 text-lg text-cs-text-muted" />
                 <span className="min-w-0">
-                  <span className="block text-[10px] tracking-wider text-cs-text-muted mb-0.5">
+                  <span className="block text-[0.625rem] tracking-wider text-cs-text-muted mb-0.5">
                     PREVIOUS
                   </span>
                   <span className="block text-sm text-cs-text-dim">Start of collection</span>
@@ -536,7 +536,7 @@ function LibraryArticle() {
                 className="group flex items-center justify-end gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 text-right hover:border-cs-primary/30 hover:bg-cs-overlay/[0.04] transition"
               >
                 <span className="min-w-0">
-                  <span className="block text-[10px] tracking-wider text-cs-text-muted mb-0.5">
+                  <span className="block text-[0.625rem] tracking-wider text-cs-text-muted mb-0.5">
                     NEXT
                   </span>
                   <span className="block text-sm font-medium text-cs-text truncate transition-colors group-hover:text-cs-primary">
@@ -548,7 +548,7 @@ function LibraryArticle() {
             ) : (
               <span className="flex items-center justify-end gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 text-right opacity-40">
                 <span className="min-w-0">
-                  <span className="block text-[10px] tracking-wider text-cs-text-muted mb-0.5">
+                  <span className="block text-[0.625rem] tracking-wider text-cs-text-muted mb-0.5">
                     NEXT
                   </span>
                   <span className="block text-sm text-cs-text-dim">End of collection</span>
@@ -560,8 +560,8 @@ function LibraryArticle() {
         </article>
 
         {/* ---------- on this page ---------- */}
-        <aside className="hidden lg:block sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto">
-          <p className="text-[10px] tracking-wider text-cs-text-muted mb-3">
+        <aside className="hidden lg:block sticky top-36 self-start max-h-[calc(100vh-7rem)] overflow-y-auto">
+          <p className="text-[0.625rem] tracking-wider text-cs-text-muted mb-3">
             ON THIS PAGE
           </p>
           <ul>
@@ -569,7 +569,7 @@ function LibraryArticle() {
               <li key={h.id}>
                 <a
                   href={`#${h.id}`}
-                  className={`block py-1.5 text-[13px] leading-snug border-l transition-colors ${
+                  className={`block py-1.5 text-[0.8125rem] leading-snug border-l transition-colors ${
                     h.level === 2 ? 'pl-6' : 'pl-3'
                   } ${
                     activeId === h.id
@@ -582,7 +582,7 @@ function LibraryArticle() {
               </li>
             ))}
           </ul>
-          <p className="mt-6 text-[13px] text-cs-text-dim inline-flex items-center gap-2">
+          <p className="mt-6 text-[0.8125rem] text-cs-text-dim inline-flex items-center gap-2">
             <FiHelpCircle /> Stuck? Open the <span className="text-cs-primary">AI Tutor</span> tab on the right.
           </p>
         </aside>

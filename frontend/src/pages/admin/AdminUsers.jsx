@@ -23,7 +23,7 @@ function PlanBadge({ plan }) {
   const pro = plan === 'pro';
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-[3px] rounded-full text-[11px] font-semibold ${
+      className={`inline-flex items-center px-2.5 py-[0.1875rem] rounded-full text-[0.6875rem] font-semibold ${
         pro ? 'bg-cs-primary/15 text-cs-primary' : 'border border-cs-line/15 text-cs-text-dim'
       }`}
     >
@@ -40,12 +40,12 @@ function Avatar({ user, size = 34 }) {
       src={user.avatar}
       alt=""
       style={{ width: size, height: size }}
-      className="flex-none rounded-[9px] object-cover"
+      className="flex-none rounded-[0.5625rem] object-cover"
     />
   ) : (
     <span
       style={{ width: size, height: size, background: `${tint}22`, color: tint }}
-      className="flex-none rounded-[9px] flex items-center justify-center font-bold"
+      className="flex-none rounded-[0.5625rem] flex items-center justify-center font-bold"
     >
       {letter}
     </span>
@@ -55,7 +55,7 @@ function Avatar({ user, size = 34 }) {
 function StatTile({ label, children }) {
   return (
     <div className="rounded-2xl bg-cs-darker/60 border border-cs-line/10 p-4">
-      <div className="text-[11px] uppercase tracking-wider text-cs-text-muted">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider text-cs-text-muted">{label}</div>
       <div className="text-2xl font-bold mt-1.5">{children}</div>
     </div>
   );
@@ -185,22 +185,22 @@ export default function AdminUsers() {
 
         {/* filter bar */}
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[260px] max-w-[420px]">
+          <div className="relative flex-1 min-w-[16.25rem] max-w-[26.25rem]">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search email, username or name"
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl text-[13px] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl text-[0.8125rem] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
             />
           </div>
-          <div className="flex gap-0.5 p-0.5 rounded-xl border border-cs-line/12 bg-cs-overlay/[0.03] text-[13px]">
+          <div className="flex gap-0.5 p-0.5 rounded-xl border border-cs-line/12 bg-cs-overlay/[0.03] text-[0.8125rem]">
             {['all', 'free', 'pro'].map((p) => (
               <button
                 key={p}
                 onClick={() => setPlan(p)}
                 className={`px-3 py-1.5 rounded-lg capitalize transition-colors ${
-                  plan === p ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'
+                  plan === p ? 'bg-cs-overlay/[0.09] text-cs-text font-medium' : 'text-cs-text-dim hover:text-cs-text'
                 }`}
               >
                 {p}
@@ -209,12 +209,12 @@ export default function AdminUsers() {
           </div>
           <button
             onClick={() => setOrder((o) => (o === 'desc' ? 'asc' : 'desc'))}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] text-cs-text-dim border border-cs-line/12 rounded-xl bg-cs-overlay/[0.03] hover:text-cs-text"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-[0.8125rem] text-cs-text-dim border border-cs-line/12 rounded-xl bg-cs-overlay/[0.03] hover:text-cs-text"
           >
             Joined {order === 'desc' ? '↓' : '↑'}
           </button>
           <div className="flex-1" />
-          <div className="flex items-center gap-2.5 text-[12px] text-cs-text-muted">
+          <div className="flex items-center gap-2.5 text-[0.75rem] text-cs-text-muted">
             <span>{from}–{to} of {total.toLocaleString()}</span>
             <div className="flex gap-1">
               <button
@@ -238,7 +238,7 @@ export default function AdminUsers() {
         {/* table */}
         <div className="rounded-2xl bg-cs-darker border border-cs-line/10 overflow-hidden">
           <div
-            className="grid gap-3.5 px-[18px] py-3 text-[10px] uppercase tracking-wider text-cs-text-muted bg-cs-overlay/[0.02] border-b border-cs-line/8"
+            className="grid gap-3.5 px-[1.125rem] py-3 text-[0.625rem] uppercase tracking-wider text-cs-text-muted bg-cs-overlay/[0.02] border-b border-cs-line/8"
             style={{ gridTemplateColumns: COLS }}
           >
             <span>User</span><span>Plan</span><span>Joined</span><span>Onboard</span>
@@ -246,10 +246,10 @@ export default function AdminUsers() {
           </div>
 
           {loading && rows.length === 0 && (
-            <div className="px-[18px] py-10 text-center text-[12px] text-cs-text-muted">loading…</div>
+            <div className="px-[1.125rem] py-10 text-center text-[0.75rem] text-cs-text-muted">loading…</div>
           )}
           {!loading && rows.length === 0 && (
-            <div className="px-[18px] py-10 text-center text-[12px] text-cs-text-muted">no users match</div>
+            <div className="px-[1.125rem] py-10 text-center text-[0.75rem] text-cs-text-muted">no users match</div>
           )}
 
           {rows.map((u) => {
@@ -258,32 +258,32 @@ export default function AdminUsers() {
               <div key={u.id} className={open ? 'bg-cs-primary/[0.03] border-b border-cs-line/5' : 'border-b border-cs-line/5'}>
                 <button
                   onClick={() => toggleRow(u.id)}
-                  className="w-full text-left grid gap-3.5 px-[18px] py-3.5 items-center hover:bg-cs-overlay/[0.025]"
+                  className="w-full text-left grid gap-3.5 px-[1.125rem] py-3.5 items-center hover:bg-cs-overlay/[0.025]"
                   style={{ gridTemplateColumns: COLS }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar user={u} />
                     <div className="min-w-0">
-                      <div className="font-semibold text-[13.5px] truncate">
+                      <div className="font-semibold text-[0.8438rem] truncate">
                         {u.display_name || u.username}{' '}
                         <span className="font-normal text-cs-text-muted">@{u.username}</span>
                       </div>
-                      <div className="text-[11.5px] text-cs-text-muted truncate">{u.email}</div>
+                      <div className="text-[0.7188rem] text-cs-text-muted truncate">{u.email}</div>
                     </div>
                   </div>
                   <div><PlanBadge plan={u.plan} /></div>
-                  <div className="text-[12px] text-cs-text-dim">{fmtDate(u.created_at)}</div>
-                  <div>{u.onboarded ? <FiCheck className="text-cs-green" /> : <span className="text-[11px] text-cs-text-muted">—</span>}</div>
+                  <div className="text-[0.75rem] text-cs-text-dim">{fmtDate(u.created_at)}</div>
+                  <div>{u.onboarded ? <FiCheck className="text-cs-green" /> : <span className="text-[0.6875rem] text-cs-text-muted">—</span>}</div>
                   <div className="flex gap-1.5">
                     {u.is_admin && (
-                      <span className="text-[9px] font-semibold tracking-wider px-2 py-[2px] rounded-full border border-cs-primary/40 bg-cs-primary/10 text-cs-primary">ADMIN</span>
+                      <span className="text-[0.5625rem] font-semibold tracking-wider px-2 py-[0.125rem] rounded-full border border-cs-primary/40 bg-cs-primary/10 text-cs-primary">ADMIN</span>
                     )}
                     {u.is_staff && (
-                      <span className="text-[9px] font-semibold tracking-wider px-2 py-[2px] rounded-full border border-cs-violet/40 bg-cs-violet/10 text-cs-violet">STAFF</span>
+                      <span className="text-[0.5625rem] font-semibold tracking-wider px-2 py-[0.125rem] rounded-full border border-cs-violet/40 bg-cs-violet/10 text-cs-violet">STAFF</span>
                     )}
-                    {!u.is_admin && !u.is_staff && <span className="text-[11px] text-cs-text-muted">—</span>}
+                    {!u.is_admin && !u.is_staff && <span className="text-[0.6875rem] text-cs-text-muted">—</span>}
                   </div>
-                  <div className="text-[12px]">
+                  <div className="text-[0.75rem]">
                     <span className="text-cs-text">{fmtTok(u.tokens_7d)}</span>{' '}
                     <span className="text-cs-text-muted">/ {fmtTok(u.tokens_total)}</span>
                   </div>
@@ -293,24 +293,24 @@ export default function AdminUsers() {
                 </button>
 
                 {open && (
-                  <div className="px-[18px] pb-6 pl-[64px]">
-                    {detailLoading && <div className="text-[12px] text-cs-text-muted py-2">loading…</div>}
+                  <div className="px-[1.125rem] pb-6 pl-[4rem]">
+                    {detailLoading && <div className="text-[0.75rem] text-cs-text-muted py-2">loading…</div>}
                     {detail && detail.id === u.id && (
                       <div className="grid md:grid-cols-3 gap-7 pt-1">
                         {/* usage */}
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-cs-text-muted mb-2.5">Usage · last 7 days</div>
+                          <div className="text-[0.625rem] uppercase tracking-wider text-cs-text-muted mb-2.5">Usage · last 7 days</div>
                           <div className="flex flex-col gap-2">
                             {detail.usage_7d_by_kind.length === 0 && (
-                              <div className="text-[12px] text-cs-text-muted">no AI usage</div>
+                              <div className="text-[0.75rem] text-cs-text-muted">no AI usage</div>
                             )}
                             {detail.usage_7d_by_kind.map((k) => (
                               <div key={k.kind} className="grid items-center gap-2.5" style={{ gridTemplateColumns: '64px 1fr 52px' }}>
-                                <span className="text-[12px] text-cs-text-dim">{k.kind}</span>
+                                <span className="text-[0.75rem] text-cs-text-dim">{k.kind}</span>
                                 <span className="h-1.5 rounded-full bg-cs-overlay/[0.07] overflow-hidden">
                                   <span className="block h-full rounded-full bg-cs-primary" style={{ width: `${Math.max(3, (k.tokens / maxKind) * 100)}%` }} />
                                 </span>
-                                <span className="text-[11px] text-cs-text-muted text-right">{fmtTok(k.tokens)}</span>
+                                <span className="text-[0.6875rem] text-cs-text-muted text-right">{fmtTok(k.tokens)}</span>
                               </div>
                             ))}
                           </div>
@@ -318,8 +318,8 @@ export default function AdminUsers() {
 
                         {/* activity */}
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-cs-text-muted mb-2.5">Activity</div>
-                          <div className="text-[12.5px] text-cs-text-dim leading-[2]">
+                          <div className="text-[0.625rem] uppercase tracking-wider text-cs-text-muted mb-2.5">Activity</div>
+                          <div className="text-[0.7812rem] text-cs-text-dim leading-[2]">
                             Lessons&nbsp;&nbsp;<span className="text-cs-text">{detail.lessons_completed}</span><br />
                             Projects&nbsp;&nbsp;<span className="text-cs-text">{detail.projects}</span><br />
                             Challenges&nbsp;&nbsp;<span className="text-cs-text">{detail.challenges_passed}</span><br />
@@ -330,9 +330,9 @@ export default function AdminUsers() {
 
                         {/* manage */}
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-cs-text-muted mb-2.5">Manage</div>
+                          <div className="text-[0.625rem] uppercase tracking-wider text-cs-text-muted mb-2.5">Manage</div>
                           <div className="flex flex-col gap-3 items-start">
-                            <label className="flex items-center gap-2 text-[12px] text-cs-text-dim">
+                            <label className="flex items-center gap-2 text-[0.75rem] text-cs-text-dim">
                               Plan
                               <select
                                 value={detail.plan}
@@ -344,7 +344,7 @@ export default function AdminUsers() {
                                 <option value="pro">Pro</option>
                               </select>
                             </label>
-                            <label className="flex items-center gap-2 text-[12px] text-cs-text-dim cursor-pointer">
+                            <label className="flex items-center gap-2 text-[0.75rem] text-cs-text-dim cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={detail.is_staff}
@@ -353,7 +353,7 @@ export default function AdminUsers() {
                               />
                               Staff (moderate community)
                             </label>
-                            <label className="flex items-center gap-2 text-[12px] text-cs-text-dim cursor-pointer">
+                            <label className="flex items-center gap-2 text-[0.75rem] text-cs-text-dim cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={detail.is_admin}
@@ -366,9 +366,9 @@ export default function AdminUsers() {
                               href={`/u/${u.username}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 text-[12px] text-cs-primary hover:text-cs-mint mt-0.5"
+                              className="inline-flex items-center gap-1.5 text-[0.75rem] text-cs-primary hover:text-cs-mint mt-0.5"
                             >
-                              View public profile <FiExternalLink className="text-[13px]" />
+                              View public profile <FiExternalLink className="text-[0.8125rem]" />
                             </a>
                           </div>
                         </div>

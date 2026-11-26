@@ -22,6 +22,7 @@ import {
   FiMenu,
   FiMinus,
   FiPlus,
+  FiSearch,
   FiShield,
   FiStar,
   FiTerminal,
@@ -40,24 +41,24 @@ const REVEAL_TTL_MS = 45_000;
 
 const KIND_META = {
   note: {
-    label: "scratchpad",
-    plural: "scratchpads",
+    label: "Scratchpad",
+    plural: "Scratchpads",
     icon: FiFileText,
     cls: "text-cs-primary",
     spine: "bg-cs-primary/70",
     chip: "bg-cs-primary/10 text-cs-primary border-cs-primary/25",
   },
   project: {
-    label: "requirement",
-    plural: "requirements",
+    label: "Requirement",
+    plural: "Requirements",
     icon: FiFolder,
     cls: "text-cs-cyan",
     spine: "bg-cs-cyan/70",
     chip: "bg-cs-cyan/10 text-cs-cyan border-cs-cyan/25",
   },
   credential: {
-    label: "credential",
-    plural: "credentials",
+    label: "Credential",
+    plural: "Credentials",
     icon: FiKey,
     cls: "text-cs-orange",
     spine: "bg-cs-orange/70",
@@ -75,10 +76,10 @@ const FAV_SPARKS = [
 ];
 
 const PADS = [
-  { id: "all", label: "all" },
-  { id: "note", label: "scratchpad" },
-  { id: "project", label: "requirements" },
-  { id: "credential", label: "credentials" },
+  { id: "all", label: "All" },
+  { id: "note", label: "Scratchpad" },
+  { id: "project", label: "Requirements" },
+  { id: "credential", label: "Credentials" },
 ];
 
 function apiError(e, fallback) {
@@ -229,7 +230,7 @@ function MonthTimeline({ months, total, max, active, onPick }) {
     <button
       onClick={() => onPick(id)}
       title={sub === "all" ? "All dates" : sub}
-      className={`group relative flex w-[62px] shrink-0 snap-start flex-col items-center gap-1.5 rounded-lg border px-1.5 pt-2 pb-1.5 transition-all duration-200 ${
+      className={`group relative flex w-[3.875rem] shrink-0 snap-start flex-col items-center gap-1.5 rounded-lg border px-1.5 pt-2 pb-1.5 transition-all duration-200 ${
         isActive
           ? "border-cs-primary/60 bg-cs-primary/10 -translate-y-0.5"
           : "border-cs-line/12 hover:border-cs-primary/30 hover:bg-cs-overlay/[0.03]"
@@ -253,7 +254,7 @@ function MonthTimeline({ months, total, max, active, onPick }) {
         />
       </span>
       <span
-        className={`text-[8.5px] uppercase tracking-[0.08em] whitespace-nowrap ${
+        className={`text-[0.5312rem] uppercase tracking-[0.08em] whitespace-nowrap ${
           isActive ? "text-cs-primary" : "text-cs-text-muted"
         }`}
       >
@@ -296,24 +297,19 @@ function BookCard({ n, active, onSelect, onDelete, onToggleFav, busy }) {
   return (
     <div
       onClick={() => onSelect(n.id)}
-      className={`group relative cursor-pointer overflow-hidden rounded-lg bg-cs-darker/70 pl-4 p-3 transition-all duration-200 hover:-translate-y-0.5 ${
-        active ? "bg-cs-overlay/[0.06]" : "hover:bg-cs-darker"
+      className={`group relative cursor-pointer rounded-lg border border-cs-line/10 p-5 transition-colors hover:bg-cs-overlay/[0.03] hover:border-cs-line/20 ${
+        active ? "bg-cs-overlay/[0.06]" : ""
       }`}
     >
-      <span className={`absolute left-0 top-0 bottom-0 w-1 ${meta.spine}`} />
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon className={`text-xs shrink-0 ${meta.cls}`} />
-        <span
-          className={`text-[10px] uppercase tracking-wider ${meta.cls} truncate`}
-        >
-          {meta.label}
-        </span>
-        <span className="flex-grow" />
+      <div className="flex items-center gap-2">
+        <div className="text-base font-bold truncate flex-1 min-w-0">
+          {n.title || "Untitled"}
+        </div>
         {n.has_suggestion && (
-          <FiCpu className="text-cs-cyan text-[11px] shrink-0" title="AI plan" />
+          <FiCpu className="text-cs-cyan text-sm shrink-0" title="AI plan" />
         )}
         {n.has_secret && (
-          <FiKey className="text-cs-orange text-[11px] shrink-0" title="Has secret" />
+          <FiKey className="text-cs-orange text-sm shrink-0" title="Has secret" />
         )}
         <span className="relative shrink-0">
           <button
@@ -368,14 +364,16 @@ function BookCard({ n, active, onSelect, onDelete, onToggleFav, busy }) {
           <FiTrash2 className="text-sm" />
         </button>
       </div>
-      <div className="font-semibold text-base truncate leading-tight">
-        {n.title || "Untitled"}
+      <div className="flex items-center justify-between gap-3 mt-4 text-sm">
+        <span className={`inline-flex items-center gap-1.5 ${meta.cls}`}>
+          <Icon className="text-xs" /> {meta.label}
+        </span>
       </div>
-      <div className="text-xs text-cs-text-dim truncate mt-0.5">
+      <div className="text-sm text-cs-text-dim truncate mt-2">
         {n.snippet ? (
           n.snippet
         ) : (
-          <span className="italic text-cs-text-muted">empty</span>
+          <span className="text-cs-text-muted">Empty</span>
         )}
       </div>
     </div>
@@ -404,7 +402,7 @@ function AiStructure({ suggestion }) {
       </div>
       <div className="mb-3">
         <div className="mono-label mb-1.5">structure</div>
-        <pre className="terminal p-3 text-[12px] leading-relaxed overflow-x-auto">
+        <pre className="terminal p-3 text-[0.75rem] leading-relaxed overflow-x-auto">
           {suggestion.structure}
         </pre>
       </div>
@@ -696,17 +694,17 @@ function Editor({
                 onClick={() => setForm((f) => ({ ...f, kind: opt.id }))}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-40 ${
                   kind === opt.id
-                    ? "bg-cs-primary/15 text-cs-primary"
+                    ? "bg-cs-overlay/[0.09] text-cs-text font-medium"
                     : "text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06]"
                 }`}
               >
-                <opt.icon className="text-[11px]" /> {opt.label}
+                <opt.icon className="text-[0.6875rem]" /> {opt.label}
               </button>
             ))}
           </div>
         </div>
         {!isCred && (
-          <span className="block text-[11px] text-cs-text-muted mb-3 px-1">
+          <span className="block text-[0.6875rem] text-cs-text-muted mb-3 px-1">
             {words} word{words === 1 ? "" : "s"} · {chars} chars
             <span
               className={`ml-2 transition-opacity ${
@@ -770,7 +768,7 @@ function Editor({
                   </button>
                 )}
                 {note.revealed_at && !isRevealed && (
-                  <p className="text-[11px] text-cs-text-muted mt-1">
+                  <p className="text-[0.6875rem] text-cs-text-muted mt-1">
                     last revealed {formatDateTime(note.revealed_at)}
                   </p>
                 )}
@@ -793,13 +791,13 @@ function Editor({
                 disabled={!vaultOk}
               />
               {note.has_secret && !form.secret && (
-                <p className="text-[11px] text-cs-text-muted mt-1">
+                <p className="text-[0.6875rem] text-cs-text-muted mt-1">
                   Leave blank to keep the current secret.
                 </p>
               )}
             </div>
 
-            <p className="text-[11px] text-cs-text-muted flex items-start gap-1.5 pt-1">
+            <p className="text-[0.6875rem] text-cs-text-muted flex items-start gap-1.5 pt-1">
               <FiShield className="mt-0.5 shrink-0" />
               Values are AES-encrypted at rest with a key the server holds.
               Don’t store anything you couldn’t rotate — for production secrets,
@@ -865,7 +863,7 @@ function Editor({
                 title="Numbered list"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => linePrefix("1. ", "")}
-                className={`${fmtBtn} text-[11px] font-bold w-6`}
+                className={`${fmtBtn} text-[0.6875rem] font-bold w-6`}
               >
                 1.
               </button>
@@ -881,9 +879,9 @@ function Editor({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setPreview((p) => !p)}
-                className={`p-1.5 rounded-md text-[11px] inline-flex items-center gap-1.5 transition-colors ${
+                className={`p-1.5 rounded-md text-[0.6875rem] inline-flex items-center gap-1.5 transition-colors ${
                   preview
-                    ? "bg-cs-primary/15 text-cs-primary"
+                    ? "bg-cs-overlay/[0.09] text-cs-text font-medium"
                     : "text-cs-text-muted hover:text-cs-text"
                 }`}
               >
@@ -904,10 +902,10 @@ function Editor({
                 {pages.map((p, i) => (
                   <div
                     key={i}
-                    className="w-full min-h-[1123px] rounded-lg border border-cs-line/10 bg-cs-darkest/30 px-10 pt-8"
+                    className="w-full min-h-[70.1875rem] rounded-lg border border-cs-line/10 bg-cs-darkest/30 px-10 pt-8"
                   >
                     {pages.length > 1 && (
-                      <div className="text-[10px] uppercase tracking-wider text-cs-text-muted mb-2">
+                      <div className="text-[0.625rem] uppercase tracking-wider text-cs-text-muted mb-2">
                         page {i + 1}
                       </div>
                     )}
@@ -926,7 +924,7 @@ function Editor({
                 {pages.map((p, i) => (
                   <div key={i} className="w-full">
                     <div className="flex items-center gap-2 px-1 mb-1">
-                      <span className="text-[10px] uppercase tracking-wider text-cs-text-muted">
+                      <span className="text-[0.625rem] uppercase tracking-wider text-cs-text-muted">
                         page {i + 1}
                       </span>
                       <span className="flex gap-0.5">
@@ -967,7 +965,7 @@ function Editor({
                       value={p.text}
                       onFocus={() => setActivePage(i)}
                       onChange={(e) => patchPage(i, { text: e.target.value })}
-                      className={`block w-full min-h-[1040px] resize-y rounded-lg border border-cs-line/10 bg-cs-darkest/30 px-10 pt-8 text-[15px] leading-8 text-cs-text outline-none placeholder:text-cs-text-muted [background-attachment:local] ${
+                      className={`block w-full min-h-[65rem] resize-y rounded-lg border border-cs-line/10 bg-cs-darkest/30 px-10 pt-8 text-[0.9375rem] leading-8 text-cs-text outline-none placeholder:text-cs-text-muted [background-attachment:local] ${
                         RULING_BG[p.ruling] || RULING_BG.lines
                       }`}
                       placeholder={
@@ -980,7 +978,7 @@ function Editor({
                 ))}
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <span className="text-[10px] uppercase tracking-wider text-cs-text-muted">
+                  <span className="text-[0.625rem] uppercase tracking-wider text-cs-text-muted">
                     add page
                   </span>
                   <button
@@ -1030,6 +1028,7 @@ function Notes() {
   const [list, setList] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [pad, setPad] = useState("all");
+  const [search, setSearch] = useState("");
   const [month, setMonth] = useState("all"); // "all" | "YYYY-MM" of created_at
   const [sort, setSort] = useState("recent"); // "recent" | "oldest" by created_at
   const [detail, setDetail] = useState(null);
@@ -1260,7 +1259,10 @@ function Notes() {
     activeMonth === "all"
       ? list
       : list.filter((n) => monthKey(n.created_at) === activeMonth);
-  const visible = [...monthMatch].sort((a, b) => {
+  const q = search.trim().toLowerCase();
+  const visible = [...monthMatch]
+    .filter((n) => !q || `${n.title || ""} ${n.snippet || ""}`.toLowerCase().includes(q))
+    .sort((a, b) => {
     const cmp = (a.created_at || "").localeCompare(b.created_at || "");
     return sort === "recent" ? -cmp : cmp;
   });
@@ -1286,88 +1288,58 @@ function Notes() {
     <main className="w-full px-6 lg:px-10 py-8">
       {activeId == null ? (
         <>
-          <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-5 -mt-8 mb-6">
-            <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-64">
-              <div>
-                <span className="mono-label"> codesquare_note</span>
-                <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-                  <FiFileText className="text-cs-primary" /> Notes
-                </h1>
-                <p className="text-cs-text-dim mt-1 text-sm">
-                  Scratchpad · project requirements
-                  {vaultOk ? " · credentials" : ""}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => create("note")}
-                  className="btn btn-ghost"
-                >
-                  <FiEdit3 /> quick note
-                </button>
-                <button
-                  onClick={() => create("project")}
-                  className="btn btn-secondary"
-                >
-                  <FiPlus /> requirement
-                </button>
-                <button
-                  onClick={() => create("credential")}
-                  disabled={!vaultOk}
-                  title={vaultOk ? "" : "Credential vault not configured"}
-                  className="btn btn-primary disabled:opacity-40"
-                >
-                  <FiKey /> credential
-                </button>
-              </div>
-            </div>
-          </div>
-
           {!vaultOk && <VaultBanner />}
 
-          <div className="flex flex-wrap items-center gap-1.5 mb-4">
-            {PADS.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setPad(p.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
-                  pad === p.id
-                    ? "border-cs-primary/50 bg-cs-primary/10 text-cs-primary"
-                    : "border-cs-line/12 text-cs-text-dim hover:text-cs-text"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-            <div className="ml-auto flex items-center gap-1 rounded-lg bg-cs-overlay/[0.04] p-0.5 text-xs">
-              {[
-                { id: "recent", label: "recent" },
-                { id: "oldest", label: "oldest" },
-              ].map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setSort(s.id)}
-                  className={`rounded-md px-2.5 py-1 transition-colors ${
-                    sort === s.id
-                      ? "bg-cs-primary/15 text-cs-primary"
-                      : "text-cs-text-muted hover:text-cs-text"
-                  }`}
-                >
-                  {s.label}
+          <section className="rounded-xl border border-cs-line/10 px-5 pt-2 pb-6">
+            {/* Kind tabs + create buttons */}
+            <div className="flex flex-wrap items-center gap-x-7 border-b border-cs-line/10">
+              {PADS.map((pd) => {
+                const c = pd.id === "all" ? list.length : list.filter((n) => (n.kind || "note") === pd.id).length;
+                return (
+                  <button key={pd.id} onClick={() => setPad(pd.id)}
+                    className={`relative h-12 px-0.5 text-[0.9375rem] transition-colors ${pad === pd.id ? "text-cs-primary" : "text-cs-text-dim hover:text-cs-text"}`}>
+                    {pd.label}<span className="ml-1.5 text-xs text-cs-text-muted">{c}</span>
+                    {pad === pd.id && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+                  </button>
+                );
+              })}
+              <div className="ml-auto flex items-center gap-2 py-2">
+                <button onClick={() => create("note")} className="btn btn-ghost btn-sm"><FiEdit3 /> Quick note</button>
+                <button onClick={() => create("project")} className="btn btn-secondary btn-sm"><FiPlus /> Requirement</button>
+                <button onClick={() => create("credential")} disabled={!vaultOk}
+                  title={vaultOk ? "" : "Credential vault not configured"}
+                  className="btn btn-primary btn-sm disabled:opacity-40">
+                  <FiKey /> Credential
                 </button>
-              ))}
+              </div>
             </div>
-          </div>
 
-          {monthOptions.length > 0 && (
-            <MonthTimeline
-              months={monthMeta}
-              total={list.length}
-              max={maxMonthCount}
-              active={activeMonth}
-              onPick={setMonth}
-            />
-          )}
+            {/* Search + date + sort */}
+            <div className="flex flex-wrap items-center gap-2 mt-5 mb-6">
+              <label className="flex-1 min-w-[14rem] h-10 flex items-center gap-2 px-3 rounded-lg border border-cs-line/15 focus-within:border-cs-primary/50 transition-colors">
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search notes"
+                  className="flex-1 min-w-0 bg-transparent outline-none text-[0.9375rem] placeholder:text-cs-text-muted" />
+                <FiSearch className="text-cs-text-muted" />
+              </label>
+              {monthOptions.length > 0 && (
+                <label className="h-10 inline-flex items-center gap-1.5 pl-3 pr-2 rounded-lg border border-cs-line/15 text-[0.9375rem]">
+                  <span className="text-cs-text-muted">Date:</span>
+                  <select value={activeMonth} onChange={(e) => setMonth(e.target.value)}
+                    className="bg-transparent outline-none font-medium cursor-pointer">
+                    <option value="all">All</option>
+                    {monthMeta.map((m) => <option key={m.key} value={m.key}>{monthLabel(m.key)} ({m.count})</option>)}
+                  </select>
+                </label>
+              )}
+              <div className="h-10 inline-flex items-center gap-0.5 p-0.5 rounded-lg border border-cs-line/15 text-[0.9375rem]">
+                {[{ id: "recent", label: "Newest" }, { id: "oldest", label: "Oldest" }].map((so) => (
+                  <button key={so.id} onClick={() => setSort(so.id)}
+                    className={`h-full px-3 rounded-md transition-colors ${sort === so.id ? "bg-cs-overlay/[0.09] text-cs-text font-medium" : "text-cs-text-dim hover:text-cs-text"}`}>
+                    {so.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -1381,18 +1353,18 @@ function Notes() {
               ))}
             </div>
           ) : list.length === 0 ? (
-            <div className="card text-center py-16">
+            <div className="text-center py-16">
               <FiBookOpen className="text-3xl text-cs-text-muted mx-auto mb-3" />
               <p className="text-cs-text-dim">No notebooks yet.</p>
-              <p className="text-[11px] text-cs-text-muted mt-1">
-                Use “quick note” above to start one.
+              <p className="text-[0.6875rem] text-cs-text-muted mt-1">
+                Use “Quick note” above to start one.
               </p>
             </div>
           ) : groups.length === 0 ? (
-            <div className="card text-center py-16">
+            <div className="text-center py-16">
               <FiCalendar className="text-3xl text-cs-text-muted mx-auto mb-3" />
               <p className="text-cs-text-dim">
-                {activeMonth === "all"
+                {q ? `No notes match “${search}”.` : activeMonth === "all"
                   ? "Nothing here."
                   : `Nothing from ${monthLabel(activeMonth)}.`}
               </p>
@@ -1402,7 +1374,7 @@ function Notes() {
                     setMonth("all");
                     setPad("all");
                   }}
-                  className="text-[11px] text-cs-primary hover:text-cs-cyan mt-1"
+                  className="text-[0.6875rem] text-cs-primary hover:text-cs-cyan mt-1"
                 >
                   clear filters
                 </button>
@@ -1420,22 +1392,12 @@ function Notes() {
                   : KIND_META[k] || KIND_META.note;
               const Icon = m.icon;
               return (
-                <div key={k} className="mb-8">
-                  <div className="flex items-center gap-1.5 px-1 mb-3">
-                    <span
-                      className={`w-5 h-5 rounded grid place-items-center border ${m.chip}`}
-                    >
-                      <Icon className="text-[10px]" />
-                    </span>
-                    <span className="text-[11px] uppercase tracking-wider text-cs-text-muted">
-                      {m.plural}
-                    </span>
-                    <span className="flex-grow" />
-                    <span className="text-[10px] text-cs-text-muted">
-                      {items.length}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                <div key={k} className="mb-8 last:mb-0">
+                  <h3 className="text-sm font-semibold mb-3 inline-flex items-center gap-2">
+                    <Icon className={k === "favorite" ? "text-cs-green" : m.cls} /> {k === "favorite" ? "Favorites" : m.plural}
+                    <span className="text-xs font-normal text-cs-text-muted">{items.length}</span>
+                  </h3>
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
                     {items.map((n) => (
                       <BookCard
                         key={`${k}-${n.id}`}
@@ -1451,18 +1413,19 @@ function Notes() {
               );
             })
           )}
+          </section>
         </>
       ) : (
         <>
-          <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6">
-            <div className="flex items-center justify-between gap-3 lg:pr-64">
+          <div className="sticky top-[3.75rem] lg:top-14 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6">
+            <div className="flex items-center justify-between gap-3">
               <button
                 onClick={closeEditor}
                 className="btn btn-ghost btn-sm"
               >
                 <FiArrowLeft /> all notes
               </button>
-              <span className="text-[11px] text-cs-text-muted truncate">
+              <span className="text-[0.6875rem] text-cs-text-muted truncate">
                 {activeMeta?.title || "Untitled"}
               </span>
             </div>

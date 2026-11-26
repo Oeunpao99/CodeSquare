@@ -44,7 +44,7 @@ function RoadmapFlow({ data }) {
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-4 text-[11px] text-cs-text-muted">
+      <div className="flex items-center gap-4 mb-4 text-[0.6875rem] text-cs-text-muted">
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-cs-green" /> done</span>
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-cs-primary" /> in progress</span>
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full border border-cs-line/30" /> upcoming</span>
@@ -67,7 +67,7 @@ function RoadmapFlow({ data }) {
                   </div>
                 )}
 
-                <div className={`card md:w-[300px] shrink-0 border shadow-sm ${TRACK_RING[track.status] || TRACK_RING['not-started']}`}>
+                <div className={`card md:w-[18.75rem] shrink-0 border shadow-sm ${TRACK_RING[track.status] || TRACK_RING['not-started']}`}>
                   {/* track header */}
                   <Link to={`/learn/${track.slug}`} className="flex items-start gap-3 group">
                     <span
@@ -82,7 +82,7 @@ function RoadmapFlow({ data }) {
                         {track.status === 'completed' && <FiCheck className="text-cs-green shrink-0" />}
                         {track.status === 'in-progress' && <FiPlay className="text-cs-primary shrink-0 text-xs" />}
                       </div>
-                      <p className="text-[11px] text-cs-text-muted mt-0.5">
+                      <p className="text-[0.6875rem] text-cs-text-muted mt-0.5">
                         {track.completed_lessons} / {track.total_lessons} lessons · {pct}%
                       </p>
                     </div>
@@ -117,7 +117,7 @@ function RoadmapFlow({ data }) {
                           }`}
                         >
                           <span
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 border ${
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[0.625rem] shrink-0 border ${
                               done
                                 ? 'bg-cs-green border-cs-green text-white'
                                 : started || here
@@ -125,7 +125,7 @@ function RoadmapFlow({ data }) {
                                 : 'border-cs-line/25 text-cs-text-muted'
                             }`}
                           >
-                            {done ? <FiCheck /> : started || here ? <FiPlay /> : <FiLock className="text-[9px]" />}
+                            {done ? <FiCheck /> : started || here ? <FiPlay /> : <FiLock className="text-[0.5625rem]" />}
                           </span>
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-medium truncate">
@@ -139,7 +139,7 @@ function RoadmapFlow({ data }) {
                             </div>
                           </div>
                           {here && (
-                            <span className="shrink-0 inline-flex items-center gap-1 text-[10px] text-cs-primary font-medium">
+                            <span className="shrink-0 inline-flex items-center gap-1 text-[0.625rem] text-cs-primary font-medium">
                               <FiMapPin /> here
                             </span>
                           )}
@@ -147,7 +147,7 @@ function RoadmapFlow({ data }) {
                       );
                     })}
                     {track.modules.length === 0 && (
-                      <p className="text-[11px] text-cs-text-muted">no modules yet</p>
+                      <p className="text-[0.6875rem] text-cs-text-muted">no modules yet</p>
                     )}
                   </div>
 

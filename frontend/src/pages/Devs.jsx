@@ -59,13 +59,9 @@ export default function Devs() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky header */}
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex items-start justify-between gap-4 flex-wrap lg:pr-64">
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <span className="mono-label">Community</span>
-            <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-              <FiUsers className="text-cs-primary" /> Developer Directory
-            </h1>
           </div>
           {total > 0 && (
             <span className="text-sm text-cs-text-dim shrink-0 self-end">
@@ -76,7 +72,7 @@ export default function Devs() {
 
         {/* Search + filters */}
         <form onSubmit={submitSearch} className="mt-4 flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[220px]">
+          <div className="relative flex-1 min-w-[13.75rem]">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted text-sm" />
             <input
               value={input}

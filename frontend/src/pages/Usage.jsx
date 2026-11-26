@@ -40,7 +40,7 @@ function WindowCard({ w, tick }) {
     <div className="card flex flex-col justify-between bg-gradient-to-br from-cs-darker to-cs-darker/40">
       <div className="flex items-start justify-between gap-3">
         <p className="mono-label text-cs-text-dim">{w.label}</p>
-        <span className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+        <span className={`text-[0.625rem] px-2 py-0.5 rounded-full border uppercase tracking-wider ${
           warn ? 'border-cs-orange/40 bg-cs-orange/10 text-cs-orange' : 'border-cs-line/15 text-cs-text-muted'
         }`}>
           {warn ? 'high' : 'meter'}
@@ -51,7 +51,7 @@ function WindowCard({ w, tick }) {
         <p className="text-3xl font-bold leading-none">
           {w.percent}<span className="text-base text-cs-text-muted">%</span>
         </p>
-        <p className="text-[11px] text-cs-text-muted mt-1">
+        <p className="text-[0.6875rem] text-cs-text-muted mt-1">
           {fmtInt(w.used)} / {fmtInt(w.limit)} tokens
         </p>
       </div>
@@ -66,7 +66,7 @@ function WindowCard({ w, tick }) {
             }}
           />
         </div>
-        <div className="flex items-center justify-between text-[10px] text-cs-text-muted">
+        <div className="flex items-center justify-between text-[0.625rem] text-cs-text-muted">
           <span>resets</span>
           <span className={warn ? 'text-cs-orange font-semibold' : ''}>{fmtCountdown(secs)}</span>
         </div>
@@ -113,12 +113,6 @@ function Usage() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label">Account</span>
-        <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-          <FiActivity className="text-cs-primary" /> Usage
-        </h1>
-      </div>
 
       {data === null && <p className="text-cs-text-muted text-sm">Loading usage…</p>}
       {data === false && (
@@ -147,7 +141,7 @@ function Usage() {
                   {data.plan_label} plan
                 </span>
                 {data.plan_expires_at && (
-                  <p className="text-[11px] text-cs-primary/80 mt-2">
+                  <p className="text-[0.6875rem] text-cs-primary/80 mt-2">
                     active until {fmtDate(data.plan_expires_at)}
                   </p>
                 )}
@@ -159,7 +153,7 @@ function Usage() {
                     <FiZap /> Upgrade to Pro
                   </button>
                 )}
-                <p className="text-[11px] text-cs-text-muted mt-3">
+                <p className="text-[0.6875rem] text-cs-text-muted mt-3">
                   {data.calls_this_week} AI call{data.calls_this_week === 1 ? '' : 's'} this week · limits soft — nothing blocked
                 </p>
               </div>

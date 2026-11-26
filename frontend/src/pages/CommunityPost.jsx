@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiCornerUpLeft, FiSend, FiTrash2, FiHeart } from 'react-icons/fi';
+import { FiCornerUpLeft, FiSend, FiTrash2, FiHeart } from 'react-icons/fi';
 import { communityService } from '../services/api';
 import { toast } from '../utils/toast';
 import PostCard, { Avatar, AuthorName, timeAgo } from '../components/PostCard';
@@ -42,8 +42,8 @@ function EditForm({ post, onSaved, onCancel }) {
         className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/50 resize-y leading-relaxed"
       />
       <div className="flex flex-wrap items-center gap-2 mt-2">
-        <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="tags" className="flex-1 min-w-[140px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50" />
-        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="link (optional)" className="flex-1 min-w-[160px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50" />
+        <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="tags" className="flex-1 min-w-[8.75rem] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50" />
+        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="link (optional)" className="flex-1 min-w-[10rem] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50" />
         <button type="button" onClick={onCancel} className="btn btn-ghost btn-sm">Cancel</button>
         <button type="submit" disabled={saving} className="btn btn-primary btn-sm disabled:opacity-40">{saving ? 'Saving…' : 'Save'}</button>
       </div>
@@ -249,7 +249,7 @@ function CommunityPost() {
           <AuthorName author={c.author} to={`/u/${c.author.username}`} className="text-sm font-semibold" />
           {c.is_mine && <span className="text-cs-primary font-normal whitespace-nowrap">· you</span>}
         </span>
-        <span className="text-[10px] text-cs-text-muted">{timeAgo(c.created_at)}</span>
+        <span className="text-[0.625rem] text-cs-text-muted">{timeAgo(c.created_at)}</span>
         <span className="flex-grow" />
         {c.can_delete && (
           <button onClick={() => setConfirmDelete(c.id)} className="text-cs-text-muted hover:text-cs-red p-1" title="Delete">
@@ -263,7 +263,7 @@ function CommunityPost() {
         <button
           type="button"
           onClick={() => likeComment(c)}
-          className={`inline-flex items-center gap-1 text-[11px] transition-colors ${
+          className={`inline-flex items-center gap-1 text-[0.6875rem] transition-colors ${
             c.liked_by_me
               ? 'text-cs-red'
               : 'text-cs-text-muted hover:text-cs-red'
@@ -276,7 +276,7 @@ function CommunityPost() {
         <button
           type="button"
           onClick={() => launchReply(c.id)}
-          className="inline-flex items-center gap-1 text-[11px] text-cs-text-muted hover:text-cs-primary transition-colors"
+          className="inline-flex items-center gap-1 text-[0.6875rem] text-cs-text-muted hover:text-cs-primary transition-colors"
         >
           <FiCornerUpLeft className="text-xs" /> {replyTo === c.id ? 'Cancel reply' : 'Reply'}
         </button>
@@ -313,13 +313,6 @@ function CommunityPost() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="mx-auto w-full max-w-[64rem]">
-          <Link to="/community" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-text">
-            <FiArrowLeft /> Community
-          </Link>
-        </div>
-      </div>
 
       {post === null && <p className="text-cs-text-muted text-sm">Loading post…</p>}
       {post === false && (

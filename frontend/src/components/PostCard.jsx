@@ -142,7 +142,7 @@ function ImageGrid({ images, full }) {
             />
           </div>
         </div>
-        <p className="mt-1.5 text-[10px] text-cs-text-muted tracking-wide">
+        <p className="mt-1.5 text-[0.625rem] text-cs-text-muted tracking-wide">
           img · {count} attached
         </p>
         {viewing >= 0 && (
@@ -175,7 +175,7 @@ function ImageGrid({ images, full }) {
           </div>
         </div>
       </div>
-      <p className="mt-1.5 text-[10px] text-cs-text-muted tracking-wide">
+      <p className="mt-1.5 text-[0.625rem] text-cs-text-muted tracking-wide">
         img · {count} attached
       </p>
       {viewing >= 0 && (
@@ -310,8 +310,8 @@ function PostCard({ post, full = false, onChange, onDelete }) {
           <>
             <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cs-dark via-cs-dark/80 to-transparent" />
             <span className="absolute inset-x-0 bottom-2 flex justify-center">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-cs-darkest/90 border border-cs-primary/30 text-cs-primary text-[11px] uppercase tracking-wide">
-                read more <FiChevronsDown className="text-[11px]" />
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-cs-darkest/90 border border-cs-primary/30 text-cs-primary text-[0.6875rem] uppercase tracking-wide">
+                read more <FiChevronsDown className="text-[0.6875rem]" />
               </span>
             </span>
           </>
@@ -333,8 +333,8 @@ function PostCard({ post, full = false, onChange, onDelete }) {
             its own reading-measure cap so lines don't run too wide. */}
         <div className="min-w-0 flex-1 max-w-5xl">
           {p.reposted_by && (
-            <div className="flex items-center gap-1.5 mb-1 text-[11px] text-cs-text-muted">
-              <FiRepeat className="text-[11px]" />
+            <div className="flex items-center gap-1.5 mb-1 text-[0.6875rem] text-cs-text-muted">
+              <FiRepeat className="text-[0.6875rem]" />
               <Link
                 to={`/u/${p.reposted_by.username}`}
                 onClick={(e) => e.stopPropagation()}
@@ -356,11 +356,11 @@ function PostCard({ post, full = false, onChange, onDelete }) {
               <span className="text-cs-primary/70 text-xs whitespace-nowrap">you</span>
             )}
             {p.author.week != null && (
-              <span className="inline-flex items-center text-[10px] text-cs-text-muted bg-cs-overlay/5 border border-cs-line/[0.12] px-1.5 py-px rounded-full whitespace-nowrap">
+              <span className="inline-flex items-center text-[0.625rem] text-cs-text-muted bg-cs-overlay/5 border border-cs-line/[0.12] px-1.5 py-px rounded-full whitespace-nowrap">
                 week {p.author.week}
               </span>
             )}
-            <span className="flex items-center gap-1.5 shrink-0 text-[11px] text-cs-text-muted whitespace-nowrap">
+            <span className="flex items-center gap-1.5 shrink-0 text-[0.6875rem] text-cs-text-muted whitespace-nowrap">
               {major && <span className="text-cs-text-dim hidden sm:inline">{major}</span>}
               {major && <span className="hidden sm:inline text-cs-line/30">·</span>}
               <span>{timeAgo(p.created_at)}</span>
@@ -368,8 +368,8 @@ function PostCard({ post, full = false, onChange, onDelete }) {
                 <span className="text-cs-text-dim">(edited)</span>
               )}
             </span>
-            <span className={`ml-auto inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[10px] uppercase tracking-wider shrink-0 ${ACCENT[meta.accent]}`}>
-              <KindIcon className="text-[10px]" /> {meta.label}
+            <span className={`ml-auto inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[0.625rem] uppercase tracking-wider shrink-0 ${ACCENT[meta.accent]}`}>
+              <KindIcon className="text-[0.625rem]" /> {meta.label}
             </span>
           </div>
 
@@ -408,7 +408,7 @@ function PostCard({ post, full = false, onChange, onDelete }) {
           {p.can_review_quality && full && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span
-                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] ${
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[0.6875rem] ${
                   qualityTier(p.quality_score) >= 0
                     ? QUAL_STYLE[qualityTier(p.quality_score)]
                     : 'bg-cs-overlay/5 text-cs-text-muted border-cs-line/10'
@@ -416,7 +416,7 @@ function PostCard({ post, full = false, onChange, onDelete }) {
               >
                 {p.quality_score != null ? (
                   <>
-                    <FiZap className="text-[11px]" />
+                    <FiZap className="text-[0.6875rem]" />
                     {p.quality_score}
                     <span className="opacity-70">{p.quality_ai ? '· ai' : '· auto'}</span>
                   </>
@@ -427,13 +427,13 @@ function PostCard({ post, full = false, onChange, onDelete }) {
               <button
                 onClick={review}
                 disabled={qBusy}
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-cs-line/15 text-[11px] text-cs-text-muted hover:text-cs-text hover:border-cs-primary/30 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-cs-line/15 text-[0.6875rem] text-cs-text-muted hover:text-cs-text hover:border-cs-primary/30 transition-colors disabled:opacity-50"
               >
                 <FiTrendingUp className={qBusy ? 'animate-pulse' : ''} />
                 {qBusy ? 'reviewing…' : p.quality_ai ? 're-review' : 'AI review'}
               </button>
               {p.quality_note && (
-                <p className="w-full text-[11px] text-cs-text-muted leading-relaxed">
+                <p className="w-full text-[0.6875rem] text-cs-text-muted leading-relaxed">
                   <span className="text-cs-text-dim">{p.quality_ai ? 'ai' : 'quick'} check · </span>
                   {p.quality_note}
                 </p>
@@ -445,12 +445,12 @@ function PostCard({ post, full = false, onChange, onDelete }) {
           {explain && (
             <div className="mt-3 rounded-lg border border-cs-violet/25 bg-cs-violet/5 overflow-hidden">
               <div className="flex items-center justify-between px-3 py-1.5 border-b border-cs-violet/15 bg-cs-violet/10">
-                <span className="text-[10px] text-cs-violet inline-flex items-center gap-1.5 uppercase tracking-wider">
+                <span className="text-[0.625rem] text-cs-violet inline-flex items-center gap-1.5 uppercase tracking-wider">
                   <FiCpu /> ai · explain this code
                 </span>
                 <button
                   onClick={() => setExplain(null)}
-                  className="text-[10px] text-cs-text-muted hover:text-cs-text inline-flex items-center gap-1"
+                  className="text-[0.625rem] text-cs-text-muted hover:text-cs-text inline-flex items-center gap-1"
                 >
                   close <FiX />
                 </button>
@@ -464,7 +464,7 @@ function PostCard({ post, full = false, onChange, onDelete }) {
               ) : (
                 <Markdown
                   text={explain.text}
-                  size="text-[13px]"
+                  size="text-[0.8125rem]"
                   className="p-3 text-cs-text-dim leading-relaxed"
                 />
               )}

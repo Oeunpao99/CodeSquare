@@ -22,7 +22,7 @@ function TopProgressBar() {
   if (!state.visible) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] h-[1.5px] bg-transparent pointer-events-none">
+    <div className="fixed top-0 left-0 right-0 z-[100] h-[0.0938rem] bg-transparent pointer-events-none">
       <motion.div
         className="h-full bg-gradient-main rounded-r-full opacity-25 saturate-50"
         initial={false}

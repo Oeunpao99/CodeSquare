@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiUsers, FiPlus, FiLogIn, FiX, FiBookOpen, FiClock, FiGrid } from 'react-icons/fi';
+import { FiUsers, FiPlus, FiLogIn, FiX, FiBookOpen, FiClock, FiGrid, FiSearch } from 'react-icons/fi';
 import { classService, teacherService } from '../services/api';
 import { Sk } from '../components/Skeletons';
 import CodeInput from '../components/class/CodeInput';
@@ -28,21 +28,26 @@ function Modal({ title, onClose, children }) {
 }
 
 function ClassCard({ c }) {
+  const mine = c.role === 'teacher';
   return (
     <Link
       to={`/classes/${c.id}`}
-      className="group card !p-0 overflow-hidden flex flex-col text-cs-text hover:border-cs-primary/40 transition-colors"
+      className="group rounded-lg border border-cs-line/10 p-5 text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/20 transition-colors flex flex-col"
     >
-      <div className="h-20 px-5 flex items-end pb-3" style={{ background: c.color }}>
-        <span className="text-white/90 text-xs font-semibold">{c.subject || 'Class'}</span>
-      </div>
-      <div className="p-5 flex flex-col gap-2 flex-1">
-        <h3 className="font-bold text-lg leading-snug group-hover:text-cs-primary transition-colors">{c.title}</h3>
-        {c.description && <p className="text-sm text-cs-text-dim line-clamp-2">{c.description}</p>}
-        <div className="mt-auto pt-3 flex items-center gap-4 text-sm text-cs-text-dim">
-          <span>{c.role === 'teacher' ? 'You’re the instructor' : `Instructor: ${c.teacher.display_name}`}</span>
-          <span className="inline-flex items-center gap-1 ml-auto"><FiUsers /> {c.student_count}</span>
+      <div className="flex items-center gap-3">
+        <span className="w-10 h-10 rounded-lg grid place-items-center text-white font-bold shrink-0" style={{ background: c.color }}>
+          {(c.title || '?').charAt(0).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-bold truncate">{c.title}</p>
+          <p className="text-sm text-cs-text-dim truncate">{c.subject || 'Class'}</p>
         </div>
+        {mine && <span className="text-xs font-medium text-cs-primary shrink-0">Instructor</span>}
+      </div>
+      {c.description && <p className="text-sm text-cs-text-dim line-clamp-2 mt-3">{c.description}</p>}
+      <div className="mt-auto pt-4 flex items-center justify-between gap-3 text-sm text-cs-text-dim">
+        <span className="truncate">{mine ? 'You’re the instructor' : c.teacher.display_name}</span>
+        <span className="inline-flex items-center gap-1.5 shrink-0"><FiUsers /> {c.student_count} student{c.student_count === 1 ? '' : 's'}</span>
       </div>
     </Link>
   );
@@ -57,6 +62,8 @@ export default function Classes() {
   const [form, setForm] = useState({ title: '', subject: '', description: '', color: COLORS[0] });
   const [busy, setBusy] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [tab, setTab] = useState('all'); // all | teaching | enrolled
+  const [search, setSearch] = useState('');
   const [codeStatus, setCodeStatus] = useState('idle'); // idle | verifying | error | success
 
   const load = () => classService.mine().then((r) => setData(r.data)).catch(() => setData({ teaching: [], enrolled: [] }));
@@ -107,59 +114,69 @@ export default function Classes() {
   };
 
   const empty = data && !data.teaching.length && !data.enrolled.length;
+  const q = search.trim().toLowerCase();
+  const pool = data ? (tab === 'teaching' ? data.teaching : tab === 'enrolled' ? data.enrolled : [...data.teaching, ...data.enrolled]) : [];
+  const shown = pool.filter((c) => !q || `${c.title} ${c.subject || ''} ${c.teacher?.display_name || ''}`.toLowerCase().includes(q));
+  const tabs = data ? [
+    ['all', 'All', data.teaching.length + data.enrolled.length],
+    ...(isTeacher || data.teaching.length ? [['teaching', 'Instructing', data.teaching.length]] : []),
+    ['enrolled', 'Enrolled', data.enrolled.length],
+  ] : [];
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-64">
-          <div>
-            <span className="mono-label">Classes</span>
-            <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-              <FiGrid className="text-cs-primary" /> My Classes
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      {data === null && (
-        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card !p-0 overflow-hidden">
-              <Sk className="h-20 w-full rounded-none" />
-              <div className="p-5 space-y-3"><Sk className="h-5 w-2/3" /><Sk className="h-3.5 w-full" /></div>
-            </div>
+      <section className="rounded-xl border border-cs-line/10 px-5 pt-2 pb-6">
+        {/* Tabs + actions */}
+        <div className="flex flex-wrap items-center gap-x-7 border-b border-cs-line/10">
+          {tabs.map(([k, label, n]) => (
+            <button key={k} onClick={() => setTab(k)}
+              className={`relative h-12 px-0.5 text-[0.9375rem] transition-colors ${tab === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+              {label}<span className="ml-1.5 text-xs text-cs-text-muted">{n}</span>
+              {tab === k && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+            </button>
           ))}
+          {data === null && <span className="h-12" />}
         </div>
-      )}
 
-      {empty && (
-        <div className="card text-center py-14 max-w-xl mx-auto">
-          <FiBookOpen className="text-4xl text-cs-primary mx-auto mb-3" />
-          <h2 className="text-lg font-bold mb-1">No classes yet</h2>
-          <p className="text-cs-text-dim text-sm mb-5">
-            Got a class code from your instructor? Join to see the class materials.
+        {!empty && (
+          <label className="mt-5 mb-5 h-10 flex items-center gap-2 px-3 rounded-lg border border-cs-line/15 focus-within:border-cs-primary/50 transition-colors">
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search classes"
+              className="flex-1 min-w-0 bg-transparent outline-none text-[0.9375rem] placeholder:text-cs-text-muted" />
+            {search
+              ? <button type="button" onClick={() => setSearch('')} className="text-cs-text-muted hover:text-cs-text"><FiX /></button>
+              : <FiSearch className="text-cs-text-muted" />}
+          </label>
+        )}
+
+        {data === null && (
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => <Sk key={i} className="h-[8.5rem] w-full rounded-lg" />)}
+          </div>
+        )}
+
+        {empty && (
+          <div className="text-center py-14 max-w-md mx-auto">
+            <FiBookOpen className="text-3xl text-cs-text-muted mx-auto mb-3" />
+            <h2 className="text-base font-semibold mb-1">No classes yet</h2>
+            <p className="text-cs-text-dim text-sm mb-5">
+              Got a class code from your instructor? Join to see the class materials.
+            </p>
+            <button onClick={() => setModal('join')} className="btn btn-primary btn-sm"><FiLogIn /> Join with code</button>
+          </div>
+        )}
+
+        {data && !empty && shown.length === 0 && (
+          <p className="text-center text-sm text-cs-text-dim py-14">
+            {q ? `No classes match “${search}”.` : 'Nothing here yet.'}
           </p>
-          <button onClick={() => setModal('join')} className="btn btn-primary btn-sm"><FiLogIn /> Join with code</button>
-        </div>
-      )}
+        )}
 
-      {data && data.teaching.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-lg font-bold mb-4">Instructing</h2>
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {data.teaching.map((c) => <ClassCard key={c.id} c={c} />)}
+        {shown.length > 0 && (
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {shown.map((c) => <ClassCard key={`${c.role}-${c.id}`} c={c} />)}
           </div>
-        </section>
-      )}
-
-      {data && data.enrolled.length > 0 && (
-        <section>
-          <h2 className="text-lg font-bold mb-4">Enrolled</h2>
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {data.enrolled.map((c) => <ClassCard key={c.id} c={c} />)}
-          </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Floating ➕: students join; instructors get Join / Create */}
       {fabOpen && <div className="fixed inset-0 z-40" onClick={() => setFabOpen(false)} />}

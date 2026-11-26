@@ -92,7 +92,7 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
               </div>
               <ul className="space-y-1.5 mb-5">
                 {PRO_POINTS.map((p) => (
-                  <li key={p} className="flex items-start gap-2 text-[13px] text-cs-text-dim">
+                  <li key={p} className="flex items-start gap-2 text-[0.8125rem] text-cs-text-dim">
                     <FiCheckCircle className="text-cs-green mt-0.5 shrink-0" /> {p}
                   </li>
                 ))}
@@ -114,17 +114,17 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
                         <span key={i} className={`aspect-square ${i % 3 ? 'bg-cs-text-muted/60' : 'bg-cs-text-muted/20'}`} />
                       ))}
                     </div>
-                    <p className="text-[10px] text-cs-text-muted leading-tight">
+                    <p className="text-[0.625rem] text-cs-text-muted leading-tight">
                       add your KHQR at<br />frontend/public/pro-khqr.png
                     </p>
                   </div>
                 )}
-                <p className="text-[11px] text-cs-text-muted text-center">
+                <p className="text-[0.6875rem] text-cs-text-muted text-center">
                   Scan with any Cambodian bank app (KHQR / Bakong)
                 </p>
               </div>
 
-              <p className="mt-3 text-[10px] text-cs-text-muted text-center">
+              <p className="mt-3 text-[0.625rem] text-cs-text-muted text-center">
                 demo checkout — no real charge is made
               </p>
 
@@ -142,7 +142,7 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
             <div className="py-10 flex flex-col items-center gap-3 text-center">
               <FiLoader className="text-3xl text-cs-primary animate-spin" />
               <p className="text-sm text-cs-text">Verifying payment…</p>
-              <p className="text-[11px] text-cs-text-muted">checking the transaction with the bank</p>
+              <p className="text-[0.6875rem] text-cs-text-muted">checking the transaction with the bank</p>
             </div>
           )}
 
@@ -150,7 +150,7 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
             <div className="py-8 flex flex-col items-center gap-3 text-center">
               <FiCheckCircle className="text-4xl text-cs-green" />
               <h2 className="text-lg font-bold">You&apos;re on Pro 🎉</h2>
-              <p className="text-[12px] text-cs-text-dim">
+              <p className="text-[0.75rem] text-cs-text-dim">
                 {until ? <>Active until <span className="text-cs-text">{until}</span></> : 'Pro is now active'}
               </p>
               <button onClick={finish} className="btn btn-primary w-full mt-3">Done</button>
@@ -159,7 +159,7 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
 
           {phase === 'error' && (
             <div className="py-8 flex flex-col items-center gap-3 text-center">
-              <p className="text-[13px] text-cs-red">{errMsg}</p>
+              <p className="text-[0.8125rem] text-cs-red">{errMsg}</p>
               <button onClick={onClose} className="btn btn-ghost w-full mt-2">Close</button>
             </div>
           )}

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  FiArrowLeft, FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck,
+  FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck,
   FiX, FiCode, FiFileText, FiClipboard, FiCheckSquare, FiZap,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
@@ -158,10 +158,7 @@ function ProjectWorkspace() {
   return (
     <main className="w-full pb-10">
       {/* locked header */}
-      <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/10 px-4 lg:px-6 pt-4 pb-3">
-        <Link to="/projects" className="inline-flex items-center gap-2 text-xs text-cs-text-muted hover:text-cs-text mb-2">
-          <FiArrowLeft /> Projects
-        </Link>
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/10 px-4 lg:px-6 pt-4 pb-3">
         <div className="flex items-center gap-3 flex-wrap">
           <LangLogo name={project.language} className="text-2xl shrink-0" />
           <input
@@ -212,13 +209,13 @@ function ProjectWorkspace() {
             <FiTrash2 />
           </button>
 
-          <span className="text-[11px] text-cs-text-muted w-14 text-right">
+          <span className="text-[0.6875rem] text-cs-text-muted w-14 text-right">
             {saveState === 'saving' ? 'saving…' : saveState === 'dirty' ? 'unsaved' : 'saved'}
           </span>
         </div>
 
         {project.track_slug && (
-          <Link to={`/learn/${project.track_slug}`} className="inline-block mt-1.5 text-[11px] text-cs-primary hover:text-cs-cyan">
+          <Link to={`/learn/${project.track_slug}`} className="inline-block mt-1.5 text-[0.6875rem] text-cs-primary hover:text-cs-cyan">
             ↳ part of the {project.track_slug} track
           </Link>
         )}
@@ -229,12 +226,12 @@ function ProjectWorkspace() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === t.id ? 'bg-cs-primary/10 text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'
+                tab === t.id ? 'bg-cs-overlay/[0.09] text-cs-text font-medium' : 'text-cs-text-dim hover:text-cs-text'
               }`}
             >
               <t.icon className="text-xs" /> {t.label}
               {t.id === 'tasks' && tasks.length > 0 && (
-                <span className="text-[10px] text-cs-text-muted">
+                <span className="text-[0.625rem] text-cs-text-muted">
                   {tasks.filter((x) => x.done).length}/{tasks.length}
                 </span>
               )}
@@ -252,7 +249,7 @@ function ProjectWorkspace() {
                 <FiPlay /> {reviewing ? 'Reviewing…' : 'AI Review'}
               </button>
             </div>
-            <div className="h-[calc(100vh-18rem)] min-h-[360px]">
+            <div className="h-[calc(100vh-18rem)] min-h-[22.5rem]">
               <CodeEditor
                 value={code}
                 onChange={setCode}
@@ -269,9 +266,9 @@ function ProjectWorkspace() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={'# Notes\n\nMarkdown works — headings, **bold**, `code`, lists and ```fenced``` blocks.'}
-              className="w-full h-[calc(100vh-18rem)] min-h-[360px] p-4 rounded-xl bg-cs-darkest border border-cs-line/15 font-mono text-[13px] leading-6 resize-none outline-none focus:border-cs-primary/50"
+              className="w-full h-[calc(100vh-18rem)] min-h-[22.5rem] p-4 rounded-xl bg-cs-darkest border border-cs-line/15 font-mono text-[0.8125rem] leading-6 resize-none outline-none focus:border-cs-primary/50"
             />
-            <div className="h-[calc(100vh-18rem)] min-h-[360px] overflow-y-auto p-4 rounded-xl border border-cs-line/10 bg-cs-darker">
+            <div className="h-[calc(100vh-18rem)] min-h-[22.5rem] overflow-y-auto p-4 rounded-xl border border-cs-line/10 bg-cs-darker">
               {notes.trim()
                 ? <Markdown text={notes} />
                 : <p className="text-sm text-cs-text-muted italic">Preview appears here.</p>}
@@ -340,7 +337,7 @@ function ProjectWorkspace() {
                         t.done ? 'bg-cs-green/20 border-cs-green text-cs-green' : 'border-cs-line/25'
                       }`}
                     >
-                      {t.done && <FiCheck className="text-[10px]" strokeWidth={3} />}
+                      {t.done && <FiCheck className="text-[0.625rem]" strokeWidth={3} />}
                     </button>
                     <span className={`flex-grow text-sm ${t.done ? 'line-through text-cs-text-muted' : 'text-cs-text-dim'}`}>
                       {t.text}

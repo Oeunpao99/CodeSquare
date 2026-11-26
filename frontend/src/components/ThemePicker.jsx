@@ -18,7 +18,7 @@ function Swatch({ colors }) {
         <span className="w-2 h-2 rounded-full" style={{ background: rgb('cs-orange') }} />
         <span className="w-2 h-2 rounded-full" style={{ background: rgb('cs-green') }} />
       </div>
-      <div className="px-3 py-2.5 text-[11px] leading-5" style={{ background: rgb('cs-darkest') }}>
+      <div className="px-3 py-2.5 text-[0.6875rem] leading-5" style={{ background: rgb('cs-darkest') }}>
         <div>
           <span style={{ color: rgb('cs-violet') }}>def </span>
           <span style={{ color: rgb('cs-blue') }}>run</span>

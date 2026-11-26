@@ -287,13 +287,6 @@ export default function ClassView() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-6">
-      <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 lg:pr-64 py-3 -mt-4 mb-6 flex items-center gap-3">
-        <Link to="/classes" className="inline-flex items-center gap-1.5 text-sm text-cs-text-dim hover:text-cs-text shrink-0">
-          <FiArrowLeft /> Classes
-        </Link>
-        <span className="text-cs-text-muted">/</span>
-        <span className="font-semibold truncate">{cls.title}</span>
-      </div>
 
       {/* Header: one coloured banner; class code inline (teacher) */}
       <section className="rounded-2xl overflow-hidden mb-6 text-white" style={{ background: cls.color }}>
@@ -332,7 +325,7 @@ export default function ClassView() {
       </section>
 
       {/* Tabs: everyone sees the class work; the teacher also gets People + Grades. */}
-      <div className="flex gap-1 mb-6 border-b border-cs-line/10 overflow-x-auto">
+      <div className="flex gap-7 mb-6 border-b border-cs-line/10 overflow-x-auto">
         {[
           ['stream', 'Stream'],
           ['materials', 'Materials'],
@@ -341,16 +334,16 @@ export default function ClassView() {
           ...(isTeacher ? [['people', 'People'], ['grades', 'Grades']] : []),
         ].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)}
-            className={`relative h-11 px-4 text-sm whitespace-nowrap transition-colors duration-200 ${tab === k ? 'text-cs-primary font-semibold' : 'text-cs-text-dim hover:text-cs-text'}`}>
-            {label}
+            className={`relative h-12 px-0.5 text-[0.9375rem] whitespace-nowrap transition-colors duration-200 ${tab === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
             {/* One underline that slides between tabs */}
             {tab === k && (
               <motion.span
                 layoutId="class-tab-underline"
-                className="absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-cs-primary"
+                className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary"
                 transition={{ type: 'spring', stiffness: 500, damping: 40 }}
               />
             )}
+            <span className="relative">{label}</span>
           </button>
         ))}
       </div>
@@ -386,7 +379,7 @@ export default function ClassView() {
                   </div>
                   {isTeacher && (
                     <>
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${st.cls}`}>{st.label}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold ${st.cls}`}>{st.label}</span>
                       <button onClick={() => togglePublish(s)} className="btn btn-ghost btn-sm" title={s.published ? 'Hide from students' : 'Show to students'}>
                         {s.published ? <><FiEyeOff /> Unpublish</> : <><FiEye /> Publish</>}
                       </button>
@@ -475,7 +468,7 @@ export default function ClassView() {
                   <p className="text-xs text-cs-text-dim truncate">{p.email}</p>
                 </div>
                 {p.role === 'teacher' ? (
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-cs-primary text-white">Instructor</span>
+                  <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-cs-primary text-white">Instructor</span>
                 ) : (
                   <button
                     onClick={async () => {

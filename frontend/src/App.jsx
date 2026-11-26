@@ -152,7 +152,7 @@ function App() {
               WebkitBackdropFilter: 'blur(14px)',
               boxShadow: '0 1px 0 rgb(var(--cs-line) / 0.08), 0 12px 32px -16px rgb(var(--cs-line) / 0.25)',
               fontFamily: 'Inter, "Kantumruy Pro", system-ui, sans-serif',
-              fontSize: '13.5px',
+              fontSize: '0.84rem',
               fontWeight: 500,
               padding: '10px 14px',
               lineHeight: 1.4,

@@ -45,7 +45,7 @@ export default function AdminLogin({ onAuthed }) {
         </p>
 
         <label className="block mb-3">
-          <span className="block text-[11px] uppercase tracking-wider text-cs-text-muted mb-1.5">
+          <span className="block text-[0.6875rem] uppercase tracking-wider text-cs-text-muted mb-1.5">
             Email
           </span>
           <input
@@ -54,13 +54,13 @@ export default function AdminLogin({ onAuthed }) {
             autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
+            className="w-full px-3.5 py-2.5 rounded-xl text-[0.8125rem] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
             placeholder="you@example.com"
           />
         </label>
 
         <label className="block mb-5">
-          <span className="block text-[11px] uppercase tracking-wider text-cs-text-muted mb-1.5">
+          <span className="block text-[0.6875rem] uppercase tracking-wider text-cs-text-muted mb-1.5">
             Password
           </span>
           <input
@@ -68,13 +68,13 @@ export default function AdminLogin({ onAuthed }) {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
+            className="w-full px-3.5 py-2.5 rounded-xl text-[0.8125rem] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
             placeholder="••••••••"
           />
         </label>
 
         {error && (
-          <p className="mb-4 text-[12px] text-cs-red border border-cs-red/25 bg-cs-red/10 rounded-lg px-3 py-2">
+          <p className="mb-4 text-[0.75rem] text-cs-red border border-cs-red/25 bg-cs-red/10 rounded-lg px-3 py-2">
             {error}
           </p>
         )}

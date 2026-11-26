@@ -141,7 +141,7 @@ function AvatarUpload({ value, name = '', onChange }) {
             <FiX /> Cancel
           </button>
         </div>
-        <p className="text-[11px] text-cs-text-muted">drag to reposition · scroll the slider to zoom</p>
+        <p className="text-[0.6875rem] text-cs-text-muted">drag to reposition · scroll the slider to zoom</p>
       </div>
     );
   }
@@ -166,7 +166,7 @@ function AvatarUpload({ value, name = '', onChange }) {
             <FiTrash2 /> Remove
           </button>
         )}
-        <span className="text-[11px] text-cs-text-muted">PNG, JPEG, WebP or GIF · cropped to a square</span>
+        <span className="text-[0.6875rem] text-cs-text-muted">PNG, JPEG, WebP or GIF · cropped to a square</span>
       </div>
     </div>
   );

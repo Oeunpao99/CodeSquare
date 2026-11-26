@@ -4,7 +4,7 @@ import { challengeService } from '../services/api';
 import CodeEditor from '../components/CodeEditor';
 import Markdown from '../components/Markdown';
 import {
-  FiArrowLeft, FiArrowRight, FiPlay, FiHelpCircle, FiRotateCcw,
+  FiArrowRight, FiPlay, FiHelpCircle, FiRotateCcw,
   FiCheckCircle, FiXCircle, FiZap, FiAward,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
@@ -108,21 +108,18 @@ function ChallengeView() {
       ) : (
         <>
           {/* Page header — locked while the problem + editor scroll beneath it. */}
-          <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-            <Link to="/practice" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-3">
-              <FiArrowLeft /> ../practice
-            </Link>
+          <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className={`badge ${DIFF_BADGE[challenge.difficulty] || 'badge-cyan'}`}>
                 {challenge.difficulty}
               </span>
               {challenge.kind === 'debug' && (
-                <span className="px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wide border border-cs-orange/30 bg-cs-orange/10 text-cs-orange">
+                <span className="px-2.5 py-1 rounded-md text-[0.625rem] uppercase tracking-wide border border-cs-orange/30 bg-cs-orange/10 text-cs-orange">
                   🐛 debug — find &amp; fix the bug
                 </span>
               )}
               {challenge.topic && (
-                <span className="px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wide border border-cs-line/15 text-cs-text-dim">
+                <span className="px-2.5 py-1 rounded-md text-[0.625rem] uppercase tracking-wide border border-cs-line/15 text-cs-text-dim">
                   {challenge.topic}
                 </span>
               )}
@@ -130,11 +127,11 @@ function ChallengeView() {
                 {challenge.language} · {fileLabel(challenge.language)}
               </span>
               <span className="text-xs text-cs-primary inline-flex items-center gap-1">
-                <FiZap className="text-[11px]" /> {challenge.xp_reward} XP
+                <FiZap className="text-[0.6875rem]" /> {challenge.xp_reward} XP
               </span>
               {challenge.solved && (
                 <span className="text-xs text-cs-green inline-flex items-center gap-1">
-                  <FiCheckCircle className="text-[11px]" /> solved
+                  <FiCheckCircle className="text-[0.6875rem]" /> solved
                 </span>
               )}
             </div>
@@ -151,7 +148,7 @@ function ChallengeView() {
                   <span className="terminal-dot bg-cs-red/80" />
                   <span className="terminal-dot bg-cs-orange/80" />
                   <span className="terminal-dot bg-cs-green/80" />
-                  <span className="ml-2 font-mono text-[11px] text-cs-text-muted">README.md</span>
+                  <span className="ml-2 font-mono text-[0.6875rem] text-cs-text-muted">README.md</span>
                 </div>
                 <div className="p-4 text-sm text-cs-text-dim">
                   <Markdown text={challenge.prompt} />
@@ -179,9 +176,9 @@ function ChallengeView() {
                   <span className="ml-2 text-xs text-cs-text-muted">
                     {fileLabel(challenge.language)}
                   </span>
-                  <span className="ml-auto text-[10px] text-cs-text-muted hidden sm:inline">⌘/Ctrl+↵ run</span>
+                  <span className="ml-auto text-[0.625rem] text-cs-text-muted hidden sm:inline">⌘/Ctrl+↵ run</span>
                 </div>
-                <div className="h-[360px]">
+                <div className="h-[22.5rem]">
                   <CodeEditor value={code} onChange={setCode} language={challenge.language} onSubmit={run} />
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2 border-t border-cs-line/10 bg-cs-line/[0.03]">

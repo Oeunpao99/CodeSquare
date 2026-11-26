@@ -25,7 +25,7 @@ function MajorChips({ slugs = [] }) {
   const labels = slugs.map((s) => MAJORS[s]?.label).filter(Boolean).slice(0, 3);
   if (!labels.length) return null;
   return (
-    <p className="text-[11px] text-cs-text-muted mt-3">
+    <p className="text-[0.6875rem] text-cs-text-muted mt-3">
       appears in: {labels.join(' · ')}
     </p>
   );
@@ -40,7 +40,7 @@ function CollectionCard({ c, forMajor = false }) {
         className="-mx-6 -mt-6 mb-4 w-[calc(100%+3rem)] max-w-none aspect-[3/2] transition-transform duration-500 group-hover:scale-[1.03]"
       />
       {forMajor && (
-        <span className="absolute top-3 right-3 z-10 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-cs-darkest/80 backdrop-blur text-cs-primary">
+        <span className="absolute top-3 right-3 z-10 text-[0.625rem] uppercase tracking-wider px-2 py-0.5 rounded bg-cs-darkest/80 backdrop-blur text-cs-primary">
           {t('dashboard.for_your_major')}
         </span>
       )}
@@ -72,7 +72,7 @@ function CollectionCard({ c, forMajor = false }) {
 
       {c.trackable > 0 && (
         <div className="mt-4">
-          <div className="flex items-center justify-between text-[11px] text-cs-text-muted mb-1.5">
+          <div className="flex items-center justify-between text-[0.6875rem] text-cs-text-muted mb-1.5">
             <span className={c.completed === c.trackable ? 'text-cs-green' : ''}>
               {c.completed} / {c.trackable} {t('library.done')}
             </span>
@@ -162,11 +162,7 @@ function Library() {
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky header — the whole thing (title, description, search and category
           filters) stays locked while the collections scroll beneath it. */}
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label">{t('library.knowledge_base')}</span>
-        <h1 className="text-3xl font-bold mt-2 mb-4 flex items-center gap-3">
-          <FiBookOpen className="text-cs-primary" /> {t('library.library_title')}
-        </h1>
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
 
         {/* Search (left) + category tabs (right) on one row to save header height. */}
         <div className="flex flex-col lg:flex-row lg:items-center gap-3">
@@ -197,7 +193,7 @@ function Library() {
                   onClick={() => setCat(k)}
                   className={`h-9 px-3.5 rounded-full text-sm whitespace-nowrap shrink-0 transition-colors ${
                     cat === k
-                      ? 'bg-cs-primary text-cs-btn-text font-semibold'
+                      ? 'bg-cs-overlay/[0.09] text-cs-text font-medium'
                       : 'text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06]'
                   }`}
                 >
@@ -266,7 +262,7 @@ function Library() {
                     {r.summary ? ` · ${r.summary}` : ''}
                   </div>
                 </div>
-                <span className="flex items-center gap-1 text-[11px] text-cs-text-muted shrink-0">
+                <span className="flex items-center gap-1 text-[0.6875rem] text-cs-text-muted shrink-0">
                   <FiClock /> {r.reading_minutes}m
                 </span>
                 <FiCornerDownLeft className="text-cs-text-muted group-hover:text-cs-primary transition-colors shrink-0" />

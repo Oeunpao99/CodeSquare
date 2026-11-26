@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiChevronRight, FiPlay, FiCheck, FiBookOpen, FiArrowRight, FiStar, FiUsers, FiCheckCircle } from 'react-icons/fi';
+import { FiChevronRight, FiPlay, FiCheck, FiBookOpen, FiArrowRight, FiStar, FiUsers, FiCheckCircle } from 'react-icons/fi';
 import { docService } from '../services/api';
 import { toast } from '../utils/toast';
 
@@ -59,7 +59,7 @@ function TopicRow({ to, topic, thumb }) {
       <span className="shrink-0">
         {topic.completed ? (
           <span className="w-4 h-4 rounded-full bg-cs-green text-white grid place-items-center">
-            <FiCheck className="text-[9px]" strokeWidth={3} />
+            <FiCheck className="text-[0.5625rem]" strokeWidth={3} />
           </span>
         ) : (
           <span className="w-3.5 h-3.5 rounded-full border border-cs-line/25 block" />
@@ -72,9 +72,9 @@ function TopicRow({ to, topic, thumb }) {
         {topic.summary && <span className="block text-xs text-cs-text-muted truncate">{topic.summary}</span>}
       </span>
       {topic.has_lesson && !topic.completed && (
-        <FiPlay className="text-cs-green/60 shrink-0 text-[11px]" title="Has a hands-on lesson" />
+        <FiPlay className="text-cs-green/60 shrink-0 text-[0.6875rem]" title="Has a hands-on lesson" />
       )}
-      <span className="text-[11px] text-cs-text-muted shrink-0 tabular-nums">{topic.reading_minutes}m</span>
+      <span className="text-[0.6875rem] text-cs-text-muted shrink-0 tabular-nums">{topic.reading_minutes}m</span>
       <FiChevronRight className="text-cs-text-muted group-hover:text-cs-primary transition-colors shrink-0" />
     </Link>
   );
@@ -83,8 +83,8 @@ function TopicRow({ to, topic, thumb }) {
 function Rung({ node, ring, last, id, children }) {
   return (
     <div id={id} className="relative pl-12 scroll-mt-24">
-      {!last && <span className="absolute left-[15px] top-8 -bottom-4 w-px bg-cs-line/10" />}
-      <span className={`absolute left-0 top-0.5 w-8 h-8 rounded-full border-2 ${ring} bg-cs-dark grid place-items-center text-[11px] font-semibold`}>
+      {!last && <span className="absolute left-[0.9375rem] top-8 -bottom-4 w-px bg-cs-line/10" />}
+      <span className={`absolute left-0 top-0.5 w-8 h-8 rounded-full border-2 ${ring} bg-cs-dark grid place-items-center text-[0.6875rem] font-semibold`}>
         {node}
       </span>
       {children}
@@ -191,10 +191,7 @@ function LibraryCollection() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky header — back link + collection title stay locked while the path scrolls. */}
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-8 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/library" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-4">
-          <FiArrowLeft /> Library
-        </Link>
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-8 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
         <div className="flex items-start gap-4">
           <span className="w-12 h-12 rounded-xl bg-cs-overlay/5 border border-cs-line/10 flex items-center justify-center text-2xl shrink-0">
             <CollectionLogo slug={data.slug} fallback={data.icon} />
@@ -267,11 +264,11 @@ function LibraryCollection() {
                         <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-cs-overlay/5">
                           <span className="flex-grow min-w-0">
                             <span className="block font-semibold text-sm truncate">{step.label}</span>
-                            <span className={`text-[10px] uppercase tracking-wider ${d.text}`}>
+                            <span className={`text-[0.625rem] uppercase tracking-wider ${d.text}`}>
                               {step.difficulty}
                             </span>
                           </span>
-                          <span className="text-[11px] text-cs-text-muted tabular-nums shrink-0">
+                          <span className="text-[0.6875rem] text-cs-text-muted tabular-nums shrink-0">
                             {step.done}/{step.total}
                           </span>
                           <span className="w-16 h-1.5 rounded-full bg-cs-overlay/10 overflow-hidden shrink-0">
@@ -307,7 +304,7 @@ function LibraryCollection() {
                           className="-mx-4 -mt-3.5 mb-3 w-[calc(100%+2rem)] max-w-none aspect-[16/9]"
                         />
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="w-5 h-5 rounded-full border border-cs-line/20 grid place-items-center text-[10px] text-cs-text-muted shrink-0">
+                          <span className="w-5 h-5 rounded-full border border-cs-line/20 grid place-items-center text-[0.625rem] text-cs-text-muted shrink-0">
                             {t.group_level}
                           </span>
                           <span className="font-semibold text-sm group-hover:text-cs-primary transition-colors truncate">
@@ -317,7 +314,7 @@ function LibraryCollection() {
                         {t.summary && (
                           <span className="text-xs text-cs-text-muted line-clamp-2 flex-grow">{t.summary}</span>
                         )}
-                        <span className="text-[11px] text-cs-text-muted tabular-nums mt-2">
+                        <span className="text-[0.6875rem] text-cs-text-muted tabular-nums mt-2">
                           {t.reading_minutes} min
                         </span>
                       </Link>
@@ -330,11 +327,11 @@ function LibraryCollection() {
         </div>
 
         {/* ---------------- info rail ---------------- */}
-        <aside className="hidden lg:block sticky top-24 space-y-4">
+        <aside className="hidden lg:block sticky top-36 space-y-4">
           <div className="rounded-xl border border-cs-line/10 bg-cs-darker/40 p-4">
             <div className="flex items-baseline justify-between mb-1">
               <span className="text-2xl font-bold">{pct}%</span>
-              <span className="text-[11px] text-cs-text-muted">
+              <span className="text-[0.6875rem] text-cs-text-muted">
                 {data.trackable > 0 ? `${data.completed}/${data.trackable}` : `${data.topics.length} topics`}
               </span>
             </div>
@@ -344,7 +341,7 @@ function LibraryCollection() {
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <div className="text-[11px] text-cs-text-muted space-y-0.5">
+            <div className="text-[0.6875rem] text-cs-text-muted space-y-0.5">
               <div>{steps.length} levels · beginner → advanced</div>
               <div>{data.topics.length} topics</div>
             </div>
@@ -373,7 +370,7 @@ function LibraryCollection() {
                       >
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${done ? 'bg-cs-green' : d.dot}`} />
                         <span className="flex-grow truncate">{s.label}</span>
-                        <span className="text-[10px] text-cs-text-muted tabular-nums">{s.done}/{s.total}</span>
+                        <span className="text-[0.625rem] text-cs-text-muted tabular-nums">{s.done}/{s.total}</span>
                       </a>
                     </li>
                   );
@@ -383,7 +380,7 @@ function LibraryCollection() {
           )}
 
           {majorLabels.length > 0 && (
-            <p className="text-[11px] text-cs-text-muted px-1">
+            <p className="text-[0.6875rem] text-cs-text-muted px-1">
               On the path for {majorLabels.join(', ')}.
             </p>
           )}

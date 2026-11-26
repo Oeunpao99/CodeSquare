@@ -122,7 +122,7 @@ function GradeRow({ cid, a, s, onChanged }) {
     <li className="py-4 space-y-3">
       <div className="flex items-center gap-3">
         <span className="flex-1 min-w-0 font-semibold truncate">{s.display_name}</span>
-        <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${st.cls}`}>{st.label}</span>
+        <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold ${st.cls}`}>{st.label}</span>
       </div>
       {sub && (
         <>
@@ -278,10 +278,10 @@ export default function AssignmentsTab({ cid, isTeacher }) {
                   {isTeacher && ` · ${a.submitted} handed in · ${a.graded} graded`}
                 </p>
               </button>
-              {st && <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${st.cls}`}>{st.label}</span>}
+              {st && <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0 ${st.cls}`}>{st.label}</span>}
               {isTeacher && (
                 <>
-                  {!a.published && <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-cs-overlay/10 text-cs-text-dim">Draft</span>}
+                  {!a.published && <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-cs-overlay/10 text-cs-text-dim">Draft</span>}
                   <button onClick={() => setReview(a.id)} className="btn btn-secondary btn-sm">Review & grade</button>
                   <button
                     onClick={async () => { await classService.updateAssignment(cid, a.id, { published: !a.published }); load(); }}

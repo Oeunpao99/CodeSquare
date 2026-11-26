@@ -9,7 +9,7 @@ function Tutor() {
   // Bounded to the viewport so the chat scrolls INSIDE its panel (like the
   // docked tutor in LessonView) instead of growing the whole page.
   return (
-    <div className="h-[calc(100vh-60px)] lg:h-screen flex flex-col overflow-hidden px-6 lg:px-10 py-6">
+    <div className="h-[calc(100vh-3.75rem)] lg:h-[calc(100vh-3.5rem)] flex flex-col overflow-hidden px-6 lg:px-10 py-6">
       <div className="shrink-0 mb-4">
         <span className="mono-label">AI tutor</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">

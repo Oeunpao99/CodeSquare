@@ -84,8 +84,8 @@ function TutorDock({ context, language, label = 'AI Tutor' }) {
             <AiIcon className="text-cs-dark text-base" />
           </div>
           <div className="leading-tight min-w-0">
-            <div className="font-semibold text-[13px] truncate">CodeSquareAgent</div>
-            <div className="text-[11px] text-cs-green flex items-center gap-1">
+            <div className="font-semibold text-[0.8125rem] truncate">CodeSquareAgent</div>
+            <div className="text-[0.6875rem] text-cs-green flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-cs-green rounded-full animate-pulse" />
               Online
             </div>
@@ -162,7 +162,7 @@ function TutorDock({ context, language, label = 'AI Tutor' }) {
               animate={{ x: 0 }}
               exit={{ x: 440 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="absolute top-0 right-0 h-full w-full sm:w-[400px] shadow-2xl"
+              className="absolute top-0 right-0 h-full w-full sm:w-[25rem] shadow-2xl"
             >
               {panel}
             </motion.div>
