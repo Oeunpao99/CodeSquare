@@ -65,7 +65,7 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
       onClick={phase === 'verifying' ? undefined : onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl border border-cs-line/12 bg-cs-darker overflow-hidden"
+        className="w-full max-w-md rounded-2xl border border-cs-line/[0.12] bg-cs-darker overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* header */}

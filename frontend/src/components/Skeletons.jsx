@@ -11,7 +11,7 @@ export function Sk({ className = '', style }) {
 
 function Screen({ children, label = 'Loading' }) {
   return (
-    <div role="status" aria-busy="true" aria-label={label} className="animate-route-fade">
+    <div role="status" aria-busy="true" aria-label={label} className="w-full px-6 lg:px-10 py-8 animate-route-fade">
       {children}
       <span className="sr-only">{label}…</span>
     </div>

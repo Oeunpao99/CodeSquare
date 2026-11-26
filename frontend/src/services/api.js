@@ -107,6 +107,7 @@ export const aiService = {
 export const progressService = {
   getSummary: () => api.get('/progress/summary'),
   getDetailed: () => api.get('/progress/detailed'),
+  activity: (year) => api.get('/progress/activity', { params: { year } }),
   getSkills: () => api.get('/progress/skills'),
   getContinue: () => api.get('/progress/continue'),
 };
@@ -118,6 +119,7 @@ export const careerService = {
 export const communityService = {
   leaderboard: (limit = 50) => api.get('/community/leaderboard', { params: { limit } }),
   profile: (username) => api.get(`/community/users/${username}`),
+  activity: (username, year) => api.get(`/community/users/${username}/activity`, { params: { year } }),
   devs: (params = {}) => api.get('/community/devs', { params }),
 
   // --- follow ---

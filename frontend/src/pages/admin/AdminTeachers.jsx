@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiCheck, FiX } from 'react-icons/fi';
 import { adminService } from '../../services/adminApi';
 import { promptDialog } from '../../utils/confirm';
+import { contactLabel } from '../../utils/contact';
 
 const TABS = [['pending', 'Pending'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['', 'All']];
 const STATUS_CLS = {
@@ -63,7 +64,7 @@ export default function AdminTeachers() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-bold">{t.full_name}</p>
-                <span className="text-sm text-cs-text-dim">@{t.username} · {t.email}</span>
+                <span className="text-sm text-cs-text-dim">@{t.username} · {contactLabel(t)}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold ${STATUS_CLS[t.status] || ''}`}>{t.status}</span>
               </div>
               <p className="text-sm mt-1">

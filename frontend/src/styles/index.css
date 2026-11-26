@@ -814,3 +814,54 @@
     }
   }
 }
+
+/* Community banner: pencil writes a line, post icons float up. */
+@layer utilities {
+  .banner-pencil { animation: banner-pencil 3.2s ease-in-out infinite; transform-origin: bottom left; }
+  .banner-ink { animation: banner-ink 3.2s ease-in-out infinite; }
+  .banner-float { animation: banner-float 4.8s ease-in infinite; opacity: 0; }
+  .banner-feed { animation: banner-feed 10s linear infinite; }
+  @keyframes banner-feed { from { transform: translateY(0); } to { transform: translateY(calc(-50% - 0.1875rem)); } }
+  @keyframes banner-pencil {
+    0%   { left: 0;    transform: translateY(0) rotate(0deg); }
+    15%  { transform: translateY(-3px) rotate(-6deg); }
+    30%  { transform: translateY(0) rotate(0deg); }
+    45%  { transform: translateY(-3px) rotate(-6deg); }
+    70%  { left: 7rem; transform: translateY(0) rotate(0deg); }
+    85%  { left: 7rem; opacity: 1; }
+    100% { left: 0;    opacity: 1; }
+  }
+  @keyframes banner-ink {
+    0%   { width: 0; opacity: 1; }
+    70%  { width: 7.5rem; opacity: 1; }
+    85%  { width: 7.5rem; opacity: 0; }
+    100% { width: 0; opacity: 0; }
+  }
+  @keyframes banner-float {
+    0%   { transform: translateY(0) scale(0.8); opacity: 0; }
+    15%  { opacity: 1; }
+    100% { transform: translateY(-6.5rem) scale(1.1); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .banner-pencil, .banner-ink, .banner-float, .banner-feed { animation: none; }
+    .banner-ink { width: 7.5rem; }
+  }
+}
+
+/* Roadmap "Visual" tab (components/RoadmapRoad.jsx): the road draws itself,
+   stops pop in as it reaches them, the current stop pulses. */
+@layer utilities {
+  .road-reveal { stroke-dasharray: 1; stroke-dashoffset: 1; animation: road-reveal 2.4s cubic-bezier(0.45, 0, 0.25, 1) forwards; }
+  @keyframes road-reveal { to { stroke-dashoffset: 0; } }
+  .road-dash { animation: road-dash 1.6s linear infinite; }
+  @keyframes road-dash { to { stroke-dashoffset: -30; } }
+  .road-pop { opacity: 0; transform-box: fill-box; animation: road-pop 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) forwards; }
+  @keyframes road-pop { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
+  .road-pulse { transform-box: fill-box; transform-origin: center; animation: road-pulse 1.8s ease-out infinite; }
+  @keyframes road-pulse { 0% { transform: scale(0.85); opacity: 0.9; } 100% { transform: scale(1.35); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .road-reveal { animation: none; stroke-dashoffset: 0; }
+    .road-dash, .road-pulse { animation: none; }
+    .road-pop { animation: none; opacity: 1; }
+  }
+}

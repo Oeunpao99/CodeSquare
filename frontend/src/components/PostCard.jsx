@@ -162,7 +162,7 @@ function ImageGrid({ images, full }) {
                 key={i}
                 onClick={() => setViewing(i)}
                 title="View full size"
-                className="aspect-square rounded-lg overflow-hidden bg-cs-darkest/50 border border-cs-line/8 cursor-zoom-in hover:border-cs-primary/40 transition-colors"
+                className="aspect-square rounded-lg overflow-hidden bg-cs-darkest/50 border border-cs-line/[0.08] cursor-zoom-in hover:border-cs-primary/40 transition-colors"
               >
                 <img
                   src={src}
@@ -472,7 +472,7 @@ function PostCard({ post, full = false, onChange, onDelete }) {
           )}
 
           {/* Action bar */}
-          <div className="flex items-center gap-1 mt-3 pt-3 border-t border-cs-line/8">
+          <div className="flex items-center gap-1 mt-3 pt-3 border-t border-cs-line/[0.08]">
             <button
               onClick={like}
               className={`tap inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs ${

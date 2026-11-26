@@ -6,10 +6,11 @@ import { useMajor } from '../context/MajorContext';
 import { roadmapService } from '../services/api';
 import {
   FiCheck, FiCircle, FiPlay, FiBook,
-  FiChevronDown, FiAward, FiList, FiShare2,
+  FiChevronDown, FiAward, FiList, FiShare2, FiNavigation,
 } from 'react-icons/fi';
 import MajorIcon from '../components/MajorIcon';
 import RoadmapFlow from '../components/RoadmapFlow';
+import RoadmapRoad from '../components/RoadmapRoad';
 
 const VIEW_KEY = 'cs-roadmap-view';
 
@@ -27,7 +28,7 @@ function Roadmap() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
   const [view, setView] = useState(() => {
-    try { return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'flow'; } catch { return 'flow'; }
+    try { const v = localStorage.getItem(VIEW_KEY); return ['list', 'road'].includes(v) ? v : 'flow'; } catch { return 'flow'; }
   });
 
   const setViewPersist = (v) => {
@@ -69,7 +70,7 @@ function Roadmap() {
       <section className="rounded-xl border border-cs-line/10 px-5 mb-6">
         {/* View tabs + overall progress */}
         <div className="flex flex-wrap items-center gap-x-7 gap-y-2 border-b border-cs-line/10">
-          {[['flow', 'Map', FiShare2], ['list', 'List', FiList]].map(([v, label, Icon]) => (
+          {[['road', 'Visual', FiNavigation], ['flow', 'Map', FiShare2], ['list', 'List', FiList]].map(([v, label, Icon]) => (
             <button key={v} onClick={() => setViewPersist(v)}
               className={`relative h-12 px-0.5 inline-flex items-center gap-2 text-[0.9375rem] transition-colors ${view === v ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
               <Icon /> {label}
@@ -109,7 +110,9 @@ function Roadmap() {
           </div>
         ) : (
           <>
-            {view === 'flow' ? (
+            {view === 'road' ? (
+              <RoadmapRoad data={data} />
+            ) : view === 'flow' ? (
               <RoadmapFlow data={data} />
             ) : (
             <>

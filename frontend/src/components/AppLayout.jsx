@@ -18,6 +18,7 @@ import {
 } from 'react-icons/fi';
 import MajorIcon from './MajorIcon';
 import NotificationBell from './NotificationBell';
+import { contactLabel } from '../utils/contact';
 
 // Sidebar nav grouped by the student journey (Learn → Practice → Build) so new
 // sections slot into an existing group instead of lengthening a flat list.
@@ -909,7 +910,7 @@ function AppLayout() {
               </span>
               <div className="flex-grow min-w-0">
                 <p className="font-bold truncate">{user?.display_name || user?.username}</p>
-                <p className="text-xs text-cs-text-muted truncate">{user?.email}</p>
+                <p className="text-xs text-cs-text-muted truncate">{contactLabel(user)}</p>
               </div>
               <button
                 onClick={() => setPopup(false)}

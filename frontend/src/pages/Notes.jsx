@@ -233,7 +233,7 @@ function MonthTimeline({ months, total, max, active, onPick }) {
       className={`group relative flex w-[3.875rem] shrink-0 snap-start flex-col items-center gap-1.5 rounded-lg border px-1.5 pt-2 pb-1.5 transition-all duration-200 ${
         isActive
           ? "border-cs-primary/60 bg-cs-primary/10 -translate-y-0.5"
-          : "border-cs-line/12 hover:border-cs-primary/30 hover:bg-cs-overlay/[0.03]"
+          : "border-cs-line/[0.12] hover:border-cs-primary/30 hover:bg-cs-overlay/[0.03]"
       }`}
     >
       <span

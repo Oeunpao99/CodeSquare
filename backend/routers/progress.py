@@ -10,6 +10,7 @@ from models.models import (
     Challenge, ChallengeAttempt, Quiz, QuizAttempt, Language, Module,
 )
 from routers.auth import get_current_user
+from common.activity import daily_activity
 from common.cambodia import khmer_date, khmer_day_range, khmer_today
 from skills import compute_skills
 from majors import MAJOR_TRACKS
@@ -464,3 +465,13 @@ async def get_weekly_activity(user_id: int, db: AsyncSession) -> List[WeeklyActi
         ))
     
     return weekly
+
+
+@router.get("/activity")
+async def my_activity(
+    year: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Real per-day activity counts for the heatmap ({"2026-11-27": 3, ...})."""
+    return await daily_activity(db, current_user.id, year or khmer_today().year)

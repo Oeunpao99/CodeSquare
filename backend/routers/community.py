@@ -1889,3 +1889,20 @@ async def user_posts(
     entries = entries[:limit]
     posts = await _hydrate_feed(db, entries, current_user)
     return FeedOut(posts=posts, has_more=has_more)
+
+
+@router.get("/users/{username}/activity")
+async def public_activity(
+    username: str,
+    year: Optional[int] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Per-day activity for someone's public profile heatmap."""
+    from common.activity import daily_activity
+    from common.cambodia import khmer_today
+
+    u = (await db.execute(select(User).where(User.username == username))).scalar_one_or_none()
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return await daily_activity(db, u.id, year or khmer_today().year)

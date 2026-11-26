@@ -73,7 +73,7 @@ export default function AdminLayout({ admin, onSignOut, children }) {
           </div>
           <button
             onClick={onSignOut}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[0.8125rem] text-cs-text-dim border border-cs-line/12 hover:text-cs-primary hover:border-cs-primary/35 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[0.8125rem] text-cs-text-dim border border-cs-line/[0.12] hover:text-cs-primary hover:border-cs-primary/35 transition-colors"
           >
             <FiLogOut /> Sign out
           </button>

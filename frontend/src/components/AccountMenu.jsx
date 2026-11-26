@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
 import { teacherService } from '../services/api';
+import { contactLabel } from '../utils/contact';
 
 /**
  * Avatar button at the far right of the header. Opens an account menu:
@@ -59,7 +60,7 @@ export default function AccountMenu({ user, onLogout, onOpenSettings, onOpenActi
           {/* who */}
           <div className="px-4 py-3 border-b border-cs-line/10">
             <p className="font-semibold truncate">{name}</p>
-            <p className="text-xs text-cs-text-dim truncate">{user.email}</p>
+            <p className="text-xs text-cs-text-dim truncate">{contactLabel(user)}</p>
           </div>
 
           {/* light / dark */}

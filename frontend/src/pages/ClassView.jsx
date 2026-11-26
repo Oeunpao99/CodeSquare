@@ -19,6 +19,7 @@ import AssignmentsTab from '../components/class/AssignmentsTab';
 import GradesTab from '../components/class/GradesTab';
 import { toast } from '../utils/toast';
 import { confirmDialog } from '../utils/confirm';
+import { contactLabel } from '../utils/contact';
 
 const fmtSize = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
@@ -465,7 +466,7 @@ export default function ClassView() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{p.display_name} <span className="text-cs-text-dim font-normal">@{p.username}</span></p>
-                  <p className="text-xs text-cs-text-dim truncate">{p.email}</p>
+                  <p className="text-xs text-cs-text-dim truncate">{contactLabel(p)}</p>
                 </div>
                 {p.role === 'teacher' ? (
                   <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-cs-primary text-white">Instructor</span>

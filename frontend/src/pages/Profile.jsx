@@ -8,21 +8,11 @@ import ThemePicker from '../components/ThemePicker';
 import AiIcon from '../components/AiIcon';
 import MajorPicker from '../components/MajorPicker';
 import ProfileForm from '../components/ProfileForm';
-
-// Deterministic pseudo-random from a seed so the contribution graph is stable
-// between renders (avoids a flickering board).
-function seeded(i, j) {
-  const x = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
-  return x - Math.floor(x);
-}
+import { contactLabel } from '../utils/contact';
+import { buildYearGrid, MONTHS, LEVEL_STYLES } from '../utils/heatmap';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const LEVEL_STYLES = ['bg-level-0', 'bg-level-1', 'bg-level-2', 'bg-level-3', 'bg-level-4'];
 
-const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
-// Monday-based weekday index (0 = Mon … 6 = Sun) to match the row order above.
-const monIndex = (date) => (date.getDay() + 6) % 7;
 
 // Colored score badge for a lesson, using the app's dev-vibe badge-outline styles.
 function gradeFor(score) {
@@ -33,64 +23,6 @@ function gradeFor(score) {
   return { label: 'D', cls: 'badge-outline-red' };
 }
 
-const levelFor = (v) => (v <= 0 ? 0 : v <= 1 ? 1 : v <= 3 ? 2 : v <= 6 ? 3 : 4);
-
-// Build a GitHub-style contribution grid for one calendar year. Real data only
-// covers the last 7 days (progress.weekly_activity) plus an all-time total, so
-// earlier in-year days get a recency-weighted synthetic pattern and future days
-// stay empty — it reads like a living streak board without inventing per-day
-// claims. `year` is a full 4-digit year.
-function buildYearGrid(summary, weekly, year) {
-  const total = summary?.total_lessons_completed || 0;
-  const density = Math.min(0.85, 0.12 + total * 0.045);
-  const today = startOfDay(new Date());
-
-  const real = {};
-  (weekly || []).forEach((d) => { real[WEEKDAYS.indexOf(d.day)] = d.lessons_completed || 0; });
-
-  // Grid spans the Monday on/before Jan 1 → the Sunday on/after Dec 31.
-  const start = startOfDay(new Date(year, 0, 1));
-  start.setDate(start.getDate() - monIndex(start));
-  const end = startOfDay(new Date(year, 11, 31));
-  end.setDate(end.getDate() + (6 - monIndex(end)));
-
-  const grid = [];
-  const monthLabel = [];
-  let lastMonth = -1;
-  for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 7)) {
-    const col = [];
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(cursor);
-      date.setDate(date.getDate() + d);
-      const inYear = date.getFullYear() === year;
-      const future = date > today;
-      const daysAgo = Math.round((today - date) / 86400000);
-
-      let level = 0;
-      if (inYear && !future) {
-        if (daysAgo < 7) {
-          level = levelFor(real[monIndex(date)] || 0);
-        } else {
-          const recency = 1 - Math.min(1, daysAgo / 365);
-          const threshold = density * (0.4 + recency * 0.8);
-          const r = seeded(Math.floor(date.getTime() / 86400000), date.getDay());
-          if (r < threshold) level = r < threshold * 0.3 ? 1 : r < threshold * 0.6 ? 2 : r < threshold * 0.85 ? 3 : 4;
-        }
-      }
-      col.push({
-        level,
-        pad: !inYear,
-        future: future && inYear,
-        today: date.getTime() === today.getTime(),
-      });
-    }
-    const m = new Date(cursor).getMonth();
-    monthLabel.push(m !== lastMonth ? m : null);
-    lastMonth = m;
-    grid.push(col);
-  }
-  return { grid, monthLabel };
-}
 
 function Profile() {
   const { t } = useTranslation();
@@ -98,7 +30,14 @@ function Profile() {
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('overview'); // overview | settings
-  const [heatYear, setHeatYear] = useState(0); // year offset: -1 last, 0 this, +1 next
+  const [heatYear, setHeatYear] = useState(0); // year offset: -1 last year, 0 this year
+  const [activity, setActivity] = useState(null); // { days: {iso: count}, total }
+
+  useEffect(() => {
+    setActivity(null);
+    progressService.activity(new Date().getFullYear() + heatYear)
+      .then((r) => setActivity(r.data)).catch(() => setActivity({ days: {}, total: 0 }));
+  }, [heatYear]);
   const [lessonQuery, setLessonQuery] = useState('');
   const [lessonPage, setLessonPage] = useState(0);
   const LESSONS_PER_PAGE = 12;
@@ -144,7 +83,7 @@ function Profile() {
               {user?.display_name || user?.username}
             </h1>
             <p className="text-xs md:text-sm text-cs-text-dim truncate">
-              {user?.headline || user?.email}
+              {user?.headline || contactLabel(user)}
             </p>
           </div>
           {user?.username && (
@@ -237,18 +176,16 @@ function Profile() {
             {/* GitHub-style contribution graph */}
             {(() => {
               const selectedYear = new Date().getFullYear() + heatYear;
-              const { grid, monthLabel } = buildYearGrid(
-                progress.summary, progress.weekly_activity, selectedYear,
-              );
+              const { grid, monthLabel, activeDays } = buildYearGrid(activity?.days, selectedYear);
               return (
                 <div className="card mb-8 overflow-hidden">
                   <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
                     <div>
                       <h3 className="text-lg font-bold flex items-center gap-2"><FiActivity /> {t('profile.coding_heatmap')}</h3>
                       <p className="text-xs text-cs-text-muted">
-                        {heatYear > 0
-                          ? t('profile.hasnt_started', { year: selectedYear })
-                          : t('profile.activity_across', { year: selectedYear })}
+                        {activity === null ? 'Loading…'
+                          : activity.total === 0 ? `No activity in ${selectedYear} yet. Finish a lesson, challenge or quiz to light up a day.`
+                          : `${activity.total} ${activity.total === 1 ? 'activity' : 'activities'} on ${activeDays} ${activeDays === 1 ? 'day' : 'days'} in ${selectedYear}`}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 text-[0.6875rem] text-cs-text-muted">
@@ -265,7 +202,6 @@ function Profile() {
                     {[
                       { k: -1, label: t('profile.last_year') },
                       { k: 0, label: t('profile.this_year') },
-                      { k: 1, label: t('profile.next_year') },
                     ].map((o) => (
                       <button
                         key={o.k}

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { lessonService, progressService } from '../services/api';
-import { FiCode, FiZap, FiTarget, FiArrowRight, FiPlayCircle, FiSearch, FiX } from 'react-icons/fi';
+import { FiTarget, FiArrowRight, FiPlayCircle, FiSearch, FiX, FiCompass } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import LangLogo from '../components/LangLogo';
 import MajorIcon from '../components/MajorIcon';
@@ -72,184 +72,145 @@ function Dashboard() {
   };
   const pathLanguages = languages.filter((l) => inPath(l.slug)).sort(byOrder);
   const otherLanguages = languages.filter((l) => !inPath(l.slug));
-  const visibleLanguages = showAllTracks ? [...pathLanguages, ...otherLanguages] : pathLanguages;
+  const allLanguages = [...pathLanguages, ...otherLanguages];
 
   // Search looks through every course, not just the major's, by name/slug/description.
   const q = query.trim().toLowerCase();
-  const searchResults = q
-    ? [...pathLanguages, ...otherLanguages].filter((l) =>
-        [l.name, l.slug, l.description].some((v) => (v || '').toLowerCase().includes(q)))
-    : null;
-  const shownLanguages = searchResults || (majorData ? visibleLanguages : languages);
+  const pool = showAllTracks || !majorData ? allLanguages : pathLanguages;
+  const shownLanguages = q
+    ? allLanguages.filter((l) => [l.name, l.slug, l.description].some((v) => (v || '').toLowerCase().includes(q)))
+    : pool;
+
+  // Decorative logo tiles either side of the hero search (like a hub page).
+  const tiles = allLanguages.slice(0, 12);
+  const TileGrid = ({ items, flip }) => (
+    <div className={`hidden xl:grid grid-cols-3 gap-4 shrink-0 ${flip ? '[direction:rtl]' : ''}`} aria-hidden>
+      {items.map((l, i) => (
+        <span
+          key={`${l.slug}-${i}`}
+          className={`w-16 h-16 rounded-xl border border-cs-line/10 bg-cs-overlay/[0.03] grid place-items-center text-2xl transition-opacity ${
+            (i + (flip ? 1 : 0)) % 3 === 2 ? 'opacity-30' : (i % 2 ? 'opacity-60' : 'opacity-90')
+          }`}
+        >
+          <LangLogo name={l.slug || l.name} />
+        </span>
+      ))}
+    </div>
+  );
+
+  const tabs = majorData
+    ? [['path', 'Your path', pathLanguages.length], ['all', 'All courses', allLanguages.length]]
+    : [['all', 'All courses', allLanguages.length]];
+  const activeTab = showAllTracks || !majorData ? 'all' : 'path';
 
   return (
     <div>
       <main className="w-full px-6 lg:px-10 py-8">
-        {/* Sticky header — locked while the dashboard scrolls beneath it */}
-        <div className="mb-6">
-          <div className="animate-slide-up">
-            <h1 className="text-3xl font-bold mb-2">{getGreeting()}, {user?.username}!</h1>
-            <p className="text-cs-text-dim">{t('dashboard.ready_continue')}</p>
+        {/* Hero: search with course tiles either side */}
+        <section className="flex items-center justify-center gap-10 py-6">
+          <TileGrid items={tiles.slice(0, 6)} />
+          <div className="w-full max-w-2xl text-center">
+            <p className="text-sm text-cs-text-dim">{getGreeting()}, {user?.display_name || user?.username}</p>
+            <h1 className="text-3xl md:text-4xl font-bold mt-1">What do you want to learn?</h1>
+            <label className="mt-6 h-12 flex items-center gap-3 px-4 rounded-xl border border-cs-line/15 bg-cs-overlay/[0.03] focus-within:border-cs-primary/60 transition-colors text-left">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search courses: Python, SQL, Power BI…"
+                aria-label="Search courses"
+                className="flex-1 min-w-0 bg-transparent outline-none text-base placeholder:text-cs-text-muted"
+              />
+              {query
+                ? <button type="button" onClick={() => setQuery('')} className="text-cs-text-muted hover:text-cs-text" aria-label="Clear search"><FiX /></button>
+                : <FiSearch className="text-cs-text-muted text-lg" />}
+            </label>
           </div>
+          <TileGrid items={tiles.slice(6, 12).length ? tiles.slice(6, 12) : tiles.slice(0, 6)} flip />
+        </section>
 
-          {majorData && (
-            <div className="card mt-4 mb-0 flex flex-col sm:flex-row sm:items-center gap-5">
-              <span
-                className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shrink-0"
-                style={{ background: `${majorData.color}1f`, color: majorData.color }}
-              >
-                <MajorIcon major={major} />
-              </span>
-              <div className="flex-grow">
-                <p className="mono-label text-cs-text-muted mb-1"> {t('dashboard.your_major')}</p>
-                <h2 className="text-xl font-bold">{majorData.label}</h2>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {majorData.focus.map((f) => (
-                    <span key={f} className="text-[0.6875rem] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted">
-                      {f}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
-                <Link to="/roadmap" className="btn btn-primary btn-sm">
-                  {t('dashboard.view_roadmap')}
-                </Link>
-                <Link to="/profile" className="btn btn-ghost btn-sm">
-                  {t('dashboard.change')}
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-
+        {/* Continue where you left off: slim bar */}
         {resume && (
           <Link
             to={`/learn/${resume.track_slug}/module/${resume.module_id}/lesson/${resume.lesson_id}`}
-            className="card mb-10 flex flex-col sm:flex-row sm:items-center gap-5 border-cs-primary/40 hover:border-cs-primary/70 group"
+            className="mt-4 rounded-xl border border-cs-line/10 bg-cs-overlay/[0.03] hover:border-cs-primary/40 px-5 py-4 flex flex-wrap items-center gap-4 group transition-colors"
           >
-            <span className="w-14 h-14 rounded-xl bg-cs-primary/15 text-cs-primary flex items-center justify-center text-3xl shrink-0">
-              <FiPlayCircle />
-            </span>
-            <div className="flex-grow min-w-0">
-              <p className="mono-label text-cs-primary mb-1"> {t('dashboard.pick_up_where')}</p>
-              <h2 className="text-xl font-bold truncate">{resume.lesson_title}</h2>
-              <p className="text-sm text-cs-text-dim truncate">
-                {resume.track_name} <span className="text-cs-text-muted">›</span> {resume.module_title}
+            <FiPlayCircle className="text-cs-primary text-xl shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[0.9375rem] truncate">
+                <span className="font-semibold">Continue</span>
+                <span className="text-cs-text-dim"> · {resume.lesson_title} · {resume.track_name}</span>
               </p>
-              <div className="flex items-center gap-3 mt-2">
-                <div className="h-1.5 w-40 max-w-full rounded-full bg-cs-overlay/10 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-cs-primary transition-all"
-                    style={{ width: `${Math.round((resume.completed_in_track / Math.max(1, resume.total_in_track)) * 100)}%` }}
-                  />
-                </div>
-                <span className="text-[0.6875rem] text-cs-text-muted shrink-0">
-                  {resume.completed_in_track}/{resume.total_in_track} {t('dashboard.in_track')}
-                </span>
-              </div>
             </div>
-            <span className="inline-flex items-center gap-2 text-cs-primary font-semibold group-hover:text-cs-cyan transition-colors shrink-0 self-start sm:self-center">
-              {t('dashboard.resume')} <FiArrowRight />
+            <span className="flex items-center gap-3 text-sm text-cs-text-dim">
+              <span className="w-28 h-1.5 rounded-full bg-cs-overlay/[0.12] overflow-hidden">
+                <span className="block h-full rounded-full bg-cs-primary" style={{ width: `${Math.round((resume.completed_in_track / Math.max(1, resume.total_in_track)) * 100)}%` }} />
+              </span>
+              {resume.completed_in_track}/{resume.total_in_track}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-cs-primary font-semibold text-sm">
+              {t('dashboard.resume')} <FiArrowRight className="group-hover:translate-x-0.5 transition-transform" />
             </span>
           </Link>
         )}
 
-        <div className="mb-12">
-          <div className="flex items-end justify-between gap-4 mb-2 flex-wrap">
-            <h2 className="text-2xl font-bold">
-              {searchResults
-                ? `${searchResults.length} course${searchResults.length === 1 ? '' : 's'} for “${query.trim()}”`
-                : majorData ? t('dashboard.your_tracks', { major: majorData.label }) : t('dashboard.choose_language')}
-            </h2>
-            <div className="flex items-center gap-2 ml-auto">
-              <div className="relative w-64 max-w-full">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search courses — Power BI, SQL…"
-                  aria-label="Search courses"
-                  className="input w-full h-9 !py-0 pl-9 pr-8 text-sm"
-                />
-                {query && (
-                  <button
-                    onClick={() => setQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-cs-text-muted hover:text-cs-text"
-                    aria-label="Clear search"
-                  >
-                    <FiX />
-                  </button>
-                )}
-              </div>
-            {!searchResults && majorData && otherLanguages.length > 0 && (
-              <button
-                onClick={() => setShowAllTracks((v) => !v)}
-                className="btn btn-ghost btn-sm"
-              >
-                {showAllTracks ? t('dashboard.show_only_my') : t('dashboard.explore_all', { count: otherLanguages.length })}
-              </button>
-            )}
+        {/* Tabs + major */}
+        <div className="mt-8 flex flex-wrap items-center gap-x-7 border-b border-cs-line/10">
+          {q ? (
+            <span className="relative h-12 inline-flex items-center text-[0.9375rem] text-cs-primary">
+              {shownLanguages.length} result{shownLanguages.length === 1 ? '' : 's'} for “{query.trim()}”
+              <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />
+            </span>
+          ) : tabs.map(([k, label, n]) => (
+            <button key={k} onClick={() => setShowAllTracks(k === 'all')}
+              className={`relative h-12 px-0.5 text-[0.9375rem] transition-colors ${activeTab === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+              {label}<span className="ml-1.5 text-xs text-cs-text-muted">{n}</span>
+              {activeTab === k && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+            </button>
+          ))}
+          {majorData && (
+            <div className="ml-auto flex items-center gap-2.5 py-2 text-sm">
+              <span style={{ color: majorData.color }}><MajorIcon major={major} /></span>
+              <span className="font-medium">{majorData.label}</span>
+              <Link to="/roadmap" className="text-cs-text-dim hover:text-cs-primary">Roadmap</Link>
+              <span className="text-cs-text-muted">·</span>
+              <Link to="/profile" className="text-cs-text-dim hover:text-cs-primary">{t('dashboard.change')}</Link>
             </div>
-          </div>
-          <p className="text-cs-text-dim mb-8">
-            {searchResults
-              ? (searchResults.length ? 'Searching all courses, including ones outside your major.' : 'No course matches that. Try a shorter word, or search the Library for articles.')
-              : majorData
-              ? `The tracks that build toward ${majorData.label}. Others are hidden unless you explore.`
-              : t('dashboard.choose_language')}
-          </p>
-
-          {!searchResults && majorData && visibleLanguages.length === 0 && (
-            <p className="text-sm text-cs-text-muted mb-6">
-              {t('dashboard.tracks_not_seeded')}
-            </p>
           )}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {shownLanguages.map((lang) => (
+        {!q && majorData && activeTab === 'path' && pathLanguages.length === 0 && (
+          <p className="text-sm text-cs-text-muted mt-6">{t('dashboard.tracks_not_seeded')}</p>
+        )}
+        {q && shownLanguages.length === 0 && (
+          <p className="text-sm text-cs-text-dim mt-8 text-center">No course matches that. Try a shorter word, or search the Library for articles.</p>
+        )}
+
+        {/* Course cards */}
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 mt-6">
+          {shownLanguages.map((lang) => {
+            const mine = inPath(lang.slug);
+            return (
               <Link
                 key={lang.id}
                 to={`/learn/${lang.slug}`}
-                className={`card text-center py-12 group cursor-pointer relative ${
-                  inPath(lang.slug) ? 'border-cs-primary/50' : ''
-                }`}
+                className="group rounded-lg border border-cs-line/10 p-5 flex flex-col text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/25 transition-colors"
               >
-                {inPath(lang.slug) && (
-                  <span className="absolute top-3 right-3 text-[0.625rem] uppercase tracking-wider px-2 py-0.5 rounded bg-cs-primary/15 text-cs-primary">
-                    {t('dashboard.for_your_major')}
-                  </span>
-                )}
-                <LangLogo name={lang.slug || lang.name} className="mx-auto mb-4 text-6xl" />
-                <h3 className="text-2xl font-bold mb-2">{lang.name}</h3>
-                <p className="text-sm text-cs-text-dim mb-6">{lang.description}</p>
-                <span className="inline-flex items-center gap-2 text-cs-primary font-semibold group-hover:text-cs-cyan transition-colors">
-                  {t('dashboard.start_learning')} <FiArrowRight />
-                </span>
+                <LangLogo name={lang.slug || lang.name} className="text-3xl" />
+                <h3 className="text-lg font-semibold mt-4">{lang.name}</h3>
+                <p className="text-sm text-cs-text-dim mt-1.5 line-clamp-2">{lang.description}</p>
+                <div className="mt-auto pt-5">
+                  <div className="pt-4 border-t border-cs-line/10 flex items-center justify-between gap-3 text-sm">
+                    <span className={`inline-flex items-center gap-2 ${mine ? 'text-cs-primary' : 'text-cs-text-dim'}`}>
+                      {mine ? <FiTarget /> : <FiCompass />} {mine ? t('dashboard.for_your_major') : 'Explore'}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-cs-text-dim group-hover:text-cs-primary transition-colors">
+                      {t('dashboard.start_learning')} <FiArrowRight className="group-hover:translate-x-0.5 transition-transform" />
+                    </span>
+                  </div>
+                </div>
               </Link>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-2xl font-bold mb-6">{t('dashboard.quick_actions')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link to="/projects" className="card text-center py-8 group cursor-pointer">
-              <FiCode className="text-4xl text-cs-primary mx-auto mb-4" />
-              <h4 className="text-lg font-bold mb-2">{t('dashboard.build_project')}</h4>
-              <p className="text-sm text-cs-text-dim">{t('dashboard.build_project_desc')}</p>
-            </Link>
-            <Link to="/practice" className="card text-center py-8 group cursor-pointer">
-              <FiTarget className="text-4xl text-cs-primary mx-auto mb-4" />
-              <h4 className="text-lg font-bold mb-2">{t('dashboard.practice_mode')}</h4>
-              <p className="text-sm text-cs-text-dim">{t('dashboard.practice_mode_desc')}</p>
-            </Link>
-            <Link to="/tutor" className="card text-center py-8 group cursor-pointer">
-              <FiZap className="text-4xl text-cs-primary mx-auto mb-4" />
-              <h4 className="text-lg font-bold mb-2">{t('dashboard.ask_tutor')}</h4>
-              <p className="text-sm text-cs-text-dim">{t('dashboard.ask_tutor_desc')}</p>
-            </Link>
-          </div>
+            );
+          })}
         </div>
       </main>
     </div>

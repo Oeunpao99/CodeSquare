@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FiCornerUpLeft, FiSend, FiTrash2, FiHeart } from 'react-icons/fi';
+import { FiCornerUpLeft, FiSend, FiTrash2, FiHeart, FiArrowLeft } from 'react-icons/fi';
 import { communityService } from '../services/api';
 import { toast } from '../utils/toast';
 import PostCard, { Avatar, AuthorName, timeAgo } from '../components/PostCard';
@@ -241,7 +241,7 @@ function CommunityPost() {
       ref={(el) => {
         commentEls.current[c.id] = el;
       }}
-      className={`rounded-xl border border-cs-line/10 bg-cs-darker/50 p-3.5 ${landed === c.id ? 'animate-post-land' : ''}`}
+      className={`py-3 ${depth > 0 ? 'pl-4 border-l-2 border-cs-line/10' : 'border-b border-cs-line/10 last:border-b-0'} ${landed === c.id ? 'animate-post-land' : ''}`}
     >
       <div className="flex items-center gap-2.5 mb-1.5">
         <Avatar author={c.author} size="w-7 h-7" />
@@ -304,7 +304,7 @@ function CommunityPost() {
       )}
 
       {c.replies && c.replies.length > 0 && (
-        <div className="mt-3 space-y-3 border-l border-cs-line/12 pl-3 ml-1">
+        <div className="mt-3 space-y-3 border-l border-cs-line/[0.12] pl-3 ml-1">
           {c.replies.map((r) => renderThread(r, depth + 1))}
         </div>
       )}
@@ -313,8 +313,48 @@ function CommunityPost() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/community'))}
+          className="inline-flex items-center gap-2 h-9 pl-2.5 pr-3.5 rounded-full border border-cs-line/15 text-sm text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06] transition-colors"
+        >
+          <FiArrowLeft /> Back to feed
+        </button>
+      </div>
 
-      {post === null && <p className="text-cs-text-muted text-sm">Loading post…</p>}
+      {post === null && (
+        <div className="grid lg:grid-cols-[minmax(0,1.65fr)_minmax(22rem,1fr)] items-start" aria-busy="true" aria-label="Loading post">
+          <div className="lg:pr-8 space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="skeleton w-12 h-12 rounded-full shrink-0" />
+              <span className="skeleton h-4 w-36 rounded" />
+              <span className="skeleton h-4 w-16 rounded-full" />
+              <span className="skeleton h-5 w-16 rounded-full ml-auto" />
+            </div>
+            <div className="pl-[3.75rem] space-y-2.5">
+              <span className="skeleton block h-3.5 w-full rounded" />
+              <span className="skeleton block h-3.5 w-11/12 rounded" />
+              <span className="skeleton block h-3.5 w-2/3 rounded" />
+              <span className="skeleton block h-72 w-full rounded-xl mt-4" />
+              <div className="flex gap-5 pt-2">{[0, 1, 2, 3].map((j) => <span key={j} className="skeleton h-4 w-8 rounded" />)}</div>
+            </div>
+          </div>
+          <div className="mt-8 lg:mt-0 lg:pl-8 lg:border-l border-cs-line/10 space-y-4">
+            <span className="skeleton block h-5 w-28 rounded mt-4" />
+            <span className="skeleton block h-24 w-full rounded-xl" />
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex gap-2.5">
+                <span className="skeleton w-7 h-7 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <span className="skeleton block h-3.5 w-28 rounded" />
+                  <span className="skeleton block h-3 w-4/5 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {post === false && (
         <div className="mx-auto w-full max-w-[64rem] text-center py-14">
           <p className="font-semibold mb-1">Post not found</p>
@@ -324,7 +364,9 @@ function CommunityPost() {
       )}
 
       {post && post !== false && (
-        <div className="mx-auto w-full max-w-[64rem]">
+        <div className="grid lg:grid-cols-[minmax(0,1.65fr)_minmax(22rem,1fr)] gap-0 items-start">
+          {/* Left: the post */}
+          <div className="min-w-0 lg:pr-8">
           {editing ? (
             <EditForm
               post={post}
@@ -332,24 +374,24 @@ function CommunityPost() {
               onSaved={(next) => { setPost((p) => ({ ...p, ...next })); setEditing(false); }}
             />
           ) : (
-            <div className="border-b border-cs-line/10">
-              <PostCard
-                post={post}
-                full
-                onChange={onCardChange}
-                onDelete={() => navigate('/community')}
-              />
-            </div>
+            <PostCard
+              post={post}
+              full
+              onChange={onCardChange}
+              onDelete={() => navigate('/community')}
+            />
           )}
+          </div>
 
-          <section className="mt-6">
-            <h2 className="text-base font-semibold mb-3">
+          {/* Right: comments, pinned beside the post with their own scroll */}
+          <section className="flex flex-col border-t lg:border-t-0 lg:border-l border-cs-line/10 lg:pl-8 lg:sticky lg:top-20 lg:h-[calc(100vh-6.5rem)]">
+            <h2 className="pt-4 pb-1 text-base font-semibold">
               {post.comment_count || 0} comment{post.comment_count === 1 ? '' : 's'}
             </h2>
 
             <form
               onSubmit={addComment}
-              className="mb-5 rounded-2xl border border-cs-line/15 bg-cs-darker focus-within:border-cs-primary/50 transition-colors"
+              className="mt-3 rounded-xl border border-cs-line/15 focus-within:border-cs-primary/50 transition-colors shrink-0"
             >
               <textarea
                 ref={commentRef}
@@ -384,7 +426,7 @@ function CommunityPost() {
               </FlyIcon>
             )}
 
-            <div ref={commentListRef} className="space-y-3">
+            <div ref={commentListRef} className="py-2 overflow-y-auto min-h-0 flex-1">
               {post.comments.map((c) => renderThread(c, 0))}
               {post.comments.length === 0 && (
                 <p className="text-cs-text-dim text-sm py-6 text-center">No comments yet. Start the conversation.</p>

@@ -14,56 +14,7 @@ import { toast } from '../utils/toast';
 import { formatDate } from '../utils/datetime';
 import PostCard from '../components/PostCard';
 
-// --- deterministic heatmap helpers (mirrors Profile.jsx) ---
-function seeded(i, j) {
-  const x = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
-  return x - Math.floor(x);
-}
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const LEVEL_STYLES = ['bg-level-0', 'bg-level-1', 'bg-level-2', 'bg-level-3', 'bg-level-4'];
-
-const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
-const monIndex = (date) => (date.getDay() + 6) % 7;
-const levelFor = (v) => (v <= 0 ? 0 : v <= 1 ? 1 : v <= 3 ? 2 : v <= 6 ? 3 : 4);
-
-// Build a minimal, fully-synthetic "activity streak" grid so other users' profiles
-// read like a living board without exposing per-day lesson details.
-function buildYearGrid(total, year) {
-  const density = Math.min(0.8, 0.1 + total * 0.05);
-  const today = startOfDay(new Date());
-  const start = startOfDay(new Date(year, 0, 1));
-  start.setDate(start.getDate() - monIndex(start));
-  const end = startOfDay(new Date(year, 11, 31));
-  end.setDate(end.getDate() + (6 - monIndex(end)));
-
-  const grid = [];
-  const monthLabel = [];
-  let lastMonth = -1;
-  for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 7)) {
-    const col = [];
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(cursor);
-      date.setDate(date.getDate() + d);
-      const inYear = date.getFullYear() === year;
-      const future = date > today;
-      const daysAgo = Math.round((today - date) / 86400000);
-      let level = 0;
-      if (inYear && !future) {
-        const recency = 1 - Math.min(1, daysAgo / 365);
-        const threshold = density * (0.4 + recency * 0.8);
-        const r = seeded(Math.floor(date.getTime() / 86400000), date.getDay());
-        if (r < threshold) level = r < threshold * 0.3 ? 1 : r < threshold * 0.6 ? 2 : r < threshold * 0.85 ? 3 : 4;
-      }
-      col.push({ level, pad: !inYear, future: future && inYear, today: date.getTime() === today.getTime() });
-    }
-    const m = new Date(cursor).getMonth();
-    monthLabel.push(m !== lastMonth ? m : null);
-    lastMonth = m;
-    grid.push(col);
-  }
-  return { grid, monthLabel };
-}
+import { buildYearGrid, MONTHS, LEVEL_STYLES } from '../utils/heatmap';
 
 // --- small presentational bits ---
 // One metric at a time, switchable — cleaner than a wall of stat cards.
@@ -220,10 +171,13 @@ export default function UserProfile() {
   const isMe = !!data?.is_me;
 
   const selectedYear = new Date().getFullYear();
-  const heat = useMemo(
-    () => (data ? buildYearGrid(data.xp || 0, selectedYear) : { grid: [], monthLabel: [] }),
-    [data, selectedYear],
-  );
+  const [activity, setActivity] = useState(null);
+  useEffect(() => {
+    setActivity(null);
+    communityService.activity(username, selectedYear)
+      .then((r) => setActivity(r.data)).catch(() => setActivity({ days: {}, total: 0 }));
+  }, [username, selectedYear]);
+  const heat = useMemo(() => buildYearGrid(activity?.days, selectedYear), [activity, selectedYear]);
 
   if (notFound) {
     return (
@@ -331,7 +285,7 @@ export default function UserProfile() {
         <div className="rounded-2xl border border-cs-line/10 bg-cs-darker p-5 mb-6">
           <p className="text-sm text-cs-text-dim leading-relaxed whitespace-pre-wrap">{data.bio}</p>
           {(data.github_url || data.website_url || data.linkedin_url) && (
-            <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-cs-line/8">
+            <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-cs-line/[0.08]">
               {data.github_url && (
                 <a href={data.github_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted hover:text-cs-primary transition-colors">
                   <FiGithub /> github
@@ -451,7 +405,7 @@ export default function UserProfile() {
                     </div>
                   </div>
                   {p.updated_at && (
-                    <p className="mt-3 pt-3 border-t border-cs-line/8 text-[0.6875rem] text-cs-text-muted">
+                    <p className="mt-3 pt-3 border-t border-cs-line/[0.08] text-[0.6875rem] text-cs-text-muted">
                       updated {formatDate(p.updated_at)}
                     </p>
                   )}
@@ -476,7 +430,7 @@ export default function UserProfile() {
             <div className="rounded-2xl border border-cs-line/10 bg-cs-darker p-5">
               <p className="text-sm text-cs-text-dim leading-relaxed whitespace-pre-wrap">{data.bio}</p>
               {(data.github_url || data.website_url || data.linkedin_url) && (
-                <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-cs-line/8">
+                <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-cs-line/[0.08]">
                   {data.github_url && (
                     <a href={data.github_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted hover:text-cs-primary transition-colors">
                       <FiGithub /> github
@@ -502,7 +456,7 @@ export default function UserProfile() {
             <div className="flex items-start justify-between flex-wrap gap-3 mb-4">
               <div>
                 <h3 className="text-base font-bold flex items-center gap-2"><FiActivity /> Coding activity · {selectedYear}</h3>
-                <p className="text-xs text-cs-text-muted mt-0.5">Estimated from total XP — {data.xp} XP earned</p>
+                <p className="text-xs text-cs-text-muted mt-0.5">{activity === null ? 'Loading…' : activity.total === 0 ? 'No activity this year yet.' : `${activity.total} ${activity.total === 1 ? 'activity' : 'activities'} on ${heat.activeDays} ${heat.activeDays === 1 ? 'day' : 'days'}`}</p>
               </div>
               <div className="flex items-center gap-1.5 text-[0.6875rem] text-cs-text-muted">
                 Less
@@ -532,6 +486,7 @@ export default function UserProfile() {
                           <div
                             key={d}
                             className={`w-2.5 h-2.5 rounded-[0.1875rem] ${cell.pad ? 'invisible' : LEVEL_STYLES[cell.level]} ${cell.future ? 'opacity-40' : ''} ${cell.today ? 'ring-1 ring-cs-primary scale-125' : ''}`}
+                            title={cell.pad ? undefined : cell.label}
                           />
                         ))}
                       </div>

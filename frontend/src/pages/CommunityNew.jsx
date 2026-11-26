@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiEdit3 } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import CommunityBanner from '../components/CommunityBanner';
 import { Composer } from './Community';
 import { toast } from '../utils/toast';
 
@@ -16,13 +16,13 @@ export default function CommunityNew() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
+      <CommunityBanner
+        title="Share with the community"
+        subtitle="A win, a question, or something you built."
+        className="mb-6"
+      />
 
-      <div className="mx-auto w-full max-w-[40rem]">
-        <p className="text-sm text-cs-text-dim mb-4">
-          Share an idea, your progress, a question or something you built. Pick a type, write, and post.
-        </p>
-        <Composer onPosted={onPosted} sendRef={sendRef} />
-      </div>
+      <Composer onPosted={onPosted} sendRef={sendRef} split />
     </main>
   );
 }

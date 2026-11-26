@@ -49,11 +49,7 @@ function LanguageView() {
   }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading || !language) {
-    return (
-      <main className="w-full px-6 lg:px-10 py-6">
-        <CourseSkeleton />
-      </main>
-    );
+    return <CourseSkeleton />;
   }
 
   const modules = language.modules || [];

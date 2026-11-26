@@ -7,6 +7,7 @@ import {
 import { toast } from '../utils/toast';
 import { formatDate } from '../utils/datetime';
 import UpgradeModal from '../components/UpgradeModal';
+import { contactLabel } from '../utils/contact';
 
 const fmtDate = (iso) => (iso ? formatDate(iso) : null);
 
@@ -133,7 +134,7 @@ function Usage() {
                 </span>
                 <div className="min-w-0">
                   <p className="font-semibold text-lg truncate">{user?.username}</p>
-                  <p className="text-xs text-cs-text-muted truncate">{user?.email}</p>
+                  <p className="text-xs text-cs-text-muted truncate">{contactLabel(user)}</p>
                 </div>
               </div>
               <div>

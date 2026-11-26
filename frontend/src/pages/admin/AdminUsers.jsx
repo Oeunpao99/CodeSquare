@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fi';
 import { adminService } from '../../services/adminApi';
 import { formatDate, timeAgo } from '../../utils/datetime';
+import { contactLabel } from '../../utils/contact';
 
 const COLS = '2.4fr 96px 120px 90px 128px 168px 34px';
 
@@ -154,7 +155,7 @@ export default function AdminUsers() {
         <h1 className="mt-2 text-3xl font-bold flex items-center gap-3">
           <FiShield className="text-cs-primary" /> Users
           {stats && (
-            <span className="text-xs font-semibold text-cs-text-dim border border-cs-line/12 rounded-full px-2.5 py-0.5 mb-0.5">
+            <span className="text-xs font-semibold text-cs-text-dim border border-cs-line/[0.12] rounded-full px-2.5 py-0.5 mb-0.5">
               {stats.total_users.toLocaleString()}
             </span>
           )}
@@ -194,7 +195,7 @@ export default function AdminUsers() {
               className="w-full pl-9 pr-3 py-2.5 rounded-xl text-[0.8125rem] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
             />
           </div>
-          <div className="flex gap-0.5 p-0.5 rounded-xl border border-cs-line/12 bg-cs-overlay/[0.03] text-[0.8125rem]">
+          <div className="flex gap-0.5 p-0.5 rounded-xl border border-cs-line/[0.12] bg-cs-overlay/[0.03] text-[0.8125rem]">
             {['all', 'free', 'pro'].map((p) => (
               <button
                 key={p}
@@ -209,7 +210,7 @@ export default function AdminUsers() {
           </div>
           <button
             onClick={() => setOrder((o) => (o === 'desc' ? 'asc' : 'desc'))}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-[0.8125rem] text-cs-text-dim border border-cs-line/12 rounded-xl bg-cs-overlay/[0.03] hover:text-cs-text"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-[0.8125rem] text-cs-text-dim border border-cs-line/[0.12] rounded-xl bg-cs-overlay/[0.03] hover:text-cs-text"
           >
             Joined {order === 'desc' ? '↓' : '↑'}
           </button>
@@ -220,14 +221,14 @@ export default function AdminUsers() {
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="w-7 h-7 rounded-lg border border-cs-line/12 flex items-center justify-center disabled:opacity-30 hover:text-cs-text"
+                className="w-7 h-7 rounded-lg border border-cs-line/[0.12] flex items-center justify-center disabled:opacity-30 hover:text-cs-text"
               >
                 <FiChevronRight className="rotate-180 text-sm" />
               </button>
               <button
                 disabled={to >= total}
                 onClick={() => setPage((p) => p + 1)}
-                className="w-7 h-7 rounded-lg border border-cs-line/12 flex items-center justify-center disabled:opacity-30 hover:text-cs-text"
+                className="w-7 h-7 rounded-lg border border-cs-line/[0.12] flex items-center justify-center disabled:opacity-30 hover:text-cs-text"
               >
                 <FiChevronRight className="text-sm" />
               </button>
@@ -238,7 +239,7 @@ export default function AdminUsers() {
         {/* table */}
         <div className="rounded-2xl bg-cs-darker border border-cs-line/10 overflow-hidden">
           <div
-            className="grid gap-3.5 px-[1.125rem] py-3 text-[0.625rem] uppercase tracking-wider text-cs-text-muted bg-cs-overlay/[0.02] border-b border-cs-line/8"
+            className="grid gap-3.5 px-[1.125rem] py-3 text-[0.625rem] uppercase tracking-wider text-cs-text-muted bg-cs-overlay/[0.02] border-b border-cs-line/[0.08]"
             style={{ gridTemplateColumns: COLS }}
           >
             <span>User</span><span>Plan</span><span>Joined</span><span>Onboard</span>
@@ -268,7 +269,7 @@ export default function AdminUsers() {
                         {u.display_name || u.username}{' '}
                         <span className="font-normal text-cs-text-muted">@{u.username}</span>
                       </div>
-                      <div className="text-[0.7188rem] text-cs-text-muted truncate">{u.email}</div>
+                      <div className="text-[0.7188rem] text-cs-text-muted truncate">{contactLabel(u)}</div>
                     </div>
                   </div>
                   <div><PlanBadge plan={u.plan} /></div>
