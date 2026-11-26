@@ -484,16 +484,16 @@ function AppLayout() {
             />
           )}
           {isActive && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-cs-primary" aria-hidden="true" />
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-cs-primary" aria-hidden="true" />
           )}
           <span
-            className={`relative flex items-center gap-3 pl-3.5 pr-3 py-2.5 rounded-[10px] text-[15px] transition-colors duration-150 ${
+            className={`relative flex items-center gap-3 pl-3.5 pr-3 py-[7px] rounded-[10px] text-[14.5px] transition-colors duration-150 ${
               isActive
                 ? 'text-cs-primary font-semibold'
                 : 'text-cs-text-dim font-medium group-hover:bg-cs-overlay/[0.06] group-hover:text-cs-text'
             }`}
           >
-            <item.icon className={`text-[19px] shrink-0 transition-colors ${isActive ? 'text-cs-primary' : 'text-cs-text-muted group-hover:text-cs-cyan'}`} />
+            <item.icon className={`text-[18px] shrink-0 transition-colors ${isActive ? 'text-cs-primary' : 'text-cs-text-muted group-hover:text-cs-cyan'}`} />
             <span className="flex-grow truncate">{item.label}</span>
           </span>
         </>
@@ -618,14 +618,14 @@ function AppLayout() {
       </div>
 
       {/* Nav — terminal command list, grouped by journey stage */}
-      <nav className="relative flex-1 px-3 space-y-2 overflow-y-auto pb-3">
+      <nav className="relative flex-1 px-3 space-y-1 overflow-y-auto pb-3">
         {NAV_GROUPS.map((grp) => {
           const isCollapsed = !!navGroups[grp.id];
           return (
-            <div key={grp.id} className="space-y-1">
+            <div key={grp.id} className="space-y-0.5">
               <button
                 onClick={() => toggleNavGroup(grp.id)}
-                className="w-full flex items-center gap-1.5 px-3.5 pt-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-cs-text-muted hover:text-cs-text transition-colors"
+                className="w-full flex items-center gap-1.5 px-3.5 pt-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-cs-text-muted hover:text-cs-text transition-colors"
                 aria-expanded={!isCollapsed}
               >
                 <FiChevronDown
@@ -640,7 +640,7 @@ function AppLayout() {
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.18, ease: 'easeOut' }}
-                    className="overflow-hidden space-y-1"
+                    className="overflow-hidden space-y-0.5"
                   >
                     {grp.items.map(renderNavLink)}
                   </motion.div>
