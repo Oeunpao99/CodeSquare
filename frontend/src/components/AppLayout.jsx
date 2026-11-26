@@ -21,53 +21,87 @@ import NotificationBell from './NotificationBell';
 // sections slot into an existing group instead of lengthening a flat list.
 // Every entry points at a route that already exists — no dead links.
 function getNavGroups(t) {
+  // 10 entries. Merged sections keep their old pages as tabs (see SECTION_TABS),
+  // and `match` keeps the sidebar item highlighted on every tab of the section.
   return [
     {
       id: 'learn',
       items: [
-        { to: '/dashboard', label: t('nav.learn'), icon: FiBook, end: true, match: ['/learn'] },
-        { to: '/roadmap', label: t('nav.roadmap'), icon: FiTarget },
+        { to: '/dashboard', label: t('nav.learn'), icon: FiBook, end: true, match: ['/learn', '/roadmap'] },
         { to: '/library', label: t('nav.library'), icon: FiBookOpen },
-        { to: '/progress', label: t('nav.progress'), icon: FiActivity },
-      ],
-    },
-    {
-      id: 'classes',
-      items: [
         { to: '/classes', label: t('nav.my_classes'), icon: FiGrid, match: ['/classes', '/teach'] },
       ],
     },
     {
       id: 'practice',
       items: [
-        { to: '/practice', label: t('nav.practice'), icon: FiZap },
-        { to: '/quizzes', label: t('nav.quizzes'), icon: FiHelpCircle },
+        { to: '/practice', label: t('nav.practice'), icon: FiZap, match: ['/quizzes'] },
         { to: '/tutor', label: t('nav.tutor'), icon: FiCpu },
       ],
     },
     {
       id: 'build',
       items: [
-        { to: '/projects', label: t('nav.projects'), icon: FiCode },
+        { to: '/projects', label: t('nav.projects'), icon: FiCode, match: ['/portfolio'] },
         { to: '/notes', label: t('nav.notes'), icon: FiFileText },
-        { to: '/portfolio', label: t('nav.portfolio'), icon: FiGlobe },
       ],
     },
     {
-      id: 'career',
+      id: 'grow',
       items: [
-        { to: '/career', label: t('nav.job_readiness'), icon: FiTrendingUp },
+        { to: '/progress', label: t('nav.progress'), icon: FiActivity, match: ['/career'] },
       ],
     },
     {
       id: 'community',
       items: [
-        { to: '/devs', label: t('nav.dev_directory'), icon: FiUsers },
-        { to: '/community', label: t('nav.dev_community'), icon: FiMessageSquare },
-        { to: '/leaderboard', label: t('nav.leaderboard'), icon: FiAward },
+        { to: '/community', label: t('nav.community'), icon: FiMessageSquare },
+        { to: '/devs', label: t('nav.people'), icon: FiUsers, match: ['/leaderboard'] },
       ],
     },
   ];
+}
+
+// Merged sections: a tab row shown above the page for each set of sibling pages.
+// Old URLs (/roadmap, /quizzes, /portfolio, /career, /leaderboard) still work and
+// simply open their tab.
+const SECTION_TABS = [
+  [['/dashboard', 'My courses'], ['/roadmap', 'Roadmap']],
+  [['/practice', 'Coding challenges'], ['/quizzes', 'Quizzes']],
+  [['/projects', 'Workspaces'], ['/portfolio', 'Portfolio']],
+  [['/progress', 'Overview'], ['/career', 'Job readiness']],
+  [['/devs', 'Directory'], ['/leaderboard', 'Leaderboard']],
+];
+
+function SectionTabs({ pathname }) {
+  const path = pathname.replace(/\/+$/, '') || '/';
+  const tabs = SECTION_TABS.find((set) => set.some(([to]) => to === path));
+  if (!tabs) return null;
+  return (
+    <nav className="px-6 lg:px-10 lg:pr-64 pt-3 flex gap-1 border-b border-cs-line/[0.07]" aria-label="Section">
+      {tabs.map(([to, label]) => {
+        const active = to === path;
+        return (
+          <Link
+            key={to}
+            to={to}
+            className={`relative h-11 px-4 inline-flex items-center text-sm whitespace-nowrap transition-colors ${
+              active ? 'text-cs-primary font-semibold' : 'text-cs-text-dim hover:text-cs-text'
+            }`}
+          >
+            {label}
+            {active && (
+              <motion.span
+                layoutId={`section-tab-${tabs[0][0]}`}
+                className="absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-cs-primary"
+                transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+              />
+            )}
+          </Link>
+        );
+      })}
+    </nav>
+  );
 }
 
 // Per-group accent colors give each journey stage its own dev-vibe hue — the
@@ -80,26 +114,22 @@ const GROUP_COLORS = {
   practice: { rgb: '139 92 246', mint: '167 139 250' }, // violet
   build: { rgb: '34 211 238', mint: '125 236 255' },   // cyan
   career: { rgb: '74 222 128', mint: '134 239 172' },  // green
+  grow: { rgb: '74 222 128', mint: '134 239 172' },    // green
   community: { rgb: '251 146 60', mint: '253 186 116' }, // orange
 };
 
 
 const NAV_ITEMS_RAW = [
-  { to: '/dashboard', icon: FiBook, end: true, match: ['/learn'] },
-  { to: '/roadmap', icon: FiTarget },
+  { to: '/dashboard', icon: FiBook, end: true, match: ['/learn', '/roadmap'] },
   { to: '/library', icon: FiBookOpen },
-  { to: '/progress', icon: FiActivity },
   { to: '/classes', icon: FiGrid, match: ['/classes', '/teach'] },
-  { to: '/practice', icon: FiZap },
-  { to: '/quizzes', icon: FiHelpCircle },
+  { to: '/practice', icon: FiZap, match: ['/quizzes'] },
   { to: '/tutor', icon: FiCpu },
-  { to: '/projects', icon: FiCode },
+  { to: '/projects', icon: FiCode, match: ['/portfolio'] },
   { to: '/notes', icon: FiFileText },
-  { to: '/portfolio', icon: FiGlobe },
-  { to: '/career', icon: FiTrendingUp },
-  { to: '/devs', icon: FiUsers },
+  { to: '/progress', icon: FiActivity, match: ['/career'] },
   { to: '/community', icon: FiMessageSquare },
-  { to: '/leaderboard', icon: FiAward },
+  { to: '/devs', icon: FiUsers, match: ['/leaderboard'] },
 ];
 
 const NAV_COLLAPSE_KEY = 'cs-nav-groups-collapsed';
@@ -697,8 +727,8 @@ function AppLayout() {
       {/* Desktop notification bell — pinned top-right, vertically centered in an
           h-14 strip anchored at top-0 so it sits within the top band that pages'
           sticky headers keep clear on the right (the few pages with a top-right
-          control — e.g. Practice's mode toggle — add `lg:pr-52` to their header
-          row to reserve this ~190px: mode + language toggles + bell). The strip is click-through
+          control — e.g. Practice's mode toggle — add `lg:pr-64` to their header
+          row to reserve this ~240px: theme + language toggles + bell). The strip is click-through
           (pointer-events-none) except for the bell itself. z sits above page
           sticky headers (30) but below the CodeSquareAgent dock (40), so an open
           dock on the library pages covers it instead of it floating over chat. */}
@@ -773,6 +803,7 @@ function AppLayout() {
         {/* Fade-only (opacity, no transform) so position:sticky stays attached to
             the window scroll. Keyed by the first two path segments so
             within-section navigations swap without a remount. */}
+        <SectionTabs pathname={location.pathname} />
         <div
           key={contentKey}
           className="min-h-[calc(100vh-60px)] lg:min-h-screen animate-route-fade"

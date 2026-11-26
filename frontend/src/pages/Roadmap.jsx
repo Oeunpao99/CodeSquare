@@ -70,7 +70,7 @@ function Roadmap() {
           page). The major blurb/chips scroll away in the card below. */}
       <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-6 mb-6">
         <p className="mono-label text-cs-text-muted"> {t('roadmap.your_roadmap')}</p>
-        <div className="flex items-end justify-between gap-4 flex-wrap lg:pr-52">
+        <div className="flex items-end justify-between gap-4 flex-wrap lg:pr-64">
           <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
             {majorData && (
               <span

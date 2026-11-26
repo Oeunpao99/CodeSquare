@@ -363,7 +363,8 @@ function Community() {
   return (
     <main className="w-full px-6 lg:pl-10 lg:pr-16 xl:pr-24 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-ml-10 lg:-mr-16 xl:-mr-24 px-6 lg:pl-10 lg:pr-16 xl:pr-24 -mt-8 pt-6 pb-4 mb-6 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex items-end justify-between gap-4">
+        {/* extra right padding keeps the Leaderboard button clear of the fixed header controls */}
+        <div className="flex items-end justify-between gap-4 lg:pr-40 xl:pr-32">
           <div className="min-w-0">
             <span className="text-xs text-cs-text-muted tracking-wide">Community</span>
             <h1 className="text-2xl font-semibold mt-0.5 tracking-tight">Dev community</h1>

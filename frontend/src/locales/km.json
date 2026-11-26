@@ -5,7 +5,6 @@
   "loading_roadmap": "កំពុងផ្ទុកផ្លូវសិក្សារបស់អ្នក...",
   "loading_library": "កំពុងផ្ទុកបណ្ណាល័យ...",
   "loading_exercises": "កំពុងផ្ទុកលំហាត់...",
-
   "nav": {
     "my_classes": "ថ្នាក់របស់ខ្ញុំ",
     "learn": "សិក្សា",
@@ -21,9 +20,10 @@
     "job_readiness": "ត្រៀមខ្លួនការងារ",
     "dev_directory": "ថតអ្នកអភិវឌ្ឍន៍",
     "dev_community": "សហគមន៍អ្នកអភិវឌ្ឍន៍",
-    "leaderboard": "តារាងពិន្ទុ"
+    "leaderboard": "តារាងពិន្ទុ",
+    "people": "មនុស្ស",
+    "community": "សហគមន៍"
   },
-
   "sidebar": {
     "build_boldly": "ស្ថាបនាដោយក្លាហាន",
     "expand_sidebar": "ពង្រីករបារចំហៀង",
@@ -31,7 +31,6 @@
     "status": "ស្ថានភាព",
     "online": "កំពុងប្រើប្រាស់"
   },
-
   "settings": {
     "activity": "សកម្មភាព",
     "usage": "ការប្រើប្រាស់",
@@ -46,7 +45,6 @@
     "themes": "ស្បែក",
     "accent_color": "ពណ៌សំខាន់"
   },
-
   "activity": {
     "your_recent": "សកម្មភាពថ្មីៗរបស់អ្នក",
     "lessons": "មេរៀន",
@@ -54,14 +52,12 @@
     "day_streak": "ថ្ងៃបន្តគ្នា",
     "hints_used": "សំណើប្រើប្រាស់"
   },
-
   "usage": {
     "ai_token_usage": "ការប្រើប្រាស់ AI token",
     "ai_calls_this_week": "ការហៅ AI {{count}} ដងសប្តាហ៍នេះ · កំណត់គឺទន់ (គ្មានអ្វីត្រូវប្រើទេ)",
     "ai_calls_this_week_plural": "ការហៅ AI {{count}} ដងសប្តាហ៍នេះ · កំណត់គឺទន់ (គ្មានអ្វីត្រូវប្រើទេ)",
     "full_usage_plans": "ការប្រើប្រាស់ពេញ និងផែនការ"
   },
-
   "dashboard": {
     "good_morning": "សួស្តីព្រឹក",
     "good_afternoon": "សួស្តីរសៀល",
@@ -88,7 +84,6 @@
     "ask_tutor": "សួរ CodeSquareAgent",
     "ask_tutor_desc": "ទទួលជំនួយសម្រាប់សំណួរកូដណាមួយ"
   },
-
   "auth": {
     "welcome_back": "ស្វាគមន៍ត្រឡប់មកវិញ",
     "create_account": "បង្កើតគណនី",
@@ -107,7 +102,6 @@
     "no_credit_card": "មិនត្រូវការកាតឥណទាន",
     "learn_pace": "សិក្សាតាមល្បឿនរបស់អ្នក"
   },
-
   "onboarding": {
     "skip": "រំលងសិន",
     "skipping": "កំពុងរំលង…",
@@ -120,7 +114,6 @@
     "finish": "បញ្ចប់ និងទៅ dashboard",
     "back": "ថយក្រោយ"
   },
-
   "landing": {
     "sign_in": "ចូល",
     "get_started": "ចាប់ផ្តើម",
@@ -153,7 +146,6 @@
     "unstuck_title": "រកឃើញដំណោះស្រាយ",
     "unstuck_desc": "គ្រូពន្យល់ថាហេតុអ្វីកូដខុស និងអ្វីដែលត្រូវសាកល្បង — មិនមែនគ្រាន់តែថាវាខូចទេ។"
   },
-
   "roadmap": {
     "your_roadmap": "ផ្លូវសិក្សារបស់អ្នក",
     "pick_major": "ជ្រើសរើសជំនាញដើម្បីមើលផ្លូវសិក្សារបស់អ្នក។",
@@ -173,7 +165,6 @@
     "hide_modules": "លាក់ម៉ូឌុល",
     "lessons_lowercase": "{{done}} / {{total}} មេរៀន"
   },
-
   "progress": {
     "progress_label": "វឌ្ឍនភាព",
     "progress_title": "វឌ្ឍនភាព",
@@ -184,7 +175,6 @@
     "next_label": "បន្ទាប់",
     "practice": "អនុវត្ត"
   },
-
   "library": {
     "knowledge_base": "បណ្ណាល័យចំណេះដឹង",
     "library_title": "បណ្ណាល័យ",
@@ -204,7 +194,6 @@
     "done": "រួច",
     "topics": "{{count}} ប្រធាន"
   },
-
   "practice": {
     "practice_label": "អនុវត្ត",
     "practice_title": "អនុវត្ត",
@@ -229,7 +218,6 @@
     "nice_work": "ការងារល្អ — បញ្ហាដែលអ្នកខកខានគួរពិនិត្យមើលម្តងទៀត។",
     "correct": "{{count}} / {{total}} ត្រូវ"
   },
-
   "profile": {
     "profile_label": "ព័ត៌មាន",
     "overview": "ទិដ្ឋភាពទូទៅ",
@@ -258,7 +246,6 @@
     "more": "ច្រើន",
     "on_fire": "កំពុងភ្លើង"
   },
-
   "common": {
     "back": "ថយក្រោយ",
     "close": "បិទ",

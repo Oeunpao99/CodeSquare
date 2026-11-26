@@ -1287,7 +1287,7 @@ function Notes() {
       {activeId == null ? (
         <>
           <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-5 -mt-8 mb-6">
-            <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-52">
+            <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-64">
               <div>
                 <span className="mono-label"> codesquare_note</span>
                 <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
@@ -1455,7 +1455,7 @@ function Notes() {
       ) : (
         <>
           <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6">
-            <div className="flex items-center justify-between gap-3 lg:pr-52">
+            <div className="flex items-center justify-between gap-3 lg:pr-64">
               <button
                 onClick={closeEditor}
                 className="btn btn-ghost btn-sm"

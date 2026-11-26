@@ -60,7 +60,7 @@ export default function Devs() {
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky header */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex items-start justify-between gap-4 flex-wrap lg:pr-52">
+        <div className="flex items-start justify-between gap-4 flex-wrap lg:pr-64">
           <div>
             <span className="mono-label">Community</span>
             <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">

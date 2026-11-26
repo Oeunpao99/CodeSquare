@@ -5,7 +5,6 @@
   "loading_roadmap": "Loading your roadmap...",
   "loading_library": "Loading the library...",
   "loading_exercises": "Loading exercises...",
-
   "nav": {
     "my_classes": "My Classes",
     "learn": "Learn",
@@ -16,14 +15,15 @@
     "quizzes": "Quizzes",
     "tutor": "CodeSquareAgent",
     "projects": "Projects",
-    "notes": "CodeSquare Note",
+    "notes": "Notes",
     "portfolio": "Portfolio",
     "job_readiness": "Job Readiness",
     "dev_directory": "Dev Directory",
     "dev_community": "Dev Community",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "people": "People",
+    "community": "Community"
   },
-
   "sidebar": {
     "build_boldly": "build boldly",
     "expand_sidebar": "Expand sidebar",
@@ -31,7 +31,6 @@
     "status": "status",
     "online": "online"
   },
-
   "settings": {
     "activity": "Activity",
     "usage": "Usage",
@@ -46,7 +45,6 @@
     "themes": "themes",
     "accent_color": "Accent color"
   },
-
   "activity": {
     "your_recent": "your recent activity",
     "lessons": "Lessons",
@@ -54,14 +52,12 @@
     "day_streak": "Day Streak",
     "hints_used": "Hints Used"
   },
-
   "usage": {
     "ai_token_usage": "AI token usage",
     "ai_calls_this_week": "{{count}} AI call this week · limits are soft (nothing blocked)",
     "ai_calls_this_week_plural": "{{count}} AI calls this week · limits are soft (nothing blocked)",
     "full_usage_plans": "Full usage & plans"
   },
-
   "dashboard": {
     "good_morning": "Good morning",
     "good_afternoon": "Good afternoon",
@@ -88,7 +84,6 @@
     "ask_tutor": "Ask CodeSquareAgent",
     "ask_tutor_desc": "Get help with any coding question"
   },
-
   "auth": {
     "welcome_back": "Welcome Back",
     "create_account": "Create Account",
@@ -107,7 +102,6 @@
     "no_credit_card": "No credit card required",
     "learn_pace": "Learn at your own pace"
   },
-
   "onboarding": {
     "skip": "Skip for now",
     "skipping": "Skipping…",
@@ -120,7 +114,6 @@
     "finish": "Finish & go to dashboard",
     "back": "Back"
   },
-
   "landing": {
     "sign_in": "Sign In",
     "get_started": "Get Started",
@@ -153,7 +146,6 @@
     "unstuck_title": "Get Unstuck",
     "unstuck_desc": "The tutor explains why the code is wrong and what to try — not just that it broke."
   },
-
   "roadmap": {
     "your_roadmap": "your roadmap",
     "pick_major": "Pick a major to see your roadmap.",
@@ -173,7 +165,6 @@
     "hide_modules": "Hide modules",
     "lessons_lowercase": "{{done}} / {{total}} lessons"
   },
-
   "progress": {
     "progress_label": "progress",
     "progress_title": "Progress",
@@ -184,7 +175,6 @@
     "next_label": "next",
     "practice": "Practice"
   },
-
   "library": {
     "knowledge_base": "knowledge library",
     "library_title": "Library",
@@ -204,7 +194,6 @@
     "done": "done",
     "topics": "{{count}} topics"
   },
-
   "practice": {
     "practice_label": "practice",
     "practice_title": "Practice",
@@ -229,7 +218,6 @@
     "nice_work": "Nice work — the ones you missed are worth another look.",
     "correct": "{{count}} / {{total}} correct"
   },
-
   "profile": {
     "profile_label": "profile",
     "overview": "overview",
@@ -258,7 +246,6 @@
     "more": "More",
     "on_fire": "on fire"
   },
-
   "common": {
     "back": "Back",
     "close": "Close",
