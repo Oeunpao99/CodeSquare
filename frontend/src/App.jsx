@@ -50,6 +50,7 @@ import AdminPortal from './pages/admin/AdminPortal';
 import Classes from './pages/Classes';
 import ClassView from './pages/ClassView';
 import NotFound from './pages/NotFound';
+import { Terms, Privacy } from './pages/Legal';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -86,6 +87,8 @@ function AppRoutes() {
       <Routes location={location} key={isPublic ? location.pathname : 'app'}>
         <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
         {/* Separate admin console — its own login, outside the learner app shell. */}
         <Route path="/admin-portal/*" element={<AdminPortal />} />
         <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />

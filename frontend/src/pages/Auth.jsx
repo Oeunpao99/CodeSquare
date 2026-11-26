@@ -212,8 +212,11 @@ function Auth() {
         </div>
       </div>
 
-      <p className="text-xs text-cs-text-muted mt-4 max-w-[26rem] text-center">
-        Signing in with Telegram shares your name, username and profile photo with CodeSquare.
+      <p className="text-xs text-cs-text-muted mt-4 max-w-[26rem] text-center leading-relaxed">
+        By continuing with Google, Telegram or email, you agree to our{' '}
+        <Link to="/terms" className="text-cs-text-dim underline underline-offset-2 hover:text-cs-primary">Terms of Service</Link> and{' '}
+        <Link to="/privacy" className="text-cs-text-dim underline underline-offset-2 hover:text-cs-primary">Privacy Policy</Link>.
+        {' '}Telegram shares your name, username and profile photo with us.
       </p>
     </div>
   );
