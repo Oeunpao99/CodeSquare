@@ -104,6 +104,17 @@ class Token(BaseModel):
 class GoogleAuth(BaseModel):
     token: str
 
+
+class TelegramAuth(BaseModel):
+    """Payload from Telegram's login popup (signed by Telegram with our bot token)."""
+    id: int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    photo_url: Optional[str] = None
+    auth_date: int
+    hash: str
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
@@ -352,6 +363,87 @@ async def vscode_login(body: VscodeLoginRequest, db: AsyncSession = Depends(get_
     access_token = create_access_token(data={"sub": str(user.id)})
     return Token(
         access_token=access_token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user),
+    )
+
+
+# ---------------------------------------------------------------- Telegram
+# Sign in with Telegram uses Telegram's login popup (oauth.telegram.org). The
+# popup returns the user's id/name/photo plus a `hash`: HMAC-SHA256 of the
+# fields, keyed with SHA256(bot token). Only Telegram and we know the token, so
+# a matching hash proves the data came from Telegram.
+# Setup: in @BotFather run /setdomain for the bot and enter the site's domain.
+TELEGRAM_MAX_AGE = 24 * 3600  # reject logins older than a day (replay guard)
+
+
+def _tg_token() -> str:
+    return os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+
+
+def verify_telegram_login(data: dict, bot_token: str) -> bool:
+    import hashlib
+    import hmac
+    import time
+
+    received = data.get("hash") or ""
+    fields = {k: v for k, v in data.items() if k != "hash" and v is not None}
+    check = "\n".join(f"{k}={fields[k]}" for k in sorted(fields))
+    secret = hashlib.sha256(bot_token.encode()).digest()
+    expected = hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, received):
+        return False
+    return time.time() - int(fields.get("auth_date", 0)) <= TELEGRAM_MAX_AGE
+
+
+async def _free_username(db: AsyncSession, base: str) -> str:
+    base = re.sub(r"[^A-Za-z0-9_]", "", base)[:24] or "user"
+    name, n = base, 1
+    while (await db.execute(select(User).where(User.username == name))).scalar_one_or_none():
+        n += 1
+        name = f"{base}{n}"
+    return name
+
+
+@router.get("/telegram/config")
+async def telegram_config():
+    """Public bits the login popup needs: the numeric bot id (not secret)."""
+    token = _tg_token()
+    if not token or ":" not in token:
+        return {"enabled": False, "bot_id": None}
+    return {"enabled": True, "bot_id": int(token.split(":", 1)[0])}
+
+
+@router.post("/telegram", response_model=Token)
+async def telegram_auth(payload: TelegramAuth, db: AsyncSession = Depends(get_db)):
+    token = _tg_token()
+    if not token:
+        raise HTTPException(status_code=503, detail="Telegram sign-in is not set up.")
+    if not verify_telegram_login(payload.model_dump(), token):
+        raise HTTPException(status_code=401, detail="Telegram sign-in could not be verified. Try again.")
+
+    tg_id = str(payload.id)
+    user = (await db.execute(select(User).where(User.telegram_id == tg_id))).scalar_one_or_none()
+    if not user:
+        name = " ".join(x for x in [payload.first_name, payload.last_name] if x) or None
+        user = User(
+            # Telegram shares no email. This placeholder is never mailed;
+            # the user can set a real address in Settings.
+            email=f"tg{tg_id}@telegram.invalid",
+            username=await _free_username(db, payload.username or f"tg{tg_id}"),
+            display_name=name,
+            telegram_id=tg_id,
+            avatar_url=payload.photo_url,
+            hashed_password=get_password_hash(os.urandom(32).hex()),
+        )
+        db.add(user)
+    elif payload.photo_url and not user.avatar_url:
+        user.avatar_url = payload.photo_url
+    await db.commit()
+    await db.refresh(user)
+
+    return Token(
+        access_token=create_access_token(data={"sub": str(user.id)}),
         token_type="bearer",
         user=UserResponse.model_validate(user),
     )

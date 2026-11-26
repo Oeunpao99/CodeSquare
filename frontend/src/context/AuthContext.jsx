@@ -54,6 +54,15 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
+  const loginWithTelegram = async (tgUser) => {
+    const response = await api.post('/auth/telegram', tgUser);
+    const { access_token, user: userData } = response.data;
+    localStorage.setItem('token', access_token);
+    api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+    setUser(userData);
+    return userData;
+  };
+
   const loginWithGoogle = async (googleToken) => {
     const response = await api.post('/auth/google', { token: googleToken });
     const { access_token, user: userData } = response.data;
@@ -75,7 +84,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithTelegram, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
