@@ -158,18 +158,18 @@ function RevealDialog({ onSubmit, onClose, busy }) {
           onChange={(e) => setPw(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && pw && onSubmit(pw)}
           placeholder="account password"
-          className="input w-full font-mono mb-5"
+          className="input w-full mb-5"
         />
         <div className="flex items-center justify-end gap-2">
-          <button onClick={onClose} className="btn btn-ghost font-mono">
+          <button onClick={onClose} className="btn btn-ghost">
             cancel
           </button>
           <button
             onClick={() => onSubmit(pw)}
             disabled={!pw || busy}
-            className="btn btn-primary font-mono"
+            className="btn btn-primary"
           >
-            {busy ? "checking…" : "$ reveal"}
+            {busy ? "Checking…" : "Reveal"}
           </button>
         </div>
       </div>
@@ -184,7 +184,7 @@ function VaultBanner() {
         <FiAlertTriangle />
       </span>
       <div className="min-w-0">
-        <div className="font-bold font-mono text-sm">
+        <div className="font-bold text-sm">
           {" "}
           credential vault not configured
         </div>
@@ -209,7 +209,7 @@ function SecretInput({ value, onChange, disabled }) {
         onChange={onChange}
         disabled={disabled}
         placeholder={disabled ? "vault not configured" : "value to encrypt"}
-        className="input w-full font-mono pr-10 disabled:opacity-50"
+        className="input w-full pr-10 disabled:opacity-50"
       />
       <button
         type="button"
@@ -236,7 +236,7 @@ function MonthTimeline({ months, total, max, active, onPick }) {
       }`}
     >
       <span
-        className={`font-mono text-sm font-bold leading-none tabular-nums ${
+        className={`text-sm font-bold leading-none tabular-nums ${
           isActive ? "text-cs-primary" : "text-cs-text"
         }`}
       >
@@ -253,7 +253,7 @@ function MonthTimeline({ months, total, max, active, onPick }) {
         />
       </span>
       <span
-        className={`font-mono text-[8.5px] uppercase tracking-[0.08em] whitespace-nowrap ${
+        className={`text-[8.5px] uppercase tracking-[0.08em] whitespace-nowrap ${
           isActive ? "text-cs-primary" : "text-cs-text-muted"
         }`}
       >
@@ -304,7 +304,7 @@ function BookCard({ n, active, onSelect, onDelete, onToggleFav, busy }) {
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={`text-xs shrink-0 ${meta.cls}`} />
         <span
-          className={`font-mono text-[10px] uppercase tracking-[0.14em] ${meta.cls} truncate`}
+          className={`text-[10px] uppercase tracking-wider ${meta.cls} truncate`}
         >
           {meta.label}
         </span>
@@ -386,7 +386,7 @@ function AiStructure({ suggestion }) {
   if (!suggestion) return null;
   return (
     <div className="card mt-4">
-      <div className="flex items-center gap-2 font-mono text-xs tracking-[0.18em] uppercase text-cs-cyan mb-3">
+      <div className="flex items-center gap-2 text-xs tracking-wider uppercase text-cs-cyan mb-3">
         <FiCpu /> ai_project_plan
       </div>
       <div className="mb-3">
@@ -395,7 +395,7 @@ function AiStructure({ suggestion }) {
           {suggestion.stack.map((s) => (
             <span
               key={s}
-              className="px-2.5 py-1 rounded-md text-xs font-mono border border-cs-primary/25 bg-cs-primary/10 text-cs-primary"
+              className="px-2.5 py-1 rounded-md text-xs border border-cs-primary/25 bg-cs-primary/10 text-cs-primary"
             >
               {s}
             </span>
@@ -548,7 +548,7 @@ function Editor({
     return (
       <div className="card py-12 text-center relative overflow-hidden">
         <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-cs-primary/[0.06] blur-2xl" />
-        <span className="w-16 h-16 rounded-2xl bg-gradient-main text-cs-dark text-3xl flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_-8px_rgb(var(--cs-primary)/0.6)]">
+        <span className="w-16 h-16 rounded-2xl bg-gradient-main text-cs-dark text-3xl flex items-center justify-center mx-auto mb-5">
           <FiBookOpen />
         </span>
         <h2 className="text-xl font-bold mb-2">
@@ -561,13 +561,13 @@ function Editor({
         <div className="flex flex-wrap justify-center gap-2">
           <button
             onClick={() => onCreate("note")}
-            className="btn btn-ghost font-mono"
+            className="btn btn-ghost"
           >
             <FiEdit3 /> scratchpad
           </button>
           <button
             onClick={() => onCreate("project")}
-            className="btn btn-secondary font-mono"
+            className="btn btn-secondary"
           >
             <FiPlus /> requirement
           </button>
@@ -575,7 +575,7 @@ function Editor({
             onClick={() => onCreate("credential")}
             disabled={!vaultOk}
             title={vaultOk ? "" : "Credential vault not configured"}
-            className="btn btn-primary font-mono disabled:opacity-40"
+            className="btn btn-primary disabled:opacity-40"
           >
             <FiKey /> credential
           </button>
@@ -694,7 +694,7 @@ function Editor({
                 key={opt.id}
                 disabled={opt.id === "credential" && !vaultOk}
                 onClick={() => setForm((f) => ({ ...f, kind: opt.id }))}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-colors disabled:opacity-40 ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors disabled:opacity-40 ${
                   kind === opt.id
                     ? "bg-cs-primary/15 text-cs-primary"
                     : "text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06]"
@@ -706,7 +706,7 @@ function Editor({
           </div>
         </div>
         {!isCred && (
-          <span className="block font-mono text-[11px] text-cs-text-muted mb-3 px-1">
+          <span className="block text-[11px] text-cs-text-muted mb-3 px-1">
             {words} word{words === 1 ? "" : "s"} · {chars} chars
             <span
               className={`ml-2 transition-opacity ${
@@ -721,7 +721,7 @@ function Editor({
         <input
           value={form.title}
           onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-          className="w-full bg-transparent border-b border-cs-line/10 pb-2 mb-3 text-2xl font-bold outline-none placeholder:text-cs-text-muted/50 focus:border-cs-primary/40"
+          className="w-full bg-transparent border-b border-cs-line/10 pb-2 mb-3 text-2xl font-bold outline-none placeholder:text-cs-text-muted focus:border-cs-primary/40"
           placeholder={
             isCred
               ? 'Service / site, e.g. "PT-B-login"'
@@ -751,12 +751,12 @@ function Editor({
                 <div className="mono-label mb-1.5"> stored secret</div>
                 {isRevealed ? (
                   <div className="flex items-center gap-2 border border-cs-orange/30 bg-cs-orange/10 rounded-lg px-3 py-2.5">
-                    <span className="font-mono text-sm text-cs-orange break-all flex-grow min-w-0">
+                    <span className="text-sm text-cs-orange break-all flex-grow min-w-0">
                       {revealedValue}
                     </span>
                     <button
                       onClick={copySecret}
-                      className="btn btn-ghost btn-sm font-mono shrink-0"
+                      className="btn btn-ghost btn-sm shrink-0"
                     >
                       copy
                     </button>
@@ -764,7 +764,7 @@ function Editor({
                 ) : (
                   <button
                     onClick={onReveal}
-                    className="w-full flex items-center justify-center gap-2 border border-cs-line/15 rounded-lg px-3 py-2.5 font-mono text-sm text-cs-text-dim hover:text-cs-orange hover:border-cs-orange/40 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 border border-cs-line/15 rounded-lg px-3 py-2.5 text-sm text-cs-text-dim hover:text-cs-orange hover:border-cs-orange/40 transition-colors"
                   >
                     <FiLock /> reveal value (asks for your password)
                   </button>
@@ -881,7 +881,7 @@ function Editor({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setPreview((p) => !p)}
-                className={`p-1.5 rounded-md text-[11px] font-mono inline-flex items-center gap-1.5 transition-colors ${
+                className={`p-1.5 rounded-md text-[11px] inline-flex items-center gap-1.5 transition-colors ${
                   preview
                     ? "bg-cs-primary/15 text-cs-primary"
                     : "text-cs-text-muted hover:text-cs-text"
@@ -907,7 +907,7 @@ function Editor({
                     className="w-full min-h-[1123px] rounded-lg border border-cs-line/10 bg-cs-darkest/30 px-10 pt-8"
                   >
                     {pages.length > 1 && (
-                      <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-cs-text-muted mb-2">
+                      <div className="text-[10px] uppercase tracking-wider text-cs-text-muted mb-2">
                         page {i + 1}
                       </div>
                     )}
@@ -926,7 +926,7 @@ function Editor({
                 {pages.map((p, i) => (
                   <div key={i} className="w-full">
                     <div className="flex items-center gap-2 px-1 mb-1">
-                      <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-cs-text-muted">
+                      <span className="text-[10px] uppercase tracking-wider text-cs-text-muted">
                         page {i + 1}
                       </span>
                       <span className="flex gap-0.5">
@@ -967,7 +967,7 @@ function Editor({
                       value={p.text}
                       onFocus={() => setActivePage(i)}
                       onChange={(e) => patchPage(i, { text: e.target.value })}
-                      className={`block w-full min-h-[1040px] resize-y rounded-lg border border-cs-line/10 bg-cs-darkest/30 px-10 pt-8 text-[15px] leading-8 text-cs-text outline-none placeholder:text-cs-text-muted/40 [background-attachment:local] ${
+                      className={`block w-full min-h-[1040px] resize-y rounded-lg border border-cs-line/10 bg-cs-darkest/30 px-10 pt-8 text-[15px] leading-8 text-cs-text outline-none placeholder:text-cs-text-muted [background-attachment:local] ${
                         RULING_BG[p.ruling] || RULING_BG.lines
                       }`}
                       placeholder={
@@ -980,18 +980,18 @@ function Editor({
                 ))}
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-cs-text-muted">
+                  <span className="text-[10px] uppercase tracking-wider text-cs-text-muted">
                     add page
                   </span>
                   <button
                     onClick={() => addPage("lines")}
-                    className="btn btn-ghost btn-sm font-mono"
+                    className="btn btn-ghost btn-sm"
                   >
                     <FiMenu /> lines
                   </button>
                   <button
                     onClick={() => addPage("grid")}
-                    className="btn btn-ghost btn-sm font-mono"
+                    className="btn btn-ghost btn-sm"
                   >
                     <FiGrid /> grid
                   </button>
@@ -1005,15 +1005,15 @@ function Editor({
           <button
             onClick={save}
             disabled={busy}
-            className="btn btn-primary font-mono"
+            className="btn btn-primary"
           >
-            {busy ? "saving…" : "$ write"}
+            {busy ? "Saving…" : "Save"}
           </button>
           {!isCred && (note.content || form.content).trim() && (
             <button
               onClick={onConvert}
               disabled={converting}
-              className="btn btn-secondary font-mono"
+              className="btn btn-secondary"
             >
               <FiZap /> {converting ? "converting…" : "ai: convert to project"}
             </button>
@@ -1287,7 +1287,7 @@ function Notes() {
       {activeId == null ? (
         <>
           <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-5 -mt-8 mb-6">
-            <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-14">
+            <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-52">
               <div>
                 <span className="mono-label"> codesquare_note</span>
                 <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
@@ -1301,13 +1301,13 @@ function Notes() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => create("note")}
-                  className="btn btn-ghost font-mono"
+                  className="btn btn-ghost"
                 >
                   <FiEdit3 /> quick note
                 </button>
                 <button
                   onClick={() => create("project")}
-                  className="btn btn-secondary font-mono"
+                  className="btn btn-secondary"
                 >
                   <FiPlus /> requirement
                 </button>
@@ -1315,7 +1315,7 @@ function Notes() {
                   onClick={() => create("credential")}
                   disabled={!vaultOk}
                   title={vaultOk ? "" : "Credential vault not configured"}
-                  className="btn btn-primary font-mono disabled:opacity-40"
+                  className="btn btn-primary disabled:opacity-40"
                 >
                   <FiKey /> credential
                 </button>
@@ -1330,7 +1330,7 @@ function Notes() {
               <button
                 key={p.id}
                 onClick={() => setPad(p.id)}
-                className={`px-3 py-1.5 rounded-lg font-mono text-xs border transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
                   pad === p.id
                     ? "border-cs-primary/50 bg-cs-primary/10 text-cs-primary"
                     : "border-cs-line/12 text-cs-text-dim hover:text-cs-text"
@@ -1339,7 +1339,7 @@ function Notes() {
                 {p.label}
               </button>
             ))}
-            <div className="ml-auto flex items-center gap-1 rounded-lg bg-cs-overlay/[0.04] p-0.5 font-mono text-xs">
+            <div className="ml-auto flex items-center gap-1 rounded-lg bg-cs-overlay/[0.04] p-0.5 text-xs">
               {[
                 { id: "recent", label: "recent" },
                 { id: "oldest", label: "oldest" },
@@ -1402,7 +1402,7 @@ function Notes() {
                     setMonth("all");
                     setPad("all");
                   }}
-                  className="text-[11px] text-cs-primary hover:text-cs-cyan font-mono mt-1"
+                  className="text-[11px] text-cs-primary hover:text-cs-cyan mt-1"
                 >
                   clear filters
                 </button>
@@ -1427,11 +1427,11 @@ function Notes() {
                     >
                       <Icon className="text-[10px]" />
                     </span>
-                    <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-cs-text-muted">
+                    <span className="text-[11px] uppercase tracking-wider text-cs-text-muted">
                       {m.plural}
                     </span>
                     <span className="flex-grow" />
-                    <span className="font-mono text-[10px] text-cs-text-muted">
+                    <span className="text-[10px] text-cs-text-muted">
                       {items.length}
                     </span>
                   </div>
@@ -1455,14 +1455,14 @@ function Notes() {
       ) : (
         <>
           <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6">
-            <div className="flex items-center justify-between gap-3 lg:pr-14">
+            <div className="flex items-center justify-between gap-3 lg:pr-52">
               <button
                 onClick={closeEditor}
-                className="btn btn-ghost btn-sm font-mono"
+                className="btn btn-ghost btn-sm"
               >
                 <FiArrowLeft /> all notes
               </button>
-              <span className="font-mono text-[11px] text-cs-text-muted truncate">
+              <span className="text-[11px] text-cs-text-muted truncate">
                 {activeMeta?.title || "Untitled"}
               </span>
             </div>

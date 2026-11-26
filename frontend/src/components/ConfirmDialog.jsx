@@ -19,7 +19,7 @@ export default function ConfirmDialog({
         role="dialog"
         aria-modal="true"
       >
-        <h3 className="font-mono text-sm font-semibold text-cs-text">{title}</h3>
+        <h3 className="text-sm font-semibold text-cs-text">{title}</h3>
         {message && <p className="text-sm text-cs-text-dim mt-2 leading-relaxed">{message}</p>}
         <div className="flex justify-end gap-2 mt-4">
           <button type="button" className="btn btn-ghost btn-sm" onClick={close}>

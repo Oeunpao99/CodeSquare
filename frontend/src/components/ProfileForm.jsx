@@ -91,7 +91,7 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
           placeholder="A couple of sentences about what you're working toward."
           className="mt-1.5 w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/60 resize-y"
         />
-        <span className="font-mono text-[11px] text-cs-text-muted">{form.bio.length}/600</span>
+        <span className="text-[11px] text-cs-text-muted">{form.bio.length}/600</span>
       </label>
 
       <div className="space-y-3">
@@ -101,7 +101,7 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
             <span className="w-9 h-9 rounded-lg glass flex items-center justify-center text-cs-text-dim shrink-0">{l.icon}</span>
             <input
               type="url" value={form[l.key]} onChange={set(l.key)} placeholder={l.ph} maxLength={300}
-              className="flex-1 rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/60"
+              className="flex-1 rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/60"
             />
           </div>
         ))}

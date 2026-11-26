@@ -93,8 +93,8 @@ function ChallengeView() {
     return (
       <main className="w-full px-6 lg:px-10 py-16">
         <div className="max-w-md mx-auto card text-center py-14 border-cs-orange/25">
-          <p className="font-mono text-5xl mb-4 text-cs-text-muted select-none">404</p>
-          <p className="text-cs-text-dim mb-6 font-mono">challenge_not_found: /{slug}</p>
+          <p className="text-5xl mb-4 text-cs-text-muted select-none">404</p>
+          <p className="text-cs-text-dim mb-6">We couldn't find that challenge.</p>
           <Link to="/practice" className="btn btn-primary btn-sm">Back to Practice</Link>
         </div>
       </main>
@@ -104,12 +104,12 @@ function ChallengeView() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {!challenge ? (
-        <p className="text-cs-text-muted font-mono text-sm">loading /practice/{slug}…</p>
+        <p className="text-cs-text-muted text-sm">Loading challenge…</p>
       ) : (
         <>
           {/* Page header — locked while the problem + editor scroll beneath it. */}
           <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-            <Link to="/practice" className="inline-flex items-center gap-2 text-sm font-mono text-cs-text-dim hover:text-cs-primary mb-3">
+            <Link to="/practice" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-3">
               <FiArrowLeft /> ../practice
             </Link>
             <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -117,28 +117,28 @@ function ChallengeView() {
                 {challenge.difficulty}
               </span>
               {challenge.kind === 'debug' && (
-                <span className="px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wide border border-cs-orange/30 bg-cs-orange/10 text-cs-orange">
+                <span className="px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wide border border-cs-orange/30 bg-cs-orange/10 text-cs-orange">
                   🐛 debug — find &amp; fix the bug
                 </span>
               )}
               {challenge.topic && (
-                <span className="px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wide border border-cs-line/15 text-cs-text-dim">
+                <span className="px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wide border border-cs-line/15 text-cs-text-dim">
                   {challenge.topic}
                 </span>
               )}
-              <span className="font-mono text-xs text-cs-text-muted">
+              <span className="text-xs text-cs-text-muted">
                 {challenge.language} · {fileLabel(challenge.language)}
               </span>
-              <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-1">
+              <span className="text-xs text-cs-primary inline-flex items-center gap-1">
                 <FiZap className="text-[11px]" /> {challenge.xp_reward} XP
               </span>
               {challenge.solved && (
-                <span className="font-mono text-xs text-cs-green inline-flex items-center gap-1">
+                <span className="text-xs text-cs-green inline-flex items-center gap-1">
                   <FiCheckCircle className="text-[11px]" /> solved
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold font-mono flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
               <span className="text-cs-mint select-none">❯&nbsp;</span>{challenge.title}
             </h1>
           </div>
@@ -161,7 +161,7 @@ function ChallengeView() {
               {showHints && challenge.hints?.length > 0 && (
                 <div className="space-y-2">
                   {challenge.hints.map((h, i) => (
-                    <div key={i} className="p-3 rounded-lg bg-cs-orange/10 border border-cs-orange/25 text-sm text-cs-text-dim font-mono">
+                    <div key={i} className="p-3 rounded-lg bg-cs-orange/10 border border-cs-orange/25 text-sm text-cs-text-dim">
                       <span className="font-bold text-cs-orange mr-2">hint {i + 1}:</span>{h}
                     </div>
                   ))}
@@ -176,10 +176,10 @@ function ChallengeView() {
                   <span className="terminal-dot bg-cs-red/80" />
                   <span className="terminal-dot bg-cs-orange/80" />
                   <span className="terminal-dot bg-cs-green/80" />
-                  <span className="ml-2 font-mono text-xs text-cs-text-muted">
-                    ~/challenges/{fileLabel(challenge.language)}
+                  <span className="ml-2 text-xs text-cs-text-muted">
+                    {fileLabel(challenge.language)}
                   </span>
-                  <span className="ml-auto font-mono text-[10px] text-cs-text-muted hidden sm:inline">⌘/Ctrl+↵ run</span>
+                  <span className="ml-auto text-[10px] text-cs-text-muted hidden sm:inline">⌘/Ctrl+↵ run</span>
                 </div>
                 <div className="h-[360px]">
                   <CodeEditor value={code} onChange={setCode} language={challenge.language} onSubmit={run} />
@@ -206,7 +206,7 @@ function ChallengeView() {
                 <div
                   className={`rounded-xl border ${passed ? 'border-cs-green/30 bg-cs-green/[0.06]' : 'border-cs-red/30 bg-cs-red/[0.06]'} overflow-hidden`}
                 >
-                  <div className={`flex items-center gap-2 px-4 py-2.5 border-b font-mono text-sm ${
+                  <div className={`flex items-center gap-2 px-4 py-2.5 border-b text-sm ${
                     passed ? 'text-cs-green border-cs-green/20' : 'text-cs-red border-cs-red/20'
                   }`}>
                     {passed ? <FiCheckCircle /> : <FiXCircle />}
@@ -238,7 +238,7 @@ function ChallengeView() {
                   <div className="flex items-center justify-between mb-2">
                     <span className="mono-label text-cs-primary"> ai review</span>
                     {typeof review.score === 'number' && (
-                      <span className="font-mono text-sm text-cs-text-dim">score {Math.round(review.score)}/100</span>
+                      <span className="text-sm text-cs-text-dim">score {Math.round(review.score)}/100</span>
                     )}
                   </div>
                   {review.feedback && <Markdown text={review.feedback} />}

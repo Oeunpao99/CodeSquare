@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  SiPython, SiJavascript, SiReact, SiHtml5, SiLinux, SiGit, SiFastapi,
+  SiPython, SiJavascript, SiReact, SiHtml5, SiLinux, SiGit, SiFastapi, SiPowerbi,
 } from 'react-icons/si';
 import {
   FiLayers, FiBookOpen, FiGlobe, FiDatabase, FiShare2, FiShield,
@@ -25,6 +25,7 @@ const MAP = {
   security: [FiShield, null],
   testing: [FiCheckSquare, null],
   dsa: [FiCpu, null],
+  'power-bi': [SiPowerbi, '#F2C811'],
 };
 
 const INITIALS = /^[A-Za-z0-9]{1,3}$/;
@@ -46,7 +47,7 @@ function CollectionLogo({ slug, fallback, brand = true, className = '', style, .
   // back to a generic icon rather than an emoji glyph.
   if (typeof fallback === 'string' && INITIALS.test(fallback.trim())) {
     return (
-      <span className={`font-mono font-semibold ${className}`} style={style} {...rest}>
+      <span className={`font-semibold ${className}`} style={style} {...rest}>
         {fallback.trim().toUpperCase()}
       </span>
     );

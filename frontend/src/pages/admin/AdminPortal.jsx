@@ -20,7 +20,7 @@ export default function AdminPortal() {
 
   if (phase === 'checking') {
     return (
-      <div className="min-h-screen bg-cs-dark text-cs-text-muted flex items-center justify-center font-mono text-sm">
+      <div className="min-h-screen bg-cs-dark text-cs-text-muted flex items-center justify-center text-sm">
         checking session…
       </div>
     );

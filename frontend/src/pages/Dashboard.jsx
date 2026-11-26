@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { lessonService, progressService } from '../services/api';
-import { FiCode, FiZap, FiTarget, FiArrowRight, FiPlayCircle } from 'react-icons/fi';
+import { FiCode, FiZap, FiTarget, FiArrowRight, FiPlayCircle, FiSearch, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import LangLogo from '../components/LangLogo';
 import MajorIcon from '../components/MajorIcon';
 import MajorPicker from '../components/MajorPicker';
 import { useMajor } from '../context/MajorContext';
+import { DashboardSkeleton } from '../components/Skeletons';
 
 function Dashboard() {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ function Dashboard() {
   const [languages, setLanguages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllTracks, setShowAllTracks] = useState(false);
+  const [query, setQuery] = useState(''); // course search (searches ALL tracks)
   const [resume, setResume] = useState(null); // next lesson to pick up, or null
 
   useEffect(() => {
@@ -46,12 +48,7 @@ function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">{t('loading_dashboard')}</p>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // First run: no major chosen yet → show the picker instead of the dashboard.
@@ -77,6 +74,14 @@ function Dashboard() {
   const otherLanguages = languages.filter((l) => !inPath(l.slug));
   const visibleLanguages = showAllTracks ? [...pathLanguages, ...otherLanguages] : pathLanguages;
 
+  // Search looks through every course, not just the major's, by name/slug/description.
+  const q = query.trim().toLowerCase();
+  const searchResults = q
+    ? [...pathLanguages, ...otherLanguages].filter((l) =>
+        [l.name, l.slug, l.description].some((v) => (v || '').toLowerCase().includes(q)))
+    : null;
+  const shownLanguages = searchResults || (majorData ? visibleLanguages : languages);
+
   return (
     <div>
       <main className="w-full px-6 lg:px-10 py-8">
@@ -100,7 +105,7 @@ function Dashboard() {
                 <h2 className="text-xl font-bold">{majorData.label}</h2>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {majorData.focus.map((f) => (
-                    <span key={f} className="text-[11px] font-mono px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted">
+                    <span key={f} className="text-[11px] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted">
                       {f}
                     </span>
                   ))}
@@ -129,7 +134,7 @@ function Dashboard() {
             <div className="flex-grow min-w-0">
               <p className="mono-label text-cs-primary mb-1"> {t('dashboard.pick_up_where')}</p>
               <h2 className="text-xl font-bold truncate">{resume.lesson_title}</h2>
-              <p className="text-sm text-cs-text-dim font-mono truncate">
+              <p className="text-sm text-cs-text-dim truncate">
                 {resume.track_name} <span className="text-cs-text-muted">›</span> {resume.module_title}
               </p>
               <div className="flex items-center gap-3 mt-2">
@@ -139,7 +144,7 @@ function Dashboard() {
                     style={{ width: `${Math.round((resume.completed_in_track / Math.max(1, resume.total_in_track)) * 100)}%` }}
                   />
                 </div>
-                <span className="font-mono text-[11px] text-cs-text-muted shrink-0">
+                <span className="text-[11px] text-cs-text-muted shrink-0">
                   {resume.completed_in_track}/{resume.total_in_track} {t('dashboard.in_track')}
                 </span>
               </div>
@@ -153,31 +158,56 @@ function Dashboard() {
         <div className="mb-12">
           <div className="flex items-end justify-between gap-4 mb-2 flex-wrap">
             <h2 className="text-2xl font-bold">
-              {majorData ? t('dashboard.your_tracks', { major: majorData.label }) : t('dashboard.choose_language')}
+              {searchResults
+                ? `${searchResults.length} course${searchResults.length === 1 ? '' : 's'} for “${query.trim()}”`
+                : majorData ? t('dashboard.your_tracks', { major: majorData.label }) : t('dashboard.choose_language')}
             </h2>
-            {majorData && otherLanguages.length > 0 && (
+            <div className="flex items-center gap-2 ml-auto">
+              <div className="relative w-64 max-w-full">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search courses — Power BI, SQL…"
+                  aria-label="Search courses"
+                  className="input w-full h-9 !py-0 pl-9 pr-8 text-sm"
+                />
+                {query && (
+                  <button
+                    onClick={() => setQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-cs-text-muted hover:text-cs-text"
+                    aria-label="Clear search"
+                  >
+                    <FiX />
+                  </button>
+                )}
+              </div>
+            {!searchResults && majorData && otherLanguages.length > 0 && (
               <button
                 onClick={() => setShowAllTracks((v) => !v)}
-                className="btn btn-ghost btn-sm font-mono"
+                className="btn btn-ghost btn-sm"
               >
                 {showAllTracks ? t('dashboard.show_only_my') : t('dashboard.explore_all', { count: otherLanguages.length })}
               </button>
             )}
+            </div>
           </div>
           <p className="text-cs-text-dim mb-8">
-            {majorData
+            {searchResults
+              ? (searchResults.length ? 'Searching all courses, including ones outside your major.' : 'No course matches that. Try a shorter word, or search the Library for articles.')
+              : majorData
               ? `The tracks that build toward ${majorData.label}. Others are hidden unless you explore.`
               : t('dashboard.choose_language')}
           </p>
 
-          {majorData && visibleLanguages.length === 0 && (
+          {!searchResults && majorData && visibleLanguages.length === 0 && (
             <p className="text-sm text-cs-text-muted mb-6">
               {t('dashboard.tracks_not_seeded')}
             </p>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(majorData ? visibleLanguages : languages).map((lang) => (
+            {shownLanguages.map((lang) => (
               <Link
                 key={lang.id}
                 to={`/learn/${lang.slug}`}
@@ -186,7 +216,7 @@ function Dashboard() {
                 }`}
               >
                 {inPath(lang.slug) && (
-                  <span className="absolute top-3 right-3 text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-cs-primary/15 text-cs-primary">
+                  <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-cs-primary/15 text-cs-primary">
                     {t('dashboard.for_your_major')}
                   </span>
                 )}
@@ -207,7 +237,7 @@ function Dashboard() {
             <Link to="/projects" className="card text-center py-8 group cursor-pointer">
               <FiCode className="text-4xl text-cs-primary mx-auto mb-4" />
               <h4 className="text-lg font-bold mb-2">{t('dashboard.build_project')}</h4>
-              <p className="text-sm text-gray-400">{t('dashboard.build_project_desc')}</p>
+              <p className="text-sm text-cs-text-dim">{t('dashboard.build_project_desc')}</p>
             </Link>
             <Link to="/practice" className="card text-center py-8 group cursor-pointer">
               <FiTarget className="text-4xl text-cs-primary mx-auto mb-4" />

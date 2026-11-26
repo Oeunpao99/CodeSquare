@@ -122,7 +122,7 @@ function Profile() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">{t('loading_progress')}</p>
+        <p className="text-cs-text-dim">{t('loading_progress')}</p>
       </div>
     );
   }
@@ -132,7 +132,7 @@ function Profile() {
       {/* Sticky header — profile identity + tab switcher stay locked while scrolling */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-6 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
         <div className="flex items-center gap-5 flex-wrap">
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-main flex items-center justify-center text-2xl md:text-3xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40 shadow-[0_0_24px_-6px_rgb(var(--cs-primary)/0.5)]">
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-main flex items-center justify-center text-2xl md:text-3xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40">
             {user?.avatar ? (
               <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
             ) : (
@@ -142,7 +142,7 @@ function Profile() {
           <div className="min-w-0 flex-1">
             <span className="mono-label"> {t('profile.profile_label')}</span>
             <h1 className="text-2xl md:text-3xl font-bold truncate flex items-center gap-3">
-              {user?.display_name || user?.username} <span className="text-cs-primary animate-blink">▍</span>
+              {user?.display_name || user?.username}
             </h1>
             <p className="text-xs md:text-sm text-cs-text-dim truncate">
               {user?.headline || user?.email}
@@ -167,7 +167,7 @@ function Profile() {
             <button
               key={tabItem.id}
               onClick={() => setTab(tabItem.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-lg border-b-2 font-mono text-sm transition-colors ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-lg border-b-2 text-sm transition-colors ${
                 tab === tabItem.id
                   ? 'border-cs-primary text-cs-primary'
                   : 'border-transparent text-cs-text-dim hover:text-cs-text'
@@ -220,7 +220,7 @@ function Profile() {
                   }`}
                 >
                   {stat.highlight && (
-                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-cs-orange">
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-cs-orange">
                       <FiAward className="animate-pulse" /> {t('profile.on_fire')}
                     </span>
                   )}
@@ -271,7 +271,7 @@ function Profile() {
                       <button
                         key={o.k}
                         onClick={() => setHeatYear(o.k)}
-                        className={`px-2.5 py-1 rounded-md font-mono text-[11px] border transition-colors ${
+                        className={`px-2.5 py-1 rounded-md text-[11px] border transition-colors ${
                           heatYear === o.k
                             ? 'border-cs-primary text-cs-primary bg-cs-primary/10'
                             : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
@@ -280,7 +280,7 @@ function Profile() {
                         {o.label}
                       </button>
                     ))}
-                    <span className="ml-2 font-mono text-[11px] text-cs-text-dim">{selectedYear}</span>
+                    <span className="ml-2 text-[11px] text-cs-text-dim">{selectedYear}</span>
                   </div>
 
                   <div className="overflow-x-auto mt-1">
@@ -371,7 +371,7 @@ function Profile() {
                       value={lessonQuery}
                       onChange={(e) => { setLessonQuery(e.target.value); setLessonPage(0); }}
                       placeholder="filter lessons…"
-                      className="rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-1.5 text-xs font-mono outline-none focus:border-cs-primary/50 w-40 sm:w-48"
+                      className="rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-1.5 text-xs outline-none focus:border-cs-primary/50 w-40 sm:w-48"
                     />
                   )}
                 </div>
@@ -392,7 +392,7 @@ function Profile() {
                           const grade = gradeFor(lesson.score);
                           return (
                             <div key={lesson.lesson_id} className={`flex items-center gap-3 px-4 py-2.5 ${i > 0 ? 'border-t border-cs-line/10' : ''}`}>
-                              <div className={`w-6 h-6 flex items-center justify-center rounded-full shrink-0 text-xs ${lesson.completed ? 'bg-cs-green/15 text-cs-green' : 'bg-cs-overlay/10 text-gray-500'}`}>
+                              <div className={`w-6 h-6 flex items-center justify-center rounded-full shrink-0 text-xs ${lesson.completed ? 'bg-cs-green text-white' : 'bg-cs-overlay/10 text-cs-text-muted'}`}>
                                 {lesson.completed ? '✓' : '·'}
                               </div>
                               <div className="flex-grow min-w-0">
@@ -408,20 +408,20 @@ function Profile() {
                           );
                         })}
                         {progress.lessons.length === 0 && (
-                          <div className="text-center py-12 text-gray-500">
+                          <div className="text-center py-12 text-cs-text-muted">
                             <p className="text-5xl mb-4">📚</p>
                             <p>{t('profile.no_lessons')}</p>
                             <Link to="/dashboard" className="btn btn-primary btn-sm mt-4">{t('profile.start_learning')}</Link>
                           </div>
                         )}
                         {progress.lessons.length > 0 && filtered.length === 0 && (
-                          <div className="text-center py-10 text-cs-text-muted font-mono text-sm">
+                          <div className="text-center py-10 text-cs-text-muted text-sm">
                             No lessons match “{lessonQuery}”.
                           </div>
                         )}
                       </div>
                       {pages > 1 && (
-                        <div className="flex items-center justify-between mt-3 font-mono text-xs text-cs-text-muted">
+                        <div className="flex items-center justify-between mt-3 text-xs text-cs-text-muted">
                           <button
                             onClick={() => setLessonPage(Math.max(0, page - 1))}
                             disabled={page === 0}
@@ -451,7 +451,7 @@ function Profile() {
                     const max = Math.max(...progress.weekly_activity.map(d => d.lessons_completed), 1);
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
-                        <span className="w-10 text-sm text-gray-400">{day.day}</span>
+                        <span className="w-10 text-sm text-cs-text-dim">{day.day}</span>
                         <div className="flex-grow h-5 bg-cs-overlay bg-opacity-10 rounded overflow-hidden">
                           <div
                             className="h-full bg-gradient-main rounded transition-all duration-500"
@@ -471,7 +471,7 @@ function Profile() {
                       {progress.recent_projects.map((project) => (
                         <div key={project.id} className="card py-4">
                           <p className="font-semibold">{project.title}</p>
-                          <p className="text-xs text-gray-500">{project.language}</p>
+                          <p className="text-xs text-cs-text-muted">{project.language}</p>
                         </div>
                       ))}
                     </div>

@@ -18,11 +18,10 @@ export default function AdminLayout({ admin, onSignOut, children }) {
       {/* sidebar — pinned; content scrolls past it */}
       <aside className="w-64 flex-none sticky top-0 h-screen self-start border-r border-cs-line/[0.07] bg-cs-dark/80 flex flex-col">
         <div className="px-5 py-5">
-          <div className="font-mono text-xl font-bold tracking-tight text-cs-green">
+          <div className="text-xl font-bold tracking-tight text-cs-green">
             Code<span className="text-cs-mint">Square</span>
-            <span className="text-cs-text">_</span>
           </div>
-          <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-cs-primary">
+          <div className="mt-1.5 flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-cs-primary">
             <FiShield className="text-xs" /> admin
           </div>
         </div>
@@ -32,7 +31,7 @@ export default function AdminLayout({ admin, onSignOut, children }) {
             item.soon ? (
               <div
                 key={item.label}
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] font-mono text-[15px] text-cs-text-muted/60 cursor-default select-none"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-[15px] text-cs-text-muted cursor-default select-none"
                 title="Coming soon"
               >
                 <item.icon className="text-[19px]" />
@@ -46,7 +45,7 @@ export default function AdminLayout({ admin, onSignOut, children }) {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `relative flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] font-mono text-[15px] transition-colors ${
+                  `relative flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-[15px] transition-colors ${
                     isActive
                       ? 'text-cs-primary font-semibold bg-cs-primary/10'
                       : 'text-cs-text-dim font-medium hover:bg-cs-overlay/[0.06] hover:text-cs-text'
@@ -68,12 +67,12 @@ export default function AdminLayout({ admin, onSignOut, children }) {
         </nav>
 
         <div className="p-3 border-t border-cs-line/[0.07]">
-          <div className="px-2 pb-2 font-mono text-[11px] text-cs-text-muted truncate">
+          <div className="px-2 pb-2 text-[11px] text-cs-text-muted truncate">
             {admin?.email}
           </div>
           <button
             onClick={onSignOut}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-[13px] text-cs-text-dim border border-cs-line/12 hover:text-cs-primary hover:border-cs-primary/35 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] text-cs-text-dim border border-cs-line/12 hover:text-cs-primary hover:border-cs-primary/35 transition-colors"
           >
             <FiLogOut /> Sign out
           </button>

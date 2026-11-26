@@ -125,8 +125,8 @@ function QuizView() {
     return (
       <main className="w-full px-6 lg:px-10 py-16">
         <div className="max-w-md mx-auto card text-center py-14 border-cs-orange/25">
-          <p className="font-mono text-5xl mb-4 text-cs-text-muted select-none">404</p>
-          <p className="text-cs-text-dim mb-6 font-mono">quiz_not_found: /{slug}</p>
+          <p className="text-5xl mb-4 text-cs-text-muted select-none">404</p>
+          <p className="text-cs-text-dim mb-6">We couldn't find that quiz.</p>
           <Link to="/quizzes" className="btn btn-primary btn-sm">Back to Quizzes</Link>
         </div>
       </main>
@@ -136,7 +136,7 @@ function QuizView() {
   if (!quiz) {
     return (
       <main className="w-full px-6 lg:px-10 py-8">
-        <p className="text-cs-text-muted font-mono text-sm">loading /quizzes/{slug}…</p>
+        <p className="text-cs-text-muted text-sm">Loading quiz…</p>
       </main>
     );
   }
@@ -147,28 +147,28 @@ function QuizView() {
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Full-bleed sticky header */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/quizzes" className="inline-flex items-center gap-2 text-sm font-mono text-cs-text-dim hover:text-cs-primary mb-3">
+        <Link to="/quizzes" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-3">
           <FiArrowLeft /> ../quizzes
         </Link>
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <span className={`badge ${DIFF_BADGE[quiz.difficulty] || 'badge-cyan'}`}>{quiz.difficulty}</span>
           {quiz.topic && (
-            <span className="px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wide border border-cs-line/15 text-cs-text-dim">
+            <span className="px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wide border border-cs-line/15 text-cs-text-dim">
               {quiz.topic}
             </span>
           )}
-          {quiz.language && <span className="font-mono text-xs text-cs-text-muted">{quiz.language}</span>}
-          <span className="font-mono text-xs text-cs-primary inline-flex items-center gap-1">
+          {quiz.language && <span className="text-xs text-cs-text-muted">{quiz.language}</span>}
+          <span className="text-xs text-cs-primary inline-flex items-center gap-1">
             <FiZap className="text-[11px]" /> {quiz.xp_reward} XP
           </span>
-          <span className="font-mono text-xs text-cs-text-muted">pass ≥ {quiz.pass_score}%</span>
+          <span className="text-xs text-cs-text-muted">pass ≥ {quiz.pass_score}%</span>
           {quiz.passed && (
-            <span className="font-mono text-xs text-cs-green inline-flex items-center gap-1">
+            <span className="text-xs text-cs-green inline-flex items-center gap-1">
               <FiCheckCircle className="text-[11px]" /> passed
             </span>
           )}
         </div>
-        <h1 className="text-2xl font-bold font-mono flex items-center gap-2">
+        <h1 className="text-2xl font-bold flex items-center gap-2">
           <span className="text-cs-mint select-none">❯&nbsp;</span>{quiz.title}
         </h1>
         {quiz.description && <p className="text-sm text-cs-text-dim mt-2 max-w-3xl">{quiz.description}</p>}
@@ -182,8 +182,8 @@ function QuizView() {
         {rows.map((row, qi) => {
             const ring = row.graded
               ? row.isCorrect
-                ? 'border-cs-green/30 shadow-[0_0_40px_-24px_rgb(var(--cs-green)/0.7)]'
-                : 'border-cs-red/30 shadow-[0_0_40px_-24px_rgb(var(--cs-red)/0.7)]'
+                ? 'border-cs-green/30'
+                : 'border-cs-red/30'
               : row.chosen >= 0
                 ? 'border-cs-primary/25'
                 : 'border-cs-line/10';
@@ -198,12 +198,12 @@ function QuizView() {
                   <span className="terminal-dot bg-cs-red/80" />
                   <span className="terminal-dot bg-cs-orange/80" />
                   <span className="terminal-dot bg-cs-green/80" />
-                  <span className="ml-2 font-mono text-[11px] text-cs-text-muted inline-flex items-center gap-1.5">
+                  <span className="ml-2 text-[11px] text-cs-text-muted inline-flex items-center gap-1.5">
                     <FiTerminal className="text-[11px]" />
                     question_{String(qi + 1).padStart(2, '0')}.{ext}
                   </span>
                   {row.graded && (
-                    <span className={`ml-auto font-mono text-[11px] inline-flex items-center gap-1 ${
+                    <span className={`ml-auto text-[11px] inline-flex items-center gap-1 ${
                       row.isCorrect ? 'text-cs-green' : 'text-cs-red'
                     }`}>
                       {row.isCorrect ? <FiCheckCircle /> : <FiXCircle />}
@@ -214,7 +214,7 @@ function QuizView() {
 
                 <div className="p-5 lg:p-6">
                   <div className="flex items-start gap-3 mb-5">
-                    <span className="shrink-0 w-8 h-8 rounded-lg grid place-items-center font-mono text-sm font-bold bg-cs-primary/10 border border-cs-primary/30 text-cs-primary select-none">
+                    <span className="shrink-0 w-8 h-8 rounded-lg grid place-items-center text-sm font-bold bg-cs-primary/10 border border-cs-primary/30 text-cs-primary select-none">
                       {String(qi + 1).padStart(2, '0')}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -223,9 +223,9 @@ function QuizView() {
                   </div>
 
                   <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-[11px] font-mono uppercase tracking-wide text-cs-text-muted">select one</span>
+                    <span className="text-[11px] uppercase tracking-wide text-cs-text-muted">select one</span>
                     {!row.graded && row.chosen >= 0 && (
-                      <span className="text-[11px] font-mono text-cs-primary inline-flex items-center gap-1">
+                      <span className="text-[11px] text-cs-primary inline-flex items-center gap-1">
                         <FiCheckCircle className="text-[11px]" /> answered
                       </span>
                     )}
@@ -261,7 +261,7 @@ function QuizView() {
                             row.graded ? 'cursor-default' : ''
                           }`}
                         >
-                          <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${chip}`}>
+                          <span className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${chip}`}>
                             {LETTERS[oi]}
                           </span>
                           <span className="text-cs-text-dim flex-1">{opt}</span>
@@ -274,7 +274,7 @@ function QuizView() {
 
                   {/* explanation — styled like a source comment */}
                   {row.graded && row.explain && (
-                    <div className={`mt-4 rounded-lg border-l-2 pl-4 pr-3 py-2.5 font-mono text-[13px] leading-6 ${
+                    <div className={`mt-4 rounded-lg border-l-2 pl-4 pr-3 py-2.5 text-[13px] leading-6 ${
                       row.isCorrect
                         ? 'border-cs-green/40 bg-cs-green/[0.04] text-cs-text-dim'
                         : 'border-cs-primary/40 bg-cs-primary/[0.04] text-cs-text-dim'
@@ -291,7 +291,7 @@ function QuizView() {
           <div className="flex items-center justify-between gap-3 pt-2">
             {!result ? (
               <>
-                <span className="font-mono text-xs text-cs-text-muted">
+                <span className="text-xs text-cs-text-muted">
                   {answeredCount} / {total} answered
                 </span>
                 <button
@@ -338,7 +338,7 @@ function ScoreBanner({ result }) {
         {/* big score dial */}
         <div className="flex items-center gap-4 shrink-0">
           <div
-            className="w-20 h-20 rounded-2xl grid place-items-center font-mono font-bold text-2xl"
+            className="w-20 h-20 rounded-2xl grid place-items-center font-bold text-2xl"
             style={{
               color: `rgb(var(--cs-${good ? 'green' : 'red'}))`,
               background: `rgb(var(--cs-${good ? 'green' : 'red'}) / 0.10)`,
@@ -348,10 +348,10 @@ function ScoreBanner({ result }) {
             {result.score}%
           </div>
           <div>
-            <p className={`font-mono text-sm font-bold ${good ? 'text-cs-green' : 'text-cs-red'}`}>
+            <p className={`text-sm font-bold ${good ? 'text-cs-green' : 'text-cs-red'}`}>
               {good ? 'PASSED' : 'TRY AGAIN'}
             </p>
-            <p className="font-mono text-[11px] text-cs-text-muted mt-0.5">
+            <p className="text-[11px] text-cs-text-muted mt-0.5">
               {result.correct}/{result.total} correct · need {result.pass_score}%
             </p>
           </div>
@@ -370,7 +370,7 @@ function ScoreBanner({ result }) {
               }}
             />
           </div>
-          <div className="flex items-center justify-between mt-2 font-mono text-[11px] text-cs-text-muted">
+          <div className="flex items-center justify-between mt-2 text-[11px] text-cs-text-muted">
             <span>0%</span>
             <span className="text-cs-text-dim">pass line {result.pass_score}%</span>
             <span>100%</span>
@@ -379,12 +379,12 @@ function ScoreBanner({ result }) {
 
         {/* xp stamp */}
         {good && result.first_pass && (
-          <div className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-cs-primary/30 bg-cs-primary/10 text-cs-primary font-mono text-sm font-bold">
+          <div className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-cs-primary/30 bg-cs-primary/10 text-cs-primary text-sm font-bold">
             <FiAward /> +{result.xp_awarded} XP
           </div>
         )}
         {(!good || !result.first_pass) && (
-          <div className="shrink-0 font-mono text-[11px] text-cs-text-muted">
+          <div className="shrink-0 text-[11px] text-cs-text-muted">
             best {result.best_score}%
           </div>
         )}

@@ -571,12 +571,12 @@ function AITutor({ language, context, embedded = false, persist = false }) {
         <div className="absolute inset-0 z-30 flex flex-col bg-cs-darkest/95 backdrop-blur-xl">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-cs-line/10">
             <FiClock className="text-cs-primary" />
-            <span className="font-mono text-sm font-semibold flex-grow">
+            <span className="text-sm font-semibold flex-grow">
               Past chats
             </span>
             <button
               onClick={newChat}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono text-cs-primary border border-cs-primary/40 hover:bg-cs-primary/10 transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] text-cs-primary border border-cs-primary/40 hover:bg-cs-primary/10 transition-colors"
             >
               <FiPlus /> new chat
             </button>
@@ -589,12 +589,12 @@ function AITutor({ language, context, embedded = false, persist = false }) {
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
             {sessions === null && (
-              <p className="text-cs-text-muted font-mono text-sm px-1 py-4">
+              <p className="text-cs-text-muted text-sm px-1 py-4">
                 loading…
               </p>
             )}
             {sessions && sessions.length === 0 && (
-              <p className="text-cs-text-muted font-mono text-sm px-1 py-4">
+              <p className="text-cs-text-muted text-sm px-1 py-4">
                 No saved chats yet. Ask something and it’ll show up here.
               </p>
             )}
@@ -610,10 +610,10 @@ function AITutor({ language, context, embedded = false, persist = false }) {
               >
                 <div className="flex items-center gap-2">
                   <FiMessageSquare className="text-cs-text-muted shrink-0 text-xs" />
-                  <span className="font-mono text-sm font-semibold truncate flex-grow">
+                  <span className="text-sm font-semibold truncate flex-grow">
                     {s.title}
                   </span>
-                  <span className="font-mono text-[10px] text-cs-text-muted shrink-0">
+                  <span className="text-[10px] text-cs-text-muted shrink-0">
                     {timeAgo(s.updated_at)}
                   </span>
                   <span
@@ -627,7 +627,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
                 <p className="text-[11px] text-cs-text-dim truncate mt-1 pl-5">
                   {s.preview}
                 </p>
-                <p className="text-[10px] text-cs-text-muted font-mono mt-0.5 pl-5">
+                <p className="text-[10px] text-cs-text-muted mt-0.5 pl-5">
                   {s.turns} messages
                 </p>
               </button>
@@ -642,11 +642,11 @@ function AITutor({ language, context, embedded = false, persist = false }) {
             <AiIcon className="text-cs-dark text-lg" />
           </div>
           <div className="flex-grow">
-            <div className="font-mono text-sm font-semibold text-cs-text">
+            <div className="text-sm font-semibold text-cs-text">
               <span className="text-cs-mint select-none">❯&nbsp;</span>
               codesquare_agent --live
             </div>
-            <div className="text-[11px] text-cs-green flex items-center gap-1.5 font-mono">
+            <div className="text-[11px] text-cs-green flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-cs-green rounded-full animate-pulse"></span>
               ready for input
             </div>
@@ -661,7 +661,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
         {messages.map((msg, index) =>
           msg.role === "user" ? (
             <div key={index} className="flex justify-end">
-              <div className="max-w-[88%] w-fit rounded-lg px-4 py-2.5 text-[13px] leading-6 font-mono whitespace-pre-wrap bg-cs-primary/15 text-cs-primary border border-cs-primary/30 shadow-[0_0_18px_-10px_rgb(var(--cs-primary)/0.7)]">
+              <div className="max-w-[88%] w-fit rounded-lg px-4 py-2.5 text-[13px] leading-6 whitespace-pre-wrap bg-cs-primary/15 text-cs-primary border border-cs-primary/30">
                 <span className="text-cs-mint font-bold select-none">
                   ❯&nbsp;
                 </span>
@@ -671,7 +671,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
           ) : msg.sys ? (
             <div key={index} className="flex justify-start">
               <div className="max-w-full w-full text-sm rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] px-4 py-3">
-                <div className="flex items-center gap-1.5 mb-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted">
+                <div className="flex items-center gap-1.5 mb-1.5 text-[10px] uppercase tracking-wider text-cs-text-muted">
                   <span> system</span>
                 </div>
                 <Markdown
@@ -684,7 +684,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
           ) : (
             <div key={index} className="flex justify-start">
               <div className="max-w-full w-full text-sm">
-                <div className="flex items-center gap-1.5 mb-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-cs-cyan">
+                <div className="flex items-center gap-1.5 mb-1.5 text-[10px] uppercase tracking-wider text-cs-cyan">
                   <AiIcon className="text-xs" /> <span> codesquare_agent</span>
                 </div>
                 <>
@@ -702,7 +702,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
           ),
         )}
         {loading && !messages[messages.length - 1]?.streaming && (
-          <div className="flex items-center gap-1.5 text-cs-cyan text-sm font-mono pl-1">
+          <div className="flex items-center gap-1.5 text-cs-cyan text-sm pl-1">
             <span>❯</span>
             <span className="inline-block w-2 h-4 bg-cs-primary/70 animate-blink" />
           </div>
@@ -713,7 +713,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
         {/* Slash-command menu — appears while typing "/…" */}
         {slashMenu.length > 0 && (
           <div className="absolute bottom-full left-3 right-3 mb-2 rounded-lg border border-cs-line/20 bg-cs-darkest overflow-hidden z-20">
-            <div className="px-3 py-1.5 border-b border-cs-line/10 font-mono text-[10px] uppercase tracking-[0.18em] text-cs-text-muted">
+            <div className="px-3 py-1.5 border-b border-cs-line/10 text-[10px] uppercase tracking-wider text-cs-text-muted">
               // commands
             </div>
             {slashMenu.map((c, i) => (
@@ -728,18 +728,18 @@ function AITutor({ language, context, embedded = false, persist = false }) {
                     : "hover:bg-cs-overlay/[0.05]"
                 }`}
               >
-                <span className="font-mono text-sm text-cs-primary shrink-0">
+                <span className="text-sm text-cs-primary shrink-0">
                   /{c.name}
                   {c.arg && (
                     <span className="text-cs-text-muted"> {c.arg}</span>
                   )}
                 </span>
-                <span className="font-mono text-[11px] text-cs-text-muted truncate">
+                <span className="text-[11px] text-cs-text-muted truncate">
                   {c.desc}
                 </span>
               </button>
             ))}
-            <div className="px-3 py-1.5 border-t border-cs-line/10 font-mono text-[10px] text-cs-text-muted/70">
+            <div className="px-3 py-1.5 border-t border-cs-line/10 text-[10px] text-cs-text-muted">
               ↑↓ select · Tab complete · ↵ run
             </div>
           </div>
@@ -752,9 +752,8 @@ function AITutor({ language, context, embedded = false, persist = false }) {
               type="button"
               onClick={() => quick(q)}
               disabled={loading}
-              className="px-2.5 py-1 rounded-md text-[11px] font-mono text-cs-text-dim glass border border-cs-line/15 hover:text-cs-primary hover:border-cs-primary/40 hover:shadow-[0_0_14px_-8px_rgb(var(--cs-primary)/0.6)] disabled:opacity-40 transition-all"
+              className="px-2.5 py-1 rounded-md text-[11px] text-cs-text-dim glass border border-cs-line/15 hover:text-cs-primary hover:border-cs-primary/40 disabled:opacity-40 transition-all"
             >
-              <span className="text-cs-green select-none">$ </span>
               {q.label}
             </button>
           ))}
@@ -766,7 +765,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
         >
           {/* Row 1 — text input; grows upward as you type, the $ hugs the first line. */}
           <div className="flex items-start gap-2 px-3.5 pt-3 pb-1.5">
-            <span className="text-cs-green font-mono text-[13px] select-none shrink-0 leading-6">
+            <span className="text-cs-green text-[13px] select-none shrink-0 leading-6">
               $
             </span>
             <textarea
@@ -776,7 +775,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
               placeholder="ask, paste an error, or type / for commands…"
-              className="flex-grow resize-none block bg-transparent outline-none border-none font-mono text-[13px] leading-6 text-cs-text placeholder:text-cs-text-muted/50 py-0"
+              className="flex-grow resize-none block bg-transparent outline-none border-none text-[13px] leading-6 text-cs-text placeholder:text-cs-text-muted py-0"
               style={{ maxHeight: "200px" }}
             />
           </div>
@@ -787,7 +786,7 @@ function AITutor({ language, context, embedded = false, persist = false }) {
               type="button"
               onClick={insertSlash}
               title="Slash commands"
-              className="h-8 px-2 inline-flex items-center gap-1.5 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] font-mono text-sm text-cs-text-dim hover:text-cs-primary hover:border-cs-primary/40 transition-colors"
+              className="h-8 px-2 inline-flex items-center gap-1.5 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] text-sm text-cs-text-dim hover:text-cs-primary hover:border-cs-primary/40 transition-colors"
             >
               / <span className="hidden sm:inline text-[11px]">commands</span>
             </button>
@@ -803,20 +802,20 @@ function AITutor({ language, context, embedded = false, persist = false }) {
 
             <span className="flex-grow" />
 
-            <span className="hidden md:inline text-[10px] text-cs-text-muted/60 font-mono mr-1">
+            <span className="hidden md:inline text-[10px] text-cs-text-muted mr-1">
               Shift+Enter = newline
             </span>
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="h-8 px-3.5 inline-flex items-center justify-center gap-1.5 bg-cs-primary/15 text-cs-primary border border-cs-primary/40 rounded-lg font-mono text-sm disabled:opacity-40 hover:bg-cs-primary/25 hover:shadow-[0_0_18px_-8px_rgb(var(--cs-primary)/0.8)] transition-all"
+              className="h-8 px-3.5 inline-flex items-center justify-center gap-1.5 bg-cs-primary/15 text-cs-primary border border-cs-primary/40 rounded-lg text-sm disabled:opacity-40 hover:bg-cs-primary/25 transition-all"
             >
               <FiSend className="text-cs-primary" />{" "}
               <span className="hidden sm:inline">run</span>
             </button>
           </div>
         </form>
-        <p className="text-[10px] text-cs-text-muted/70 mt-1 font-mono">
+        <p className="text-[10px] text-cs-text-muted mt-1">
           Try <span className="text-cs-primary">/session</span>{" "}
           <span className="text-cs-primary">/new</span>{" "}
           <span className="text-cs-primary">/usage</span>

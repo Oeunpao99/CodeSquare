@@ -96,7 +96,7 @@ function GenerateProject() {
   return (
     <main className="w-full px-6 lg:px-10 py-6">
       <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-6 mb-6">
-        <Link to="/projects" className="inline-flex items-center gap-2 text-xs font-mono text-cs-text-muted hover:text-cs-text mb-2">
+        <Link to="/projects" className="inline-flex items-center gap-2 text-xs text-cs-text-muted hover:text-cs-text mb-2">
           <FiArrowLeft /> Projects
         </Link>
         <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -114,11 +114,11 @@ function GenerateProject() {
             Scoped to your major:{' '}
             <span className="font-semibold" style={{ color: majorData.color }}>{majorData.label}</span>
           </span>
-          <Link to="/profile" className="font-mono text-xs text-cs-text-muted hover:text-cs-primary">change</Link>
+          <Link to="/profile" className="text-xs text-cs-text-muted hover:text-cs-primary">change</Link>
         </div>
       ) : (
         <div className="mb-8">
-          <Link to="/dashboard" className="text-sm text-cs-primary font-mono">
+          <Link to="/dashboard" className="text-sm text-cs-primary">
             → pick a major first for tailored projects
           </Link>
         </div>
@@ -158,10 +158,10 @@ function GenerateProject() {
 
             <div className="terminal p-5">
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-sm text-cs-cyan flex items-center gap-2">
+                <span className="text-sm text-cs-cyan flex items-center gap-2">
                   <FiCode className="animate-pulse" /> ai · generating project
                 </span>
-                <span className="font-mono text-xl font-bold text-cs-primary tabular-nums">
+                <span className="text-xl font-bold text-cs-primary tabular-nums">
                   {Math.round(progress)}%
                 </span>
               </div>
@@ -190,15 +190,15 @@ function GenerateProject() {
               </div>
               <div className="mt-4 pt-4 border-t border-cs-line/10 flex flex-wrap items-center gap-2">
                 <span className="mono-label text-[10px]">reshaping</span>
-                <span className="px-2 py-0.5 rounded-md bg-cs-overlay/[0.06] border border-cs-line/10 text-xs font-mono text-cs-mint">
+                <span className="px-2 py-0.5 rounded-md bg-cs-overlay/[0.06] border border-cs-line/10 text-xs text-cs-mint">
                   {languageOptions.find((o) => o.id === language)?.name || language}
                 </span>
                 {skills.map((s) => (
-                  <span key={s} className="px-2 py-0.5 rounded-md bg-cs-overlay/[0.06] border border-cs-line/10 text-xs font-mono text-cs-text-dim">
+                  <span key={s} className="px-2 py-0.5 rounded-md bg-cs-overlay/[0.06] border border-cs-line/10 text-xs text-cs-text-dim">
                     {s}
                   </span>
                 ))}
-                <span className="px-2 py-0.5 rounded-md bg-cs-orange/[0.1] border border-cs-orange/20 text-xs font-mono text-cs-orange">
+                <span className="px-2 py-0.5 rounded-md bg-cs-orange/[0.1] border border-cs-orange/20 text-xs text-cs-orange">
                   {difficulty}
                 </span>
               </div>
@@ -270,7 +270,7 @@ function GenerateProject() {
                   <button
                     key={skill}
                     onClick={() => toggleSkill(skill)}
-                    className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium font-mono ${
+                    className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${
                       skills.includes(skill)
                         ? 'border-cs-green bg-cs-green bg-opacity-10 text-cs-green'
                         : 'border-cs-line border-opacity-15 text-cs-text-dim hover:border-cs-primary hover:text-cs-text'
@@ -284,8 +284,8 @@ function GenerateProject() {
           </div>
 
           <div className="flex justify-end mt-6">
-            <button onClick={generate} disabled={loading} className="btn btn-primary w-[300px] font-mono">
-              {loading ? 'Generating…' : '$ generate project'}
+            <button onClick={generate} disabled={loading} className="btn btn-primary w-[300px]">
+              {loading ? 'Generating…' : 'Generate project'}
             </button>
           </div>
         </div>

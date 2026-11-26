@@ -18,7 +18,7 @@ function Swatch({ colors }) {
         <span className="w-2 h-2 rounded-full" style={{ background: rgb('cs-orange') }} />
         <span className="w-2 h-2 rounded-full" style={{ background: rgb('cs-green') }} />
       </div>
-      <div className="px-3 py-2.5 font-mono text-[11px] leading-5" style={{ background: rgb('cs-darkest') }}>
+      <div className="px-3 py-2.5 text-[11px] leading-5" style={{ background: rgb('cs-darkest') }}>
         <div>
           <span style={{ color: rgb('cs-violet') }}>def </span>
           <span style={{ color: rgb('cs-blue') }}>run</span>
@@ -50,7 +50,7 @@ function ThemePicker() {
     <div>
       <div className="flex items-baseline justify-between mb-4">
         <h2 className="text-lg font-bold">Editor Theme</h2>
-        <span className="font-mono text-xs text-cs-text-muted">
+        <span className="text-xs text-cs-text-muted">
           {themes[theme]?.label} · saved to this browser
         </span>
       </div>

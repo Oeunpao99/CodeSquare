@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   SiPython, SiJavascript, SiTypescript, SiHtml5, SiCss3, SiReact,
-  SiPostgresql, SiFastapi, SiDocker, SiGit, SiGithub, SiPostman, SiSwagger,
+  SiPostgresql, SiFastapi, SiDocker, SiGit, SiGithub, SiPostman, SiSwagger, SiPowerbi,
 } from 'react-icons/si';
 import { FiCode } from 'react-icons/fi';
 
@@ -9,6 +9,9 @@ import { FiCode } from 'react-icons/fi';
 // so cards use the real logo instead of an emoji. Keys are matched loosely
 // against a slug, name or id (case-insensitive).
 const MAP = {
+  'power-bi': [SiPowerbi, '#F2C811'],
+  'power bi': [SiPowerbi, '#F2C811'],
+  powerbi: [SiPowerbi, '#F2C811'],
   python: [SiPython, '#3776AB'],
   javascript: [SiJavascript, '#F7DF1E'],
   js: [SiJavascript, '#F7DF1E'],

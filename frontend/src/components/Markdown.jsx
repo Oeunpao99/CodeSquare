@@ -69,8 +69,8 @@ function CodeBlock({ lang, body }) {
   return (
     <div className="rounded-lg border border-cs-line/15 bg-cs-darkest overflow-hidden my-2">
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-cs-line/10 bg-cs-overlay/[0.04]">
-        <span className="font-mono text-[10px] text-cs-text-muted">{lang || 'code'}</span>
-        <button onClick={copy} className="font-mono text-[10px] text-cs-text-muted hover:text-cs-text inline-flex items-center gap-1">
+        <span className="text-[10px] text-cs-text-muted">{lang || 'code'}</span>
+        <button onClick={copy} className="text-[10px] text-cs-text-muted hover:text-cs-text inline-flex items-center gap-1">
           {copied ? <FiCheck /> : <FiCopy />} {copied ? 'copied' : 'copy'}
         </button>
       </div>
@@ -141,7 +141,7 @@ function renderListItem(text, keyBase) {
     return [
       <code
         key={`${keyBase}path`}
-        className="font-mono text-[0.85em] px-1 py-0.5 rounded bg-cs-overlay/10 text-cs-text"
+        className="text-[0.85em] px-1 py-0.5 rounded bg-cs-overlay/10 text-cs-text"
       >
         {m[1]}
       </code>,

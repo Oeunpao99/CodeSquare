@@ -65,17 +65,17 @@ export default function PublishTerminal({ anchor, onDone, verb = 'publish', noun
           <span className="w-2.5 h-2.5 rounded-full bg-cs-red/80" />
           <span className="w-2.5 h-2.5 rounded-full bg-cs-orange/80" />
           <span className="w-2.5 h-2.5 rounded-full bg-cs-green/80" />
-          <span className="ml-auto font-mono text-[10px] text-cs-text-muted tabular-nums">{verb} · {Math.round(pct)}%</span>
+          <span className="ml-auto text-[10px] text-cs-text-muted tabular-nums">{verb} · {Math.round(pct)}%</span>
         </div>
         <div className="h-1 w-full bg-cs-line/10">
           <div
-            className="h-full bg-cs-primary shadow-[0_0_8px_rgba(45,212,191,.6)]"
+            className="h-full bg-cs-primary"
             style={{ width: `${pct}%` }}
           />
         </div>
-        <div className="px-3 py-2.5 font-mono text-[11px] leading-relaxed space-y-1">
+        <div className="px-3 py-2.5 text-[11px] leading-relaxed space-y-1">
           <p className="text-cs-text-dim">
-            <span className="text-cs-primary">$</span> {verb} {noun}
+            {verb} {noun}
           </p>
           <p className="text-cs-text-dim">
             {step === 0 ? <Loader /> : <span className="text-cs-green">✓ </span>}

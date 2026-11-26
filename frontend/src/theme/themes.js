@@ -12,6 +12,21 @@
 
 export const THEMES = {
   /* ----------------------------- dark ----------------------------- */
+  dark: {
+    label: 'Dark', mode: 'dark',
+    hint: 'Plain charcoal, blue accent',
+    colors: {
+      'cs-dark': '24 24 27', 'cs-darker': '32 32 36', 'cs-darkest': '39 39 44',
+      'cs-primary': '59 130 246', 'cs-mint': '96 165 250',
+      'cs-cyan': '56 189 248', 'cs-blue': '59 130 246', 'cs-violet': '167 139 250',
+      'cs-green': '74 222 128', 'cs-orange': '251 146 60', 'cs-red': '248 113 113',
+      'cs-teal': '37 99 235', 'cs-deep-teal': '63 63 70',
+      'cs-text': '250 250 250', 'cs-text-dim': '212 212 216', 'cs-text-muted': '161 161 170',
+      'cs-line': '255 255 255', 'cs-overlay': '255 255 255',
+      'cs-btn-text': '255 255 255',
+    },
+  },
+
   'terminal-neutral': {
     label: 'Terminal Neutral', mode: 'dark',
     hint: 'Neutral near-black, teal accent',
@@ -118,6 +133,21 @@ export const THEMES = {
   },
 
   /* ----------------------------- light ---------------------------- */
+  light: {
+    label: 'Light', mode: 'light',
+    hint: 'Plain white, blue accent',
+    colors: {
+      'cs-dark': '255 255 255', 'cs-darker': '248 250 252', 'cs-darkest': '241 245 249',
+      'cs-primary': '37 99 235', 'cs-mint': '59 130 246',
+      'cs-cyan': '8 145 178', 'cs-blue': '37 99 235', 'cs-violet': '124 58 237',
+      'cs-green': '22 163 74', 'cs-orange': '234 88 12', 'cs-red': '220 38 38',
+      'cs-teal': '37 99 235', 'cs-deep-teal': '226 232 240',
+      'cs-text': '0 0 0', 'cs-text-dim': '28 28 30', 'cs-text-muted': '64 64 70',
+      'cs-line': '15 23 42', 'cs-overlay': '15 23 42',
+      'cs-btn-text': '255 255 255',
+    },
+  },
+
   'github-light': {
     label: 'GitHub Light', mode: 'light',
     hint: 'Clean white, GitHub blue',
@@ -127,7 +157,7 @@ export const THEMES = {
       'cs-cyan': '27 124 131', 'cs-blue': '9 105 218', 'cs-violet': '130 80 223',
       'cs-green': '26 127 55', 'cs-orange': '188 76 0', 'cs-red': '207 34 46',
       'cs-teal': '9 105 218', 'cs-deep-teal': '208 215 222',
-      'cs-text': '31 35 40', 'cs-text-dim': '87 96 106', 'cs-text-muted': '140 149 159',
+      'cs-text': '0 0 0', 'cs-text-dim': '28 28 30', 'cs-text-muted': '64 64 70',
       'cs-line': '13 17 23', 'cs-overlay': '13 17 23',
       'cs-btn-text': '255 255 255',
     },
@@ -142,7 +172,7 @@ export const THEMES = {
       'cs-cyan': '1 132 188', 'cs-blue': '64 120 242', 'cs-violet': '166 38 164',
       'cs-green': '80 161 79', 'cs-orange': '193 132 1', 'cs-red': '228 86 73',
       'cs-teal': '64 120 242', 'cs-deep-teal': '208 208 208',
-      'cs-text': '56 58 66', 'cs-text-dim': '105 108 119', 'cs-text-muted': '160 161 167',
+      'cs-text': '0 0 0', 'cs-text-dim': '28 28 30', 'cs-text-muted': '64 64 70',
       'cs-line': '56 58 66', 'cs-overlay': '56 58 66',
       'cs-btn-text': '255 255 255',
     },
@@ -157,7 +187,7 @@ export const THEMES = {
       'cs-cyan': '42 161 152', 'cs-blue': '38 139 210', 'cs-violet': '108 113 196',
       'cs-green': '133 153 0', 'cs-orange': '203 75 22', 'cs-red': '220 50 47',
       'cs-teal': '38 139 210', 'cs-deep-teal': '147 161 161',
-      'cs-text': '88 110 117', 'cs-text-dim': '101 123 131', 'cs-text-muted': '147 161 161',
+      'cs-text': '0 0 0', 'cs-text-dim': '28 28 30', 'cs-text-muted': '64 64 70',
       'cs-line': '88 110 117', 'cs-overlay': '88 110 117',
       'cs-btn-text': '255 255 255',
     },
@@ -165,7 +195,7 @@ export const THEMES = {
 };
 
 export const THEME_KEYS = Object.keys(THEMES);
-export const DEFAULT_THEME = 'terminal-neutral';
+export const DEFAULT_THEME = 'dark';
 export const STORAGE_KEY = 'cs-theme';
 
 /** rgb(...) string for a token in a theme — handy outside Tailwind (canvas, CM). */

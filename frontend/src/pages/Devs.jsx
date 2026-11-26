@@ -8,6 +8,7 @@ import { communityService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { MAJORS } from '../majors';
 import VerifiedBadge from '../components/VerifiedBadge';
+import { Sk } from '../components/Skeletons';
 
 const PAGE = 24;
 
@@ -59,18 +60,15 @@ export default function Devs() {
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky header */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex items-start justify-between gap-4 flex-wrap lg:pr-14">
+        <div className="flex items-start justify-between gap-4 flex-wrap lg:pr-52">
           <div>
-            <span className="mono-label text-cs-primary"> dev directory</span>
+            <span className="mono-label">Community</span>
             <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
               <FiUsers className="text-cs-primary" /> Developer Directory
             </h1>
-            <p className="text-sm text-cs-text-dim mt-1">
-              Find developers, mentors and students — then follow their posts, projects and activity.
-            </p>
           </div>
           {total > 0 && (
-            <span className="font-mono text-xs text-cs-text-muted shrink-0">
+            <span className="text-sm text-cs-text-dim shrink-0 self-end">
               {total} dev{total === 1 ? '' : 's'} found
             </span>
           )}
@@ -83,16 +81,16 @@ export default function Devs() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="search by name, handle, or headline…"
-              className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 pl-9 pr-3 py-2 text-sm font-mono outline-none focus:border-cs-primary/50"
+              placeholder="Search by name, handle or headline…"
+              className="input w-full h-10 !py-0 pl-9 pr-3 text-sm"
             />
           </div>
           <select
             value={major}
             onChange={(e) => setMajor(e.target.value)}
-            className="rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-sm font-mono outline-none focus:border-cs-primary/50 text-cs-text-dim"
+            className="input h-10 !py-0 px-3 text-sm w-auto"
           >
-            <option value="">all majors</option>
+            <option value="">All majors</option>
             {MAJOR_KEYS.map((k) => (
               <option key={k} value={k}>{MAJORS[k]?.label || k}</option>
             ))}
@@ -100,10 +98,10 @@ export default function Devs() {
               <option key={k} value={k}>{MAJORS[k]?.label || k}</option>
             ))}
           </select>
-          <button type="submit" className="btn btn-primary btn-sm">Search</button>
+          <button type="submit" className="btn btn-primary h-10 !py-0">Search</button>
           {(q || major) && (
-            <button type="button" onClick={clearFilters} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-text text-xs font-mono">
-              clear <FiX />
+            <button type="button" onClick={clearFilters} className="h-10 inline-flex items-center gap-1.5 px-2 text-cs-text-dim hover:text-cs-text text-sm">
+              Clear <FiX />
             </button>
           )}
         </form>
@@ -113,16 +111,16 @@ export default function Devs() {
       {devs === null && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border border-cs-line/10 bg-cs-darker p-5 animate-pulse">
+            <div key={i} className="card !p-5 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-cs-darkest" />
+                <Sk className="w-12 h-12 rounded-full" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 w-32 bg-cs-darkest rounded" />
-                  <div className="h-3 w-24 bg-cs-darkest rounded" />
+                  <Sk className="h-4 w-32" />
+                  <Sk className="h-3 w-24" />
                 </div>
               </div>
-              <div className="h-3 bg-cs-darkest rounded mt-4" />
-              <div className="h-3 bg-cs-darkest rounded mt-2 w-2/3" />
+              <Sk className="h-3.5 w-full" />
+              <Sk className="h-3.5 w-2/3" />
             </div>
           ))}
         </div>
@@ -130,14 +128,14 @@ export default function Devs() {
 
       {devs === false && (
         <div className="card text-center py-14 border-cs-red/20">
-          <p className="text-cs-text-dim font-mono text-sm">Couldn't load the directory.</p>
+          <p className="text-cs-text-dim text-sm">Couldn't load the directory.</p>
         </div>
       )}
 
       {Array.isArray(devs) && devs.length === 0 && (
         <div className="card text-center py-14">
           <FiUsers className="text-3xl text-cs-text-muted mx-auto mb-3" />
-          <p className="text-cs-text-dim font-mono text-sm">No developers match that search.</p>
+          <p className="text-cs-text-dim text-sm">No developers match that search.</p>
         </div>
       )}
 
@@ -150,79 +148,54 @@ export default function Devs() {
               <Link
                 key={d.username}
                 to={`/u/${d.username}`}
-                className="group relative rounded-2xl border border-cs-line/10 bg-cs-darker/60 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-cs-primary/30 hover:bg-cs-darker"
+                className="group card !p-5 flex flex-col gap-3 text-cs-text hover:border-cs-primary/40 transition-colors"
               >
-                <div className="p-5">
-                  <div className="flex items-center justify-between gap-2">
-                    {champion ? (
-                      <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.2em] uppercase text-cs-gold">
-                        <CrownIcon className="text-xs" /> champion · #1
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center font-mono text-[11px] font-semibold tracking-[0.2em] text-cs-text-dim uppercase">
-                        <span className="text-cs-primary">#</span>{String(d.rank).padStart(4, '0')}
-                      </span>
-                    )}
-                    {majorData ? (
-                      <span
-                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border font-mono text-[11px] font-semibold"
-                        style={{ borderColor: `${majorData.color}40`, color: majorData.color, background: `${majorData.color}14` }}
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: majorData.color }} />
-                        {majorData.label}
-                      </span>
-                    ) : (
-                      <span className="font-mono text-[11px] text-cs-text-dim/80">no major</span>
-                    )}
+                {/* who */}
+                <div className="flex items-center gap-3">
+                  <span className="w-12 h-12 rounded-full bg-cs-primary/10 text-cs-primary grid place-items-center font-bold text-lg overflow-hidden shrink-0">
+                    {d.avatar
+                      ? <img src={d.avatar} alt="" className="w-full h-full object-cover" />
+                      : (d.display_name || d.username).charAt(0).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold truncate flex items-center gap-1.5 group-hover:text-cs-primary transition-colors">
+                      {d.display_name || d.username}
+                      {d.verified && <VerifiedBadge size="h-4 w-4" />}
+                    </p>
+                    <p className="text-sm text-cs-text-dim truncate">
+                      @{d.username}
+                      {d.is_staff && <span className="text-cs-violet"> · Dev team</span>}
+                    </p>
                   </div>
-
-                  <div className="flex items-center gap-3.5 mt-4">
-                    <span
-                      className="relative w-14 h-14 rounded-2xl bg-cs-darkest border border-cs-line/15 flex items-center justify-center font-mono font-bold text-lg text-cs-primary overflow-hidden shrink-0 transition-colors"
-                      style={majorData ? { boxShadow: `0 0 0 1px ${majorData.color}2a` } : undefined}
-                    >
-                      {d.avatar
-                        ? <img src={d.avatar} alt="" className="w-full h-full object-cover" />
-                        : <span>{(d.display_name || d.username).charAt(0).toUpperCase()}</span>}
-                      <span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-cs-green ring-2 ring-cs-darker" />
+                  {champion ? (
+                    <span className="inline-flex items-center gap-1 text-sm font-bold text-cs-gold shrink-0" title="Leaderboard #1">
+                      <CrownIcon className="w-4 h-4" /> #1
                     </span>
-                    <div className="min-w-0">
-                      <p className="font-mono text-[15px] font-semibold truncate flex items-center gap-1.5">
-                        {d.display_name || d.username}
-                        {d.verified && <VerifiedBadge size="h-4 w-4" />}
-                      </p>
-                      <p className="font-mono text-xs font-semibold text-cs-text-dim truncate mt-0.5">
-                        @{d.username}
-                        {d.is_staff && <span className="text-cs-violet"> · dev team</span>}
-                      </p>
-                    </div>
-                  </div>
-
-                  {d.headline ? (
-                    <p className="mt-4 text-xs font-medium text-cs-text-dim line-clamp-2 leading-relaxed">{d.headline}</p>
                   ) : (
-                    <p className="mt-4 font-mono text-xs text-cs-text-dim/80">no headline yet</p>
+                    <span className="text-sm text-cs-text-dim shrink-0 tabular-nums" title="Leaderboard rank">#{d.rank}</span>
                   )}
+                </div>
 
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    {[
-                      { label: 'xp',       value: d.xp,                cls: 'text-cs-cyan' },
-                      { label: 'lessons',  value: d.lessons_completed, cls: 'text-cs-primary' },
-                      { label: 'challenges', value: d.challenges_solved, cls: 'text-cs-green' },
-                    ].map((s) => (
-                      <div key={s.label} className="rounded-lg border border-cs-line/10 bg-cs-darkest/40 px-2 py-2 text-center">
-                        <div className={`font-mono text-lg font-bold leading-none ${s.cls}`}>{s.value}</div>
-                        <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-cs-text-dim mt-1.5">{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
+                {/* major + headline */}
+                {majorData && (
+                  <p className="text-sm font-medium inline-flex items-center gap-1.5" style={{ color: majorData.color }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: majorData.color }} />
+                    {majorData.label}
+                  </p>
+                )}
+                {d.headline && (
+                  <p className="text-sm text-cs-text-dim line-clamp-2">{d.headline}</p>
+                )}
 
-                  <div className="mt-3 pt-3 border-t border-cs-line/8 flex items-center gap-4 text-cs-text-dim">
-                    <span className="inline-flex items-center gap-1 text-xs font-mono"><FiUserPlus className="text-cs-mint" /> {d.follower_count}</span>
-                    <span className="inline-flex items-center gap-1 text-xs font-mono"><FiMessageSquare className="text-cs-orange" /> {d.post_count}</span>
-                    <span className="inline-flex items-center gap-1 text-xs font-mono"><FiAward className="text-cs-violet" /> {d.credits ?? 0}</span>
-                    <span className="ml-auto font-mono text-[11px] text-cs-primary/0 group-hover:text-cs-primary transition-colors font-semibold">view →</span>
-                  </div>
+                {/* stats: one plain line */}
+                <div className="mt-auto pt-3 border-t border-cs-line/10 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-cs-text-dim">
+                  <span><strong className="text-cs-text">{d.xp.toLocaleString()}</strong> XP</span>
+                  <span><strong className="text-cs-text">{d.lessons_completed}</strong> lessons</span>
+                  <span><strong className="text-cs-text">{d.challenges_solved}</strong> challenges</span>
+                  <span className="ml-auto inline-flex items-center gap-3 text-xs">
+                    <span className="inline-flex items-center gap-1" title="Followers"><FiUserPlus /> {d.follower_count}</span>
+                    <span className="inline-flex items-center gap-1" title="Posts"><FiMessageSquare /> {d.post_count}</span>
+                  </span>
                 </div>
               </Link>
             );

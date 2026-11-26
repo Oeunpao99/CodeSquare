@@ -8,10 +8,12 @@ import LangLogo from './LangLogo';
 // learner can catch up at a glance. Data is the /roadmap/:major payload — no
 // extra request.
 
+// Neat, glow-free cards: status is shown by the check/play icon and the bar,
+// with only a slightly stronger border on the track you're working on.
 const TRACK_RING = {
-  completed: 'border-cs-green/50 shadow-[0_0_30px_-14px_rgb(var(--cs-green)/0.8)]',
-  'in-progress': 'border-cs-primary/50 shadow-[0_0_30px_-12px_rgb(var(--cs-primary)/0.8)]',
-  'not-started': 'border-cs-line/15',
+  completed: 'border-cs-line/10',
+  'in-progress': 'border-cs-primary/40',
+  'not-started': 'border-cs-line/10',
 };
 
 function moduleState(mod) {
@@ -42,7 +44,7 @@ function RoadmapFlow({ data }) {
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-4 text-[11px] font-mono text-cs-text-muted">
+      <div className="flex items-center gap-4 mb-4 text-[11px] text-cs-text-muted">
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-cs-green" /> done</span>
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-cs-primary" /> in progress</span>
         <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full border border-cs-line/30" /> upcoming</span>
@@ -65,7 +67,7 @@ function RoadmapFlow({ data }) {
                   </div>
                 )}
 
-                <div className={`card md:w-[300px] shrink-0 border ${TRACK_RING[track.status] || TRACK_RING['not-started']}`}>
+                <div className={`card md:w-[300px] shrink-0 border shadow-sm ${TRACK_RING[track.status] || TRACK_RING['not-started']}`}>
                   {/* track header */}
                   <Link to={`/learn/${track.slug}`} className="flex items-start gap-3 group">
                     <span
@@ -80,7 +82,7 @@ function RoadmapFlow({ data }) {
                         {track.status === 'completed' && <FiCheck className="text-cs-green shrink-0" />}
                         {track.status === 'in-progress' && <FiPlay className="text-cs-primary shrink-0 text-xs" />}
                       </div>
-                      <p className="text-[11px] font-mono text-cs-text-muted mt-0.5">
+                      <p className="text-[11px] text-cs-text-muted mt-0.5">
                         {track.completed_lessons} / {track.total_lessons} lessons · {pct}%
                       </p>
                     </div>
@@ -93,8 +95,8 @@ function RoadmapFlow({ data }) {
                         width: `${pct}%`,
                         background:
                           track.status === 'completed'
-                            ? 'linear-gradient(90deg, rgb(var(--cs-green)/0.4), rgb(var(--cs-green)))'
-                            : 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
+                            ? 'rgb(var(--cs-green))'
+                            : 'rgb(var(--cs-primary))',
                       }}
                     />
                   </div>
@@ -110,18 +112,14 @@ function RoadmapFlow({ data }) {
                           key={mod.id}
                           className={`rounded-lg border px-2.5 py-2 flex items-center gap-2.5 ${
                             here
-                              ? 'border-cs-cyan/60 bg-cs-cyan/[0.07]'
-                              : done
-                              ? 'border-cs-green/25 bg-cs-green/[0.04]'
-                              : started
-                              ? 'border-cs-primary/30 bg-cs-primary/[0.05]'
-                              : 'border-cs-line/10'
+                              ? 'border-cs-primary/40 bg-cs-primary/[0.06]'
+                              : 'border-transparent bg-cs-overlay/[0.04]'
                           }`}
                         >
                           <span
                             className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 border ${
                               done
-                                ? 'bg-cs-green/20 border-cs-green text-cs-green'
+                                ? 'bg-cs-green border-cs-green text-white'
                                 : started || here
                                 ? 'bg-cs-primary/20 border-cs-primary text-cs-primary'
                                 : 'border-cs-line/25 text-cs-text-muted'
@@ -131,7 +129,7 @@ function RoadmapFlow({ data }) {
                           </span>
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-medium truncate">
-                              <span className="font-mono text-cs-text-muted">L{mod.level ?? mod.order}</span> {mod.title}
+                              <span className="text-cs-text-muted">L{mod.level ?? mod.order}</span> {mod.title}
                             </p>
                             <div className="h-1 rounded-full bg-cs-overlay/10 overflow-hidden mt-1">
                               <div
@@ -141,7 +139,7 @@ function RoadmapFlow({ data }) {
                             </div>
                           </div>
                           {here && (
-                            <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-mono text-cs-cyan">
+                            <span className="shrink-0 inline-flex items-center gap-1 text-[10px] text-cs-primary font-medium">
                               <FiMapPin /> here
                             </span>
                           )}
@@ -149,7 +147,7 @@ function RoadmapFlow({ data }) {
                       );
                     })}
                     {track.modules.length === 0 && (
-                      <p className="text-[11px] font-mono text-cs-text-muted">no modules yet</p>
+                      <p className="text-[11px] text-cs-text-muted">no modules yet</p>
                     )}
                   </div>
 

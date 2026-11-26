@@ -39,13 +39,13 @@ export default function AdminLogin({ onAuthed }) {
           <FiShield className="text-lg" />
           <span className="mono-label text-cs-primary"> admin portal</span>
         </div>
-        <h1 className="font-mono text-2xl font-bold mb-1">Sign in</h1>
+        <h1 className="text-2xl font-bold mb-1">Sign in</h1>
         <p className="text-sm text-cs-text-muted mb-6">
-          Admin accounts only. Learner sign-in is at <span className="font-mono">/auth</span>.
+          Admin accounts only. Learner sign-in is at <span className="">/auth</span>.
         </p>
 
         <label className="block mb-3">
-          <span className="block font-mono text-[11px] uppercase tracking-[0.16em] text-cs-text-muted mb-1.5">
+          <span className="block text-[11px] uppercase tracking-wider text-cs-text-muted mb-1.5">
             Email
           </span>
           <input
@@ -54,13 +54,13 @@ export default function AdminLogin({ onAuthed }) {
             autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl font-mono text-[13px] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
+            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
             placeholder="you@example.com"
           />
         </label>
 
         <label className="block mb-5">
-          <span className="block font-mono text-[11px] uppercase tracking-[0.16em] text-cs-text-muted mb-1.5">
+          <span className="block text-[11px] uppercase tracking-wider text-cs-text-muted mb-1.5">
             Password
           </span>
           <input
@@ -68,13 +68,13 @@ export default function AdminLogin({ onAuthed }) {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl font-mono text-[13px] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
+            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-cs-overlay/5 border border-cs-line/10 text-cs-text outline-none focus:border-cs-primary"
             placeholder="••••••••"
           />
         </label>
 
         {error && (
-          <p className="mb-4 font-mono text-[12px] text-cs-red border border-cs-red/25 bg-cs-red/10 rounded-lg px-3 py-2">
+          <p className="mb-4 text-[12px] text-cs-red border border-cs-red/25 bg-cs-red/10 rounded-lg px-3 py-2">
             {error}
           </p>
         )}
@@ -82,7 +82,7 @@ export default function AdminLogin({ onAuthed }) {
         <button
           type="submit"
           disabled={busy}
-          className="btn btn-primary w-full font-mono disabled:opacity-50"
+          className="btn btn-primary w-full disabled:opacity-50"
         >
           {busy ? 'Signing in…' : <>Sign in <FiArrowRight /></>}
         </button>

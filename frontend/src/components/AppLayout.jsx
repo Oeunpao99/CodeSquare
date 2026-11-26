@@ -8,11 +8,10 @@ import { useLanguage } from '../context/LanguageContext';
 import { progressService, usageService } from '../services/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
+  FiSun, FiMoon, FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
   FiUser, FiSettings, FiLayers, FiCircle, FiActivity, FiChevronRight, FiChevronUp,
   FiChevronsLeft, FiChevronsRight, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
   FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers, FiMessageSquare,
-  FiGlobe as FiLanguage,
 } from 'react-icons/fi';
 import MajorIcon from './MajorIcon';
 import NotificationBell from './NotificationBell';
@@ -128,11 +127,161 @@ function readAccent() {
 // Shared shell for authenticated pages: a responsive left sidebar (fixed on
 // desktop, slide-in drawer on mobile) plus the main content area. Clicking the
 // user row opens a settings/theme/color/activity popup.
+function ModeToggle({ mode, toggleMode, theme, setTheme, themes, themeKeys }) {
+  // Split control: the sun/moon flips light <-> dark in one click; the chevron
+  // opens a small menu to pick the exact theme without going to Settings.
+  const isDark = mode === 'dark';
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => ref.current && !ref.current.contains(e.target) && setOpen(false);
+    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const swatch = (key) => {
+    const c = themes[key].colors;
+    return (
+      <span
+        className="relative w-9 h-6 rounded-md overflow-hidden shrink-0 border border-cs-line/15"
+        style={{ background: `rgb(${c['cs-dark']})` }}
+      >
+        <span className="absolute left-1 top-1 h-1 w-4 rounded-full" style={{ background: `rgb(${c['cs-text']})` }} />
+        <span className="absolute left-1 top-3 h-1 w-6 rounded-full" style={{ background: `rgb(${c['cs-primary']})` }} />
+        <span className="absolute right-1 bottom-1 h-1.5 w-1.5 rounded-full" style={{ background: `rgb(${c['cs-green']})` }} />
+      </span>
+    );
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <div className="inline-flex items-center h-8 rounded-full border border-cs-line/15 bg-cs-darker/80 backdrop-blur-md text-cs-text-dim">
+        <button
+          type="button"
+          onClick={toggleMode}
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="h-full pl-2.5 pr-1.5 inline-flex items-center hover:text-cs-primary transition-colors"
+        >
+          {isDark ? <FiSun className="text-[15px]" /> : <FiMoon className="text-[15px]" />}
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          title="Choose a theme"
+          aria-label="Choose a theme"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          className="h-full pl-1 pr-2 inline-flex items-center border-l border-cs-line/15 hover:text-cs-primary transition-colors"
+        >
+          <FiChevronDown className={`text-[13px] transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 mt-2 w-64 p-2 rounded-xl border border-cs-line/15 bg-cs-darkest shadow-2xl z-[60] animate-route-fade"
+        >
+          {/* Light / Dark segmented switch */}
+          <div className="grid grid-cols-2 gap-1 p-1 mb-2 rounded-lg bg-cs-overlay/[0.06] text-xs font-semibold">
+            {[
+              ['light', 'Light', FiSun],
+              ['dark', 'Dark', FiMoon],
+            ].map(([m, label, Icon]) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => m !== mode && toggleMode()}
+                className={`inline-flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-colors ${
+                  mode === m ? 'bg-cs-primary text-cs-btn-text' : 'text-cs-text-dim hover:text-cs-text'
+                }`}
+              >
+                <Icon /> {label}
+              </button>
+            ))}
+          </div>
+
+          <p className="px-2 pt-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-cs-text-muted">
+            {isDark ? 'Dark themes' : 'Light themes'}
+          </p>
+          <div className="max-h-72 overflow-y-auto">
+            {themeKeys
+              .filter((key) => themes[key].mode === mode)
+              .map((key) => {
+                const active = key === theme;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={active}
+                    onClick={() => setTheme(key)}
+                    className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-lg text-left transition-colors ${
+                      active ? 'bg-cs-primary/10' : 'hover:bg-cs-overlay/5'
+                    }`}
+                  >
+                    {swatch(key)}
+                    <span className="flex-grow min-w-0">
+                      <span className={`block text-sm font-medium truncate ${active ? 'text-cs-primary' : 'text-cs-text'}`}>
+                        {themes[key].label}
+                      </span>
+                      {themes[key].hint && (
+                        <span className="block text-[11px] text-cs-text-muted truncate">{themes[key].hint}</span>
+                      )}
+                    </span>
+                    {active && <FiCheck className="text-cs-primary shrink-0" />}
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LangToggle({ lang, setLang, languages }) {
+  // Two-option segmented switch: EN | ខ្មែរ. Lives in the top header.
+  const short = { en: 'EN', km: 'ខ្មែរ' };
+  return (
+    <div
+      role="group"
+      aria-label="Language"
+      className="inline-flex items-center rounded-full border border-cs-line/15 bg-cs-darker/80 backdrop-blur-md p-0.5 text-xs font-semibold"
+    >
+      {languages.map((l) => (
+        <button
+          key={l.code}
+          type="button"
+          onClick={() => setLang(l.code)}
+          aria-pressed={lang === l.code}
+          title={l.native}
+          className={`px-2.5 py-1 rounded-full transition-colors ${
+            lang === l.code
+              ? 'bg-cs-primary text-cs-btn-text'
+              : 'text-cs-text-dim hover:text-cs-text'
+          }`}
+        >
+          {short[l.code] || l.code.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AppLayout() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { major, majorData, clearMajor } = useMajor();
-  const { theme, setTheme, themes, themeKeys } = useTheme();
+  const { theme, setTheme, themes, themeKeys, mode, toggleMode } = useTheme();
   const { lang, setLang, languages } = useLanguage();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
@@ -146,7 +295,6 @@ function AppLayout() {
   const [activity, setActivity] = useState(null);
   const [usage, setUsage] = useState(null);
   const [navGroups, setNavGroups] = useState(readNavGroups);
-  const [langOpen, setLangOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -254,7 +402,7 @@ function AppLayout() {
             <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-cs-primary" aria-hidden="true" />
           )}
           <span
-            className={`relative flex items-center gap-3 pl-3.5 pr-3 py-2.5 rounded-[10px] font-mono text-[15px] transition-colors duration-150 ${
+            className={`relative flex items-center gap-3 pl-3.5 pr-3 py-2.5 rounded-[10px] text-[15px] transition-colors duration-150 ${
               isActive
                 ? 'text-cs-primary font-semibold'
                 : 'text-cs-text-dim font-medium group-hover:bg-cs-overlay/[0.06] group-hover:text-cs-text'
@@ -305,40 +453,10 @@ function AppLayout() {
         <button
           onClick={toggleCollapsed}
           title={t('sidebar.expand_sidebar')}
-          className="w-full flex items-center justify-center py-2.5 rounded-[10px] font-mono text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.05] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary hover:shadow-[0_0_16px_-8px_rgb(var(--cs-primary)/0.6)] transition-all"
+          className="w-full flex items-center justify-center py-2.5 rounded-[10px] text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.05] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary transition-all"
         >
           <FiChevronsRight className="text-lg" />
         </button>
-        {/* Language switcher — compact icon */}
-        <div className="relative w-full">
-          <button
-            onClick={() => setLangOpen((v) => !v)}
-            className="w-full flex items-center justify-center py-2.5 rounded-[10px] font-mono text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.05] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary transition-all"
-          >
-            <FiLanguage className="text-lg" />
-          </button>
-          {langOpen && (
-            <>
-              <div className="fixed inset-0 z-[80]" onClick={() => setLangOpen(false)} />
-              <div className="absolute left-0 bottom-full mb-2 z-[90] w-36 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5 shadow-xl">
-                {languages.map((l) => (
-                  <button
-                    key={l.code}
-                    onClick={() => { setLang(l.code); setLangOpen(false); }}
-                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all ${
-                      lang === l.code
-                        ? 'bg-cs-primary/15 text-cs-primary'
-                        : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
-                    }`}
-                  >
-                    <span>{l.flag}</span>
-                    <span>{l.native}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
       </div>
 
       {/* Nav — icon-only rail */}
@@ -367,7 +485,7 @@ function AppLayout() {
                   />
                 )}
                 <span
-                  className={`relative flex items-center justify-center py-3.5 rounded-[10px] font-mono text-xl transition-colors duration-150 ${
+                  className={`relative flex items-center justify-center py-3.5 rounded-[10px] text-xl transition-colors duration-150 ${
                     isActive
                       ? 'text-cs-primary'
                       : 'text-cs-text-muted group-hover:bg-cs-overlay/[0.06] group-hover:text-cs-cyan'
@@ -396,21 +514,20 @@ function AppLayout() {
               alt="CodeSquare"
               className="h-12 w-auto object-contain shrink-0"
             />
-            <span className="font-mono text-3xl font-bold tracking-tight leading-none text-cs-green [text-shadow:0_0_18px_rgb(var(--cs-green)/0.35)] whitespace-nowrap">
+            <span className="text-3xl font-bold tracking-tight leading-none text-cs-green whitespace-nowrap">
               Code
               <span className="text-cs-mint">Square</span>
-              <span className="text-cs-text animate-blink">_</span>
             </span>
           </div>
           <button
             onClick={toggleCollapsed}
             title={t('sidebar.collapse_sidebar')}
-            className="hidden lg:inline-flex p-2 rounded-lg font-mono text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.04] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary hover:shadow-[0_0_16px_-8px_rgb(var(--cs-primary)/0.6)] transition-all shrink-0"
+            className="hidden lg:inline-flex p-2 rounded-lg text-cs-text-dim border border-cs-line/15 bg-cs-overlay/[0.04] backdrop-blur-md hover:border-cs-primary/40 hover:text-cs-primary transition-all shrink-0"
           >
             <FiChevronsLeft className="text-lg" />
           </button>
         </div>
-        <span className="font-mono text-[11px] tracking-wide text-cs-text-muted">
+        <span className="text-[11px] tracking-wide text-cs-text-muted">
           {t('sidebar.build_boldly')}
         </span>
       </div>
@@ -423,7 +540,7 @@ function AppLayout() {
             <div key={grp.id} className="space-y-1">
               <button
                 onClick={() => toggleNavGroup(grp.id)}
-                className="w-full flex items-center gap-1.5 px-3.5 pt-3 pb-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-cs-text-muted hover:text-cs-text transition-colors"
+                className="w-full flex items-center gap-1.5 px-3.5 pt-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-cs-text-muted hover:text-cs-text transition-colors"
                 aria-expanded={!isCollapsed}
               >
                 <FiChevronDown
@@ -451,54 +568,11 @@ function AppLayout() {
 
       {/* Profile — terminal-style status card opening the settings popup */}
       <div className="relative border-t border-cs-line/10 px-3 pt-3 pb-3">
-        {/* Language switcher */}
-        <div className="relative mb-2">
-          <button
-            onClick={() => setLangOpen((v) => !v)}
-            className="w-full flex items-center gap-3 p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.06] backdrop-blur-md hover:border-cs-primary/40 hover:shadow-[0_0_18px_-10px_rgb(var(--cs-primary)/0.7),inset_0_1px_0_rgb(var(--cs-line)/0.06)] hover:bg-cs-overlay/[0.1] transition-all text-left"
-          >
-            <span className="relative w-8 h-8 rounded-lg bg-cs-darkest border border-cs-primary/30 flex items-center justify-center text-cs-primary shrink-0 text-lg">
-              {languages.find((l) => l.code === lang)?.flag}
-            </span>
-            <span className="flex-grow min-w-0">
-              <span className="block text-xs font-mono font-semibold text-cs-text-dim">
-                {lang === 'km' ? 'ភាសា' : 'Language'}
-              </span>
-              <span className="block text-[11px] font-mono text-cs-text-muted truncate">
-                {languages.find((l) => l.code === lang)?.native}
-              </span>
-            </span>
-            <FiChevronUp className={`text-cs-text-muted shrink-0 transition-transform duration-200 ${langOpen ? '' : 'rotate-180'}`} />
-          </button>
-          {langOpen && (
-            <>
-              <div className="fixed inset-0 z-[80]" onClick={() => setLangOpen(false)} />
-              <div className="absolute left-0 bottom-full mb-2 z-[90] w-44 rounded-xl border border-cs-line/15 bg-cs-darkest/95 backdrop-blur-xl p-1.5 shadow-xl">
-                {languages.map((l) => (
-                  <button
-                    key={l.code}
-                    onClick={() => { setLang(l.code); setLangOpen(false); }}
-                    className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all ${
-                      lang === l.code
-                        ? 'bg-cs-primary/15 text-cs-primary'
-                        : 'text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text'
-                    }`}
-                  >
-                    <span className="text-base">{l.flag}</span>
-                    <span className="font-medium">{l.native}</span>
-                    {lang === l.code && <FiCheck className="ml-auto text-cs-primary shrink-0" />}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
         <button
           onClick={() => openPopup('activity')}
-          className="w-full flex items-center gap-3 p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.06] backdrop-blur-md hover:border-cs-primary/40 hover:shadow-[0_0_18px_-10px_rgb(var(--cs-primary)/0.7),inset_0_1px_0_rgb(var(--cs-line)/0.06)] hover:bg-cs-overlay/[0.1] transition-all text-left"
+          className="w-full flex items-center gap-3 p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.06] backdrop-blur-md hover:border-cs-primary/40 hover:bg-cs-overlay/[0.1] transition-all text-left"
         >
-          <span className="relative w-10 h-10 rounded-lg bg-cs-darkest border border-cs-primary/30 flex items-center justify-center font-mono font-bold text-cs-primary overflow-hidden shrink-0">
+          <span className="relative w-10 h-10 rounded-lg bg-cs-darkest border border-cs-primary/30 flex items-center justify-center font-bold text-cs-primary overflow-hidden shrink-0">
             {user?.avatar ? (
               <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
             ) : (
@@ -507,11 +581,11 @@ function AppLayout() {
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-cs-green ring-2 ring-cs-darkest" />
           </span>
           <span className="flex-grow min-w-0">
-            <span className="block text-sm font-mono font-semibold truncate">
+            <span className="block text-sm font-semibold truncate">
               {user?.username}
               <span className="text-cs-text-muted font-normal">@local</span>
             </span>
-            <span className="block text-[11px] font-mono text-cs-text-muted truncate">
+            <span className="block text-[11px] text-cs-text-muted truncate">
               {t('sidebar.status')}: <span className="text-cs-green">{t('sidebar.online')}</span>
             </span>
           </span>
@@ -541,7 +615,7 @@ function AppLayout() {
       <div className="rounded-xl bg-cs-darker/60 border border-cs-line/10 p-4">
         <div className="flex items-end justify-between gap-2 mb-2">
           <span className="mono-label text-cs-text-muted">{w.label}</span>
-          <span className={`font-mono text-lg font-bold ${warn ? 'text-cs-orange' : 'text-cs-primary'}`}>
+          <span className={`text-lg font-bold ${warn ? 'text-cs-orange' : 'text-cs-primary'}`}>
             {w.percent}<span className="text-xs text-cs-text-muted">%</span>
           </span>
         </div>
@@ -556,7 +630,7 @@ function AppLayout() {
             }}
           />
         </div>
-        <p className="mt-2 font-mono text-[11px] text-cs-text-muted">
+        <p className="mt-2 text-[11px] text-cs-text-muted">
           {(w.used || 0).toLocaleString()} / {(w.limit || 0).toLocaleString()} tokens · frees up in {fmtCountdown(w.resets_in_seconds)}
         </p>
       </div>
@@ -568,13 +642,15 @@ function AppLayout() {
       {/* Desktop notification bell — pinned top-right, vertically centered in an
           h-14 strip anchored at top-0 so it sits within the top band that pages'
           sticky headers keep clear on the right (the few pages with a top-right
-          control — e.g. Practice's mode toggle — add `lg:pr-14` to their header
-          row to reserve this ~44px). The strip is click-through
+          control — e.g. Practice's mode toggle — add `lg:pr-52` to their header
+          row to reserve this ~190px: mode + language toggles + bell). The strip is click-through
           (pointer-events-none) except for the bell itself. z sits above page
           sticky headers (30) but below the CodeSquareAgent dock (40), so an open
           dock on the library pages covers it instead of it floating over chat. */}
       <div className="hidden lg:flex items-center justify-end fixed top-0 right-0 h-14 pr-6 z-[35] pointer-events-none">
-        <div className="pointer-events-auto">
+        <div className="pointer-events-auto flex items-center gap-2">
+          <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
+          <LangToggle lang={lang} setLang={setLang} languages={languages} />
           <NotificationBell />
         </div>
       </div>
@@ -584,9 +660,11 @@ function AppLayout() {
         <div className="px-4 py-3 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
             <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
-            <span className="font-mono text-lg font-bold text-cs-text">codesphere</span>
+            <span className="text-lg font-bold text-cs-text">CodeSquare</span>
           </Link>
           <div className="flex items-center gap-2">
+            <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
+          <LangToggle lang={lang} setLang={setLang} languages={languages} />
             <NotificationBell />
             <button
               onClick={() => setOpen(true)}
@@ -733,7 +811,7 @@ function AppLayout() {
                   <div className="flex items-center justify-between mb-4">
                     <p className="mono-label text-cs-text-muted"> {t('usage.ai_token_usage')}</p>
                     {usage && (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wide border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
                         {usage.plan_label}
                       </span>
                     )}
@@ -742,13 +820,13 @@ function AppLayout() {
                     <div className="space-y-3">
                       <UsageBar w={usage.session} />
                       <UsageBar w={usage.weekly} />
-                      <p className="font-mono text-[11px] text-cs-text-muted">
+                      <p className="text-[11px] text-cs-text-muted">
                         {t('usage.ai_calls_this_week', { count: usage.calls_this_week })}
                       </p>
                       <Link
                         to="/usage"
                         onClick={() => setPopup(false)}
-                        className="inline-flex items-center gap-1.5 text-sm text-cs-primary hover:text-cs-cyan font-mono mt-1"
+                        className="inline-flex items-center gap-1.5 text-sm text-cs-primary hover:text-cs-cyan mt-1"
                       >
                         {t('usage.full_usage_plans')} <FiArrowRight />
                       </Link>

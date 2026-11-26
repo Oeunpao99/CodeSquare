@@ -201,20 +201,16 @@ function Landing() {
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-4 bg-cs-dark/70 backdrop-blur-2xl border-b border-cs-line/10">
         <div className="max-w-6xl mx-auto flex justify-between items-center gap-3">
-          <Link to="/" className="flex items-center gap-2 font-mono text-base sm:text-lg font-bold text-cs-text group min-w-0 shrink">
+          <Link to="/" className="flex items-center gap-2 text-base sm:text-lg font-bold text-cs-text group min-w-0 shrink">
             <img src="/logo.png" alt="CodeSquare" className="h-7 sm:h-8 w-auto object-contain shrink-0" />
-            <span className="truncate"><span className="text-cs-text-muted">~/</span>codesphere</span>
-            <span className="hidden md:inline-flex items-center gap-1 ml-2 font-mono text-xs text-cs-text-muted">
-              <span className="text-cs-green">$</span> <span className="text-cs-primary group-hover:text-cs-mint group-hover:shadow-[0_0_8px_rgb(var(--cs-primary)/0.5)] transition-all">status</span>
-              <span className="w-1.5 h-3.5 bg-cs-primary/70 animate-pulse inline-block" aria-hidden="true" />
-            </span>
+            <span className="truncate">CodeSquare</span>
           </Link>
           <div className="flex gap-2 sm:gap-3 items-center shrink-0">
             {/* Language switcher */}
             <div className="relative">
               <button
                 onClick={() => setLangOpen((v) => !v)}
-                className="btn btn-ghost btn-sm font-mono inline-flex items-center gap-1.5"
+                className="btn btn-ghost btn-sm inline-flex items-center gap-1.5"
               >
                 <FiGlobe className="text-sm" />
                 <span>{lang === 'km' ? 'ខ្មែរ' : 'EN'}</span>
@@ -285,24 +281,17 @@ function Landing() {
           {/* left */}
           <div className="min-w-0">
             <div className="mb-6">
-              <p className="flex items-center gap-2 font-mono text-xs sm:text-sm text-cs-text-muted mb-3 whitespace-nowrap overflow-x-auto">
-                <span className="text-cs-green">$</span>
-                <span className="text-cs-text">codesphere</span>
-                <span className="text-cs-text-dim">learn</span>
-                <span className="text-cs-orange">--tutor</span>
-              </p>
-              <h1 className="font-mono text-[1.75rem] sm:text-4xl md:text-6xl font-bold leading-[1.15] md:leading-[1.1] break-words">
+              <h1 className="text-[1.75rem] sm:text-4xl md:text-6xl font-bold leading-[1.15] md:leading-[1.1] break-words">
                 <span className="text-cs-red/80 line-through decoration-cs-red/40">Traceback?</span>
                 <span className="text-cs-text-dim"> no sweat:</span>
                 <br />
                 <span className="text-gradient-dev">CodeSquareAgent</span>
                 <span className="text-cs-text"> reads</span>
                 <span className="text-cs-mint"> your errors.</span>
-                <span className="text-cs-mint animate-blink">_</span>
               </h1>
             </div>
             <p className="text-base sm:text-lg text-cs-text-dim mb-8 max-w-xl">
-              From <span className="font-mono text-cs-mint">"what is a variable?"</span> to shipping
+              From <span className="text-cs-mint">"what is a variable?"</span> to shipping
               real projects. Structured lessons, a live editor, and a tutor that explains the
               <span className="text-cs-text"> why</span>.
             </p>
@@ -310,7 +299,7 @@ function Landing() {
               <Link to="/auth" className="btn btn-primary btn-lg">
                 {t('landing.start_learning_now')} <FiArrowRight />
               </Link>
-              <button className="btn btn-secondary btn-lg font-mono">
+              <button className="btn btn-secondary btn-lg">
                 <FiTerminal /> {t('landing.watch_demo')}
               </button>
             </div>
@@ -321,7 +310,7 @@ function Landing() {
                 { num: '∞', label: t('landing.challenges_quizzes') },
               ].map((s) => (
                 <div key={s.label} className="flex flex-col">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-gradient-dev font-mono">{s.num}</span>
+                  <span className="text-2xl sm:text-3xl font-extrabold text-gradient-dev">{s.num}</span>
                   <span className="text-xs text-cs-text-muted mt-1">{s.label}</span>
                 </div>
               ))}
@@ -335,7 +324,7 @@ function Landing() {
               <span className="terminal-dot bg-cs-red/80" />
               <span className="terminal-dot bg-cs-orange/80" />
               <span className="terminal-dot bg-cs-green/80" />
-              <span className="ml-3 font-mono text-xs text-cs-text-muted">tutor.py — codesphere</span>
+              <span className="ml-3 font-mono text-xs text-cs-text-muted">tutor.py</span>
             </div>
             <div className="p-5 bg-cs-dark/60 overflow-x-auto">
               {heroCode.map((line) => (
@@ -350,14 +339,14 @@ function Landing() {
               ))}
 
               <div className="mt-4 rounded-lg glass glass-hover border-cs-primary/20 p-3 error-flicker">
-                <div className="font-mono text-xs text-cs-cyan mb-1.5 flex items-center gap-1.5">
+                <div className="text-xs text-cs-cyan mb-1.5 flex items-center gap-1.5">
                   <AiIcon className="text-sm" /> ai_tutor
                 </div>
-                <p className="font-mono text-[13px] leading-6 text-cs-text-dim">
+                <p className="text-[13px] leading-6 text-cs-text-dim">
                   <span className="text-cs-text-muted">❯ </span>{typedText}
                   <span className="inline-block w-2 h-4 bg-cs-primary align-middle ml-0.5 animate-blink" />
                 </p>
-                <p className="font-mono text-[13px] leading-6 text-cs-text-dim mt-2 error-shake">
+                <p className="text-[13px] leading-6 text-cs-text-dim mt-2 error-shake">
                   <span className="text-cs-green">total</span> is never set before line 3. Add{' '}
                   <span className="text-cs-mint">total = 0</span> above the loop — the name has to
                   exist before you add to it.
@@ -373,7 +362,7 @@ function Landing() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="mono-label text-cs-text-muted mr-2"> stack</span>
           {stack.map((s) => (
-            <span key={s} className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md glass text-cs-text-dim">
+            <span key={s} className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md glass text-cs-text-dim">
               <LangLogo name={s} className="text-sm" />
               {s}
             </span>
@@ -399,7 +388,7 @@ function Landing() {
                 >
                   {f.icon}
                 </div>
-                <span className="font-mono text-xs text-cs-text-muted group-hover:text-cs-cyan transition-colors">
+                <span className="text-xs text-cs-text-muted group-hover:text-cs-cyan transition-colors">
                   {f.tag}
                 </span>
               </div>
@@ -414,7 +403,7 @@ function Landing() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <span className="mono-label"> {t('landing.full_path')}</span>
         <h2 className="text-3xl sm:text-4xl font-extrabold mt-3 mb-3">
-          From <span className="font-mono text-cs-mint">"what's a variable?"</span> to job-ready
+          From <span className="text-cs-mint">"what's a variable?"</span> to job-ready
         </h2>
         <p className="text-cs-text-dim mb-14 max-w-2xl">
           {t('landing.full_path_desc')}
@@ -433,7 +422,7 @@ function Landing() {
                   </span>
                   <h3 className="text-lg font-bold">{col.stage}</h3>
                 </div>
-                <span className="font-mono text-xs text-cs-text-muted"> {col.tag}</span>
+                <span className="text-xs text-cs-text-muted"> {col.tag}</span>
               </div>
               <ul className="space-y-2.5">
                 {col.items.map((it, i) => (
@@ -464,7 +453,7 @@ function Landing() {
             <div key={lang.name} className="terminal glass-hover group">
               <div className="terminal-bar">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: lang.dot }} />
-                <span className="font-mono text-xs text-cs-text-muted">{lang.file}</span>
+                <span className="text-xs text-cs-text-muted">{lang.file}</span>
               </div>
               <div className="p-5 bg-cs-dark/50 overflow-x-auto">
                 <div className="code-line mb-1">
@@ -479,7 +468,7 @@ function Landing() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold">{lang.name}</span>
-                  <Link to="/auth" className="btn btn-secondary btn-sm font-mono">
+                  <Link to="/auth" className="btn btn-secondary btn-sm">
                     run <FiArrowRight />
                   </Link>
                 </div>
@@ -500,7 +489,7 @@ function Landing() {
             </p>
             <div className="flex flex-wrap gap-2">
               {['SQL', 'Migrations', 'REST API', 'OpenAPI / Swagger', 'Postman', 'Docker', 'CI/CD', 'Git', 'GitHub', 'SSH'].map((t) => (
-                <span key={t} className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md glass glass-hover text-cs-text-dim">
+                <span key={t} className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md glass glass-hover text-cs-text-dim">
                   <LangLogo name={t} className="text-sm" />
                   {t}
                 </span>
@@ -513,9 +502,9 @@ function Landing() {
               <span className="terminal-dot bg-cs-red/80" />
               <span className="terminal-dot bg-cs-orange/80" />
               <span className="terminal-dot bg-cs-green/80" />
-              <span className="ml-3 font-mono text-xs text-cs-text-muted">codesphere-tracks/</span>
+              <span className="ml-3 text-xs text-cs-text-muted">codesphere-tracks/</span>
             </div>
-            <div className="p-5 bg-cs-dark/60 font-mono text-sm overflow-x-auto">
+            <div className="p-5 bg-cs-dark/60 text-sm overflow-x-auto">
               <div className="flex items-center gap-2 mb-2">
                 <span style={{ color: SYN.keyword }}>backend-foundations/</span>
                 <span className="text-cs-text-muted text-xs"> track</span>
@@ -549,21 +538,21 @@ function Landing() {
             <span className="terminal-dot bg-cs-red/80" />
             <span className="terminal-dot bg-cs-orange/80" />
             <span className="terminal-dot bg-cs-green/80" />
-            <span className="ml-3 font-mono text-xs text-cs-text-muted">zsh — ~/codesphere</span>
+            <span className="ml-3 text-xs text-cs-text-muted">CodeSquare</span>
           </div>
           <div className="p-4 sm:p-6 bg-cs-dark/60 space-y-4 overflow-x-auto">
             {steps.map((s, i) => (
               <div key={s.cmd}>
-                <p className="font-mono text-sm">
+                <p className="text-sm">
                   <span className="text-cs-primary">❯</span>{' '}
                   <span className="text-cs-mint">~</span>{' '}
                   <span className="text-cs-text">{s.cmd}</span>
                 </p>
-                <p className="font-mono text-sm text-cs-text-muted pl-6 flex items-center gap-2">
+                <p className="text-sm text-cs-text-muted pl-6 flex items-center gap-2">
                   <FiCheckCircle className="text-cs-primary shrink-0" /> {s.out}
                 </p>
                 {i === steps.length - 1 && (
-                  <p className="font-mono text-sm mt-2">
+                  <p className="text-sm mt-2">
                     <span className="text-cs-primary">❯</span>{' '}
                     <span className="text-cs-mint">~</span>{' '}
                     <span className="inline-block w-2 h-4 bg-cs-primary align-middle animate-blink" />
@@ -604,11 +593,11 @@ function Landing() {
               {t('landing.free_cta')}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-              <Link to="/auth" className="btn btn-primary btn-lg font-mono">
-                ❯ codesphere init <FiArrowRight />
+              <Link to="/auth" className="btn btn-primary btn-lg">
+                Get started free <FiArrowRight />
               </Link>
-              <Link to="/auth" className="btn btn-ghost btn-lg font-mono">
-                <span className="text-cs-green">$</span> view roadmap
+              <Link to="/auth" className="btn btn-ghost btn-lg">
+                View the roadmap
               </Link>
             </div>
           </div>
@@ -618,11 +607,11 @@ function Landing() {
       {/* FOOTER */}
       <footer className="py-12 px-6 border-t border-cs-line/10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 font-mono font-bold">
+          <div className="flex items-center gap-2 font-bold">
             <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
-            <span className="text-cs-text-muted">~/</span>codesphere
+            CodeSquare
           </div>
-          <p className="font-mono text-xs text-cs-text-muted">
+          <p className="text-xs text-cs-text-muted">
             {t('landing.footer_desc')} · © {new Date().getFullYear()}
           </p>
         </div>

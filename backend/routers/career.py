@@ -10,7 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
-from majors import MAJOR_LABELS, MAJOR_SKILLS, SKILL_LABELS
+from majors import MAJOR_LABELS, MAJOR_SKILLS, MAJOR_TRACKS, SKILL_DEFS, SKILL_LABELS
 from models.models import User, UserProject
 from routers.auth import get_current_user
 from skills import compute_skills, _level
@@ -35,6 +35,13 @@ class TargetSkill(BaseModel):
     challenges_total: int = 0
 
 
+class Action(BaseModel):
+    """One concrete next step with where to go to do it."""
+    text: str
+    to: str
+    cta: str
+
+
 class ReadinessResponse(BaseModel):
     major: Optional[str] = None
     major_label: Optional[str] = None
@@ -43,6 +50,7 @@ class ReadinessResponse(BaseModel):
     target_skills: List[TargetSkill] = []
     focus: List[str] = []
     next_steps: List[str] = []
+    actions: List[Action] = []
 
 
 @router.get("/readiness", response_model=ReadinessResponse)
@@ -101,6 +109,13 @@ async def get_readiness(
     focus = [t.label for t in weakest]
 
     next_steps: List[str] = []
+    actions: List[Action] = []
+    major_tracks = MAJOR_TRACKS.get(major, [])
+
+    def _track_for(skill_key: str) -> Optional[str]:
+        tracks = next((d["tracks"] for d in SKILL_DEFS if d["key"] == skill_key), [])
+        return next((t for t in tracks if t in major_tracks), tracks[0] if tracks else None)
+
     if overall >= 75:
         next_steps.append("You're close to job-ready — tighten the weak spots below.")
     for t in weakest:
@@ -108,16 +123,32 @@ async def get_readiness(
             next_steps.append(
                 f"Finish the {t.label} lessons ({t.lessons_done}/{t.lessons_total} done)."
             )
+            slug = _track_for(t.key)
+            actions.append(Action(
+                text=f"Finish the {t.label} lessons ({t.lessons_done}/{t.lessons_total})",
+                to=f"/learn/{slug}" if slug else "/roadmap",
+                cta="Continue" if t.lessons_done else "Start",
+            ))
         elif t.challenges_total and t.challenges_done < t.challenges_total:
             next_steps.append(
                 f"Solve more {t.label} challenges ({t.challenges_done}/{t.challenges_total} done)."
             )
+            actions.append(Action(
+                text=f"Solve more {t.label} challenges ({t.challenges_done}/{t.challenges_total})",
+                to="/practice", cta="Practice",
+            ))
         else:
             next_steps.append(f"Keep {t.label} sharp with a harder challenge.")
+            actions.append(Action(text=f"Keep {t.label} sharp with a harder challenge",
+                                  to="/practice", cta="Practice"))
     if project_count < 2:
         next_steps.append(
             f"Build a project you can show — you have {project_count}, aim for 2+."
         )
+        actions.append(Action(
+            text=f"Build a project you can show (you have {project_count}, aim for 2+)",
+            to="/projects/generate", cta="Build",
+        ))
 
     return ReadinessResponse(
         major=major,
@@ -127,4 +158,5 @@ async def get_readiness(
         target_skills=target_rows,
         focus=focus,
         next_steps=next_steps,
+        actions=actions,
     )

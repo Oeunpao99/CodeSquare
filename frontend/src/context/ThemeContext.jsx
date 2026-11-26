@@ -30,9 +30,30 @@ export function ThemeProvider({ children }) {
     if (THEME_KEYS.includes(key)) setThemeState(key);
   }, []);
 
+  // Light/dark switch: remembers the last theme picked in each mode so the
+  // header toggle flips between e.g. Dracula <-> One Light, not to a fixed pair.
+  const mode = THEMES[theme]?.mode || 'dark';
+  useEffect(() => {
+    try { localStorage.setItem(`${STORAGE_KEY}-last-${mode}`, theme); } catch { /* ignore */ }
+  }, [theme, mode]);
+
+  const toggleMode = useCallback(() => {
+    const target = mode === 'dark' ? 'light' : 'dark';
+    let next = null;
+    try { next = localStorage.getItem(`${STORAGE_KEY}-last-${target}`); } catch { /* ignore */ }
+    if (!next || THEMES[next]?.mode !== target) {
+      next = target === 'light'
+        ? (THEMES.light ? 'light' : THEME_KEYS.find((k) => THEMES[k].mode === 'light'))
+        : (THEMES[DEFAULT_THEME]?.mode === 'dark' ? DEFAULT_THEME : THEME_KEYS.find((k) => THEMES[k].mode === 'dark'));
+    }
+    if (next) setThemeState(next);
+  }, [mode]);
+
   const value = {
     theme,
     setTheme,
+    mode,
+    toggleMode,
     themes: THEMES,
     themeKeys: THEME_KEYS,
   };

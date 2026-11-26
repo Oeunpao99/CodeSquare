@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { progressColor } from '../utils/levels';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMajor } from '../context/MajorContext';
@@ -12,10 +13,11 @@ import RoadmapFlow from '../components/RoadmapFlow';
 
 const VIEW_KEY = 'cs-roadmap-view';
 
+// Solid, full-colour status pills (no faded tints).
 const STATUS_META = {
-  'not-started': { label: 'Not started', cls: 'border-cs-line/20 bg-cs-overlay/10 text-cs-text-muted' },
-  'in-progress': { label: 'In progress', cls: 'border-cs-primary/40 bg-cs-primary/10 text-cs-primary' },
-  completed: { label: 'Completed', cls: 'border-cs-green/40 bg-cs-green/10 text-cs-green' },
+  'not-started': { label: 'Not started', cls: 'border-transparent bg-cs-overlay/10 text-cs-text-dim' },
+  'in-progress': { label: 'In progress', cls: 'border-transparent bg-cs-primary text-white' },
+  completed: { label: 'Completed', cls: 'border-transparent bg-cs-green text-white' },
 };
 
 function Roadmap() {
@@ -68,7 +70,7 @@ function Roadmap() {
           page). The major blurb/chips scroll away in the card below. */}
       <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-6 mb-6">
         <p className="mono-label text-cs-text-muted"> {t('roadmap.your_roadmap')}</p>
-        <div className="flex items-end justify-between gap-4 flex-wrap lg:pr-14">
+        <div className="flex items-end justify-between gap-4 flex-wrap lg:pr-52">
           <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
             {majorData && (
               <span
@@ -80,7 +82,7 @@ function Roadmap() {
             )}
             {majorData ? majorData.label : 'Your'} <span className="text-cs-primary">Roadmap</span>
           </h1>
-          <div className="inline-flex rounded-lg border border-cs-line/15 overflow-hidden font-mono text-xs">
+          <div className="inline-flex rounded-lg border border-cs-line/15 overflow-hidden text-xs">
             <button
               onClick={() => setViewPersist('flow')}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
@@ -106,7 +108,7 @@ function Roadmap() {
           <p className="text-sm text-cs-text-dim">{majorData.blurb}</p>
           <div className="flex flex-wrap gap-1.5 mt-3">
             {majorData.focus.map((f) => (
-              <span key={f} className="text-[11px] font-mono px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted">
+              <span key={f} className="text-[11px] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted">
                 {f}
               </span>
             ))}
@@ -135,12 +137,12 @@ function Roadmap() {
                   </div>
                   <span className="text-2xl font-bold text-cs-primary">{data.percent}%</span>
                 </div>
-                <div className="h-3 bg-cs-darker rounded overflow-hidden">
+                <div className="h-3 bg-cs-overlay/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded transition-all duration-700"
+                    className="h-full rounded-full transition-all duration-700"
                     style={{
                       width: `${data.percent}%`,
-                      background: 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
+                      background: 'rgb(var(--cs-primary))',
                     }}
                   ></div>
                 </div>
@@ -167,10 +169,10 @@ function Roadmap() {
                       <div
                         className={`absolute left-0 top-1 w-12 h-12 rounded-full border-2 bg-cs-dark flex items-center justify-center text-lg ${
                           track.status === 'completed'
-                            ? 'border-cs-green text-cs-green shadow-[inset_0_0_0_2.5rem_rgb(var(--cs-green)/0.16)]'
+                            ? 'border-cs-green !bg-cs-green text-white'
                             : track.status === 'in-progress'
-                            ? 'border-cs-primary text-cs-primary shadow-[inset_0_0_0_2.5rem_rgb(var(--cs-primary)/0.16)]'
-                            : 'border-cs-line/25 text-cs-text-muted shadow-[inset_0_0_0_2.5rem_rgb(var(--cs-overlay)/0.1)]'
+                            ? 'border-cs-primary !bg-cs-primary text-white'
+                            : 'border-cs-line/25 text-cs-text-muted'
                         }`}
                       >
                         {track.status === 'completed' ? (
@@ -182,26 +184,26 @@ function Roadmap() {
                         )}
                       </div>
 
-                      <div className={`card p-5 ${track.status === 'completed' ? '!border-cs-green/30' : ''}`}>
+                      <div className="card p-5">
                         <div className="flex items-center gap-4">
                           <div className="flex-grow">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <span className="text-xs text-cs-text-muted">{index + 1}.</span>
                               <h3 className="text-lg font-bold">{track.name}</h3>
                               <span
-                                className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${meta.cls}`}
+                                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${meta.cls}`}
                               >
                                 {meta.label}
                               </span>
                             </div>
                             <p className="text-sm text-cs-text-dim mb-2">{track.description}</p>
                             <div className="flex items-center gap-3">
-                              <div className="flex-grow max-w-xs h-2 bg-cs-darker rounded overflow-hidden">
+                              <div className="flex-grow max-w-xs h-2 bg-cs-overlay/10 rounded-full overflow-hidden">
                                 <div
-                                  className="h-full rounded transition-all duration-500"
+                                  className="h-full rounded-full transition-all duration-500"
                                   style={{
                                     width: `${track.percent}%`,
-                                    background: 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
+                                    background: progressColor(track.status === 'completed'),
                                   }}
                                 ></div>
                               </div>
@@ -233,12 +235,12 @@ function Roadmap() {
                                 <div key={mod.id} className="rounded-lg bg-cs-darker/60 p-3">
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="text-sm font-semibold">
-                                      <span className="text-cs-text-muted font-mono">L{mod.level ?? mod.order} ·</span> {mod.title}
+                                      <span className="text-cs-text-muted">L{mod.level ?? mod.order} ·</span> {mod.title}
                                     </span>
                                     <span className="flex items-center gap-2 shrink-0">
                                       {mod.difficulty && (
                                         <span
-                                          className={`text-[10px] font-mono uppercase tracking-wider ${
+                                          className={`text-[10px] uppercase tracking-wider ${
                                             mod.difficulty === 'beginner'
                                               ? 'text-cs-green'
                                               : mod.difficulty === 'intermediate'
@@ -257,12 +259,12 @@ function Roadmap() {
                                   <p className="text-xs text-cs-text-muted">
                                     {t('roadmap.lessons_lowercase', { done: mod.completed_lessons, total: mod.total_lessons })}
                                   </p>
-                                  <div className="h-1.5 bg-cs-darker rounded overflow-hidden mt-2">
+                                  <div className="h-1.5 bg-cs-overlay/10 rounded-full overflow-hidden mt-2">
                                     <div
                                       className="h-full rounded"
                                       style={{
                                         width: `${mod.total_lessons ? (mod.completed_lessons / mod.total_lessons) * 100 : 0}%`,
-                                        background: 'linear-gradient(90deg, rgb(var(--cs-primary)/0.4), rgb(var(--cs-primary)))',
+                                        background: progressColor(mod.total_lessons && mod.completed_lessons >= mod.total_lessons),
                                       }}
                                     ></div>
                                   </div>

@@ -92,13 +92,13 @@ export default function NotificationBell() {
       <button
         ref={btnRef}
         onClick={openPanel}
-        className="relative p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] text-cs-text-dim hover:text-cs-primary hover:border-cs-primary/40 hover:shadow-[0_0_16px_-8px_rgb(var(--cs-primary)/0.6)] transition-all"
+        className="relative p-2 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] text-cs-text-dim hover:text-cs-primary hover:border-cs-primary/40 transition-all"
         aria-label={`Notifications${count ? `, ${count} unread` : ''}`}
       >
         <FiBell className="text-lg" />
         {count > 0 && (
           <>
-            <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-cs-red px-1 text-[10px] font-mono font-bold text-cs-dark ring-2 ring-cs-darkest">
+            <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-cs-red px-1 text-[10px] font-bold text-cs-dark ring-2 ring-cs-darkest">
               {count > 9 ? '9+' : count}
             </span>
             <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-cs-red/50 animate-ping" />
@@ -123,7 +123,7 @@ export default function NotificationBell() {
                   setCount(0);
                   setItems((it) => it.map((n) => ({ ...n, read: true })));
                 }}
-                className="inline-flex items-center gap-1 text-[11px] font-mono text-cs-primary hover:text-cs-cyan"
+                className="inline-flex items-center gap-1 text-[11px] text-cs-primary hover:text-cs-cyan"
               >
                 <FiCheckCircle /> mark all read
               </button>
@@ -132,7 +132,7 @@ export default function NotificationBell() {
 
           <div className="max-h-80 overflow-y-auto">
             {items.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-cs-text-muted font-mono">
+              <p className="px-4 py-8 text-center text-sm text-cs-text-muted">
                 No dev-team activity yet.
               </p>
             ) : (
@@ -150,12 +150,12 @@ export default function NotificationBell() {
                   >
                     <span className={`mt-0.5 ${meta.cls}`}><Icon /></span>
                     <span className="min-w-0">
-                      <span className="block text-sm font-mono font-semibold truncate">
+                      <span className="block text-sm font-semibold truncate">
                         {n.actor.display_name || n.actor.username}
                         {!n.read && <span className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-cs-red align-middle" />}
                       </span>
                       <span className="block text-xs text-cs-text-dim leading-snug">{meta.text(n.actor)}</span>
-                      <span className="block text-[11px] text-cs-text-muted font-mono mt-0.5">
+                      <span className="block text-[11px] text-cs-text-muted mt-0.5">
                         {timeAgo(n.created_at)}
                       </span>
                     </span>

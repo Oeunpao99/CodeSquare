@@ -43,17 +43,17 @@ function Onboarding() {
       <div className="relative max-w-4xl mx-auto px-6 py-10">
         {/* header */}
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2 font-mono font-bold">
-            <span className="text-cs-primary">⟨/⟩</span>
-            <span className="text-cs-text-muted">~/</span>codesphere
+          <div className="flex items-center gap-2 font-bold">
+            <img src="/logo.png" alt="" className="h-7 w-auto object-contain" />
+            CodeSquare
           </div>
-          <button onClick={skip} disabled={skipping} className="btn btn-ghost btn-sm font-mono">
+          <button onClick={skip} disabled={skipping} className="btn btn-ghost btn-sm">
             {skipping ? t('onboarding.skipping') : t('onboarding.skip')}
           </button>
         </div>
 
         {/* progress */}
-        <div className="flex items-center gap-3 mb-10 font-mono text-xs">
+        <div className="flex items-center gap-3 mb-10 text-xs">
           {[1, 2].map((n) => (
             <React.Fragment key={n}>
               <span className={`flex items-center gap-2 ${step >= n ? 'text-cs-primary' : 'text-cs-text-muted'}`}>

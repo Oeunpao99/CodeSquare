@@ -112,3 +112,6 @@ $RECYCLE.BIN/
 /canvas.json
 /codesquare-admin-users.html
 *.dc.html
+
+# Library thumbnail raw illustrations (regenerable; titled copies ship in frontend/public)
+backend/scripts/.thumb_raw/

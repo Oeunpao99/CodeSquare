@@ -25,6 +25,8 @@ function StarRow({ value, onRate }) {
 }
 import { MAJORS } from '../majors';
 import CollectionLogo from '../components/CollectionLogo';
+import LibraryThumb from '../components/LibraryThumb';
+import { CollectionSkeleton } from '../components/Skeletons';
 
 const DIFF = {
   beginner: { label: 'Beginner', text: 'text-cs-green', ring: 'border-cs-green/50', dot: 'bg-cs-green' },
@@ -38,7 +40,7 @@ function SectionBreak({ diff }) {
   return (
     <div className="flex items-center gap-3 my-7 first:mt-0">
       <span className="flex-1 h-px bg-cs-line/10" />
-      <span className={`font-mono text-xs uppercase tracking-[0.25em] font-semibold ${d.text}`}>
+      <span className={`text-xs uppercase tracking-wider font-semibold ${d.text}`}>
         {d.label}
       </span>
       <span className="flex-1 h-px bg-cs-line/10" />
@@ -46,12 +48,17 @@ function SectionBreak({ diff }) {
   );
 }
 
-function TopicRow({ to, topic }) {
+function TopicRow({ to, topic, thumb }) {
   return (
     <Link to={to} className="group flex items-center gap-3 px-3.5 py-2 rounded-lg hover:bg-cs-overlay/5 transition-colors">
+      {thumb && (
+        <span className="w-14 shrink-0 rounded-md overflow-hidden empty:hidden">
+          <LibraryThumb path={thumb} className="aspect-[3/2]" />
+        </span>
+      )}
       <span className="shrink-0">
         {topic.completed ? (
-          <span className="w-3.5 h-3.5 rounded-full bg-cs-green/20 text-cs-green grid place-items-center">
+          <span className="w-4 h-4 rounded-full bg-cs-green text-white grid place-items-center">
             <FiCheck className="text-[9px]" strokeWidth={3} />
           </span>
         ) : (
@@ -67,8 +74,8 @@ function TopicRow({ to, topic }) {
       {topic.has_lesson && !topic.completed && (
         <FiPlay className="text-cs-green/60 shrink-0 text-[11px]" title="Has a hands-on lesson" />
       )}
-      <span className="text-[11px] font-mono text-cs-text-muted/60 shrink-0 tabular-nums">{topic.reading_minutes}m</span>
-      <FiChevronRight className="text-cs-text-muted/30 group-hover:text-cs-primary transition-colors shrink-0" />
+      <span className="text-[11px] text-cs-text-muted shrink-0 tabular-nums">{topic.reading_minutes}m</span>
+      <FiChevronRight className="text-cs-text-muted group-hover:text-cs-primary transition-colors shrink-0" />
     </Link>
   );
 }
@@ -77,7 +84,7 @@ function Rung({ node, ring, last, id, children }) {
   return (
     <div id={id} className="relative pl-12 scroll-mt-24">
       {!last && <span className="absolute left-[15px] top-8 -bottom-4 w-px bg-cs-line/10" />}
-      <span className={`absolute left-0 top-0.5 w-8 h-8 rounded-full border-2 ${ring} bg-cs-dark grid place-items-center text-[11px] font-mono font-semibold`}>
+      <span className={`absolute left-0 top-0.5 w-8 h-8 rounded-full border-2 ${ring} bg-cs-dark grid place-items-center text-[11px] font-semibold`}>
         {node}
       </span>
       {children}
@@ -153,17 +160,12 @@ function LibraryCollection() {
   }, [data]);
 
   if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">Loading…</p>
-      </div>
-    );
+    return <CollectionSkeleton />;
   }
   if (notFound || !data) {
     return (
       <main className="w-full px-6 lg:px-10 py-16 text-center">
-        <p className="text-lg text-gray-400 mb-4">That collection doesn’t exist.</p>
+        <p className="text-lg text-cs-text-dim mb-4">That collection doesn’t exist.</p>
         <Link to="/library" className="btn btn-primary">Back to Library</Link>
       </main>
     );
@@ -200,7 +202,7 @@ function LibraryCollection() {
           <div className="min-w-0">
             <h1 className="text-3xl font-bold leading-tight">{data.title}</h1>
             <p className="text-cs-text-dim text-sm mt-1 max-w-2xl">{data.description}</p>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2.5 text-xs font-mono text-cs-text-muted">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2.5 text-xs text-cs-text-muted">
               <span className="inline-flex items-center gap-1.5"><FiUsers className="text-sm" /> {data.learners || 0} learners</span>
               {data.finished > 0 && (
                 <span className="inline-flex items-center gap-1.5 text-cs-green"><FiCheckCircle className="text-sm" /> {data.finished} finished</span>
@@ -254,7 +256,7 @@ function LibraryCollection() {
                     {showTier && <SectionBreak diff={step.difficulty} />}
                     <Rung
                       id={`lvl-${step.level}`}
-                      ring={done ? 'border-cs-green bg-cs-green/15 text-cs-green' : d.ring}
+                      ring={done ? 'border-cs-green bg-cs-green text-white' : d.ring}
                       node={done ? <FiCheck strokeWidth={3} /> : step.level}
                       last={step.level === lastLevel}
                     >
@@ -265,21 +267,21 @@ function LibraryCollection() {
                         <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-cs-overlay/5">
                           <span className="flex-grow min-w-0">
                             <span className="block font-semibold text-sm truncate">{step.label}</span>
-                            <span className={`text-[10px] font-mono uppercase tracking-wider ${d.text}`}>
+                            <span className={`text-[10px] uppercase tracking-wider ${d.text}`}>
                               {step.difficulty}
                             </span>
                           </span>
-                          <span className="text-[11px] font-mono text-cs-text-muted tabular-nums shrink-0">
+                          <span className="text-[11px] text-cs-text-muted tabular-nums shrink-0">
                             {step.done}/{step.total}
                           </span>
                           <span className="w-16 h-1.5 rounded-full bg-cs-overlay/10 overflow-hidden shrink-0">
                             <span className={`block h-full rounded-full ${done ? 'bg-cs-green' : d.dot}`} style={{ width: `${stepPct}%` }} />
                           </span>
-                          <FiChevronRight className="text-cs-text-muted/50 shrink-0 transition-transform group-open/step:rotate-90" />
+                          <FiChevronRight className="text-cs-text-muted shrink-0 transition-transform group-open/step:rotate-90" />
                         </summary>
                         <div className="px-1.5 pb-1.5 pt-0.5 border-t border-cs-line/10 grid md:grid-cols-2 gap-x-2 gap-y-0.5">
                           {items.map((t) => (
-                            <TopicRow key={t.slug} to={`/library/${data.slug}/${t.slug}`} topic={t} />
+                            <TopicRow key={t.slug} to={`/library/${data.slug}/${t.slug}`} topic={t} thumb={`${data.slug}/${t.slug}`} />
                           ))}
                         </div>
                       </details>
@@ -298,10 +300,14 @@ function LibraryCollection() {
                       <Link
                         key={t.slug}
                         to={`/library/${data.slug}/${t.slug}`}
-                        className="group flex flex-col rounded-xl border border-cs-line/10 bg-cs-darker/30 px-4 py-3.5 hover:border-cs-primary/40 transition-colors"
+                        className="group flex flex-col rounded-xl border border-cs-line/10 bg-cs-darker/30 px-4 py-3.5 hover:border-cs-primary/40 transition-colors overflow-hidden text-cs-text"
                       >
+                        <LibraryThumb
+                          path={`${data.slug}/${t.slug}`}
+                          className="-mx-4 -mt-3.5 mb-3 w-[calc(100%+2rem)] max-w-none aspect-[16/9]"
+                        />
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="w-5 h-5 rounded-full border border-cs-line/20 grid place-items-center font-mono text-[10px] text-cs-text-muted shrink-0">
+                          <span className="w-5 h-5 rounded-full border border-cs-line/20 grid place-items-center text-[10px] text-cs-text-muted shrink-0">
                             {t.group_level}
                           </span>
                           <span className="font-semibold text-sm group-hover:text-cs-primary transition-colors truncate">
@@ -311,7 +317,7 @@ function LibraryCollection() {
                         {t.summary && (
                           <span className="text-xs text-cs-text-muted line-clamp-2 flex-grow">{t.summary}</span>
                         )}
-                        <span className="text-[11px] font-mono text-cs-text-muted/60 tabular-nums mt-2">
+                        <span className="text-[11px] text-cs-text-muted tabular-nums mt-2">
                           {t.reading_minutes} min
                         </span>
                       </Link>
@@ -327,8 +333,8 @@ function LibraryCollection() {
         <aside className="hidden lg:block sticky top-24 space-y-4">
           <div className="rounded-xl border border-cs-line/10 bg-cs-darker/40 p-4">
             <div className="flex items-baseline justify-between mb-1">
-              <span className="text-2xl font-bold font-mono">{pct}%</span>
-              <span className="text-[11px] font-mono text-cs-text-muted">
+              <span className="text-2xl font-bold">{pct}%</span>
+              <span className="text-[11px] text-cs-text-muted">
                 {data.trackable > 0 ? `${data.completed}/${data.trackable}` : `${data.topics.length} topics`}
               </span>
             </div>
@@ -338,14 +344,14 @@ function LibraryCollection() {
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <div className="text-[11px] font-mono text-cs-text-muted space-y-0.5">
+            <div className="text-[11px] text-cs-text-muted space-y-0.5">
               <div>{steps.length} levels · beginner → advanced</div>
               <div>{data.topics.length} topics</div>
             </div>
             {continueTopic && (
               <Link
                 to={`/library/${data.slug}/${continueTopic.slug}`}
-                className="btn btn-primary btn-sm w-full mt-3 font-mono"
+                className="btn btn-primary btn-sm w-full mt-3"
               >
                 {continueLabel} <FiArrowRight />
               </Link>
@@ -367,7 +373,7 @@ function LibraryCollection() {
                       >
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${done ? 'bg-cs-green' : d.dot}`} />
                         <span className="flex-grow truncate">{s.label}</span>
-                        <span className="text-[10px] font-mono text-cs-text-muted tabular-nums">{s.done}/{s.total}</span>
+                        <span className="text-[10px] text-cs-text-muted tabular-nums">{s.done}/{s.total}</span>
                       </a>
                     </li>
                   );

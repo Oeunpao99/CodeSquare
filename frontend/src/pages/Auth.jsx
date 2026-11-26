@@ -99,7 +99,7 @@ function Auth() {
         <div className="glass rounded-3xl p-10 animate-slide-up">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">{isLogin ? t('auth.welcome_back') : t('auth.create_account')}</h1>
-            <p className="text-gray-400">{isLogin ? t('auth.sign_in_continue') : t('auth.start_journey')}</p>
+            <p className="text-cs-text-dim">{isLogin ? t('auth.sign_in_continue') : t('auth.start_journey')}</p>
           </div>
 
           <button
@@ -118,15 +118,15 @@ function Auth() {
 
           <div className="flex items-center gap-4 mb-8">
             <div className="flex-1 h-px bg-white bg-opacity-10"></div>
-            <span className="text-sm text-gray-500">{t('auth.or')}</span>
+            <span className="text-sm text-cs-text-muted">{t('auth.or')}</span>
             <div className="flex-1 h-px bg-white bg-opacity-10"></div>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-400">{t('auth.email')}</label>
+              <label htmlFor="email" className="text-sm font-medium text-cs-text-dim">{t('auth.email')}</label>
               <div className="relative flex items-center">
-                <FiMail className="absolute left-4 text-gray-500 text-lg" />
+                <FiMail className="absolute left-4 text-cs-text-muted text-lg" />
                 <input
                   type="email"
                   id="email"
@@ -141,9 +141,9 @@ function Auth() {
 
             {!isLogin && (
               <div className="flex flex-col gap-2">
-                <label htmlFor="username" className="text-sm font-medium text-gray-400">{t('auth.username')}</label>
+                <label htmlFor="username" className="text-sm font-medium text-cs-text-dim">{t('auth.username')}</label>
                 <div className="relative flex items-center">
-                  <FiUser className="absolute left-4 text-gray-500 text-lg" />
+                  <FiUser className="absolute left-4 text-cs-text-muted text-lg" />
                   <input
                     type="text"
                     id="username"
@@ -157,9 +157,9 @@ function Auth() {
             )}
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="password" className="text-sm font-medium text-gray-400">{t('auth.password')}</label>
+              <label htmlFor="password" className="text-sm font-medium text-cs-text-dim">{t('auth.password')}</label>
               <div className="relative flex items-center">
-                <FiLock className="absolute left-4 text-gray-500 text-lg" />
+                <FiLock className="absolute left-4 text-cs-text-muted text-lg" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
@@ -190,7 +190,7 @@ function Auth() {
           </form>
 
           <div className="text-center mt-6 pt-6 border-t border-white border-opacity-10">
-            <p className="text-gray-400">
+            <p className="text-cs-text-dim">
               {isLogin ? t('auth.no_account') : t('auth.has_account')}
               <button onClick={() => setIsLogin(!isLogin)} className="text-cs-primary font-semibold hover:text-cs-cyan">
                 {isLogin ? t('auth.sign_up') : t('auth.sign_in')}
@@ -201,7 +201,7 @@ function Auth() {
 
         <div className="flex justify-center gap-8 mt-8">
           {[t('auth.free_start'), t('auth.no_credit_card'), t('auth.learn_pace')].map((feature) => (
-            <div key={feature} className="flex items-center gap-2 text-sm text-gray-500">
+            <div key={feature} className="flex items-center gap-2 text-sm text-cs-text-muted">
               <span className="text-cs-green font-bold">✓</span>
               {feature}
             </div>

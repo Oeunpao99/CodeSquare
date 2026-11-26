@@ -11,7 +11,7 @@ export default function VerifiedBadge({ size = 'h-5 w-5', className = '', title 
   return (
     <span
       title={title}
-      className={`inline-flex items-center justify-center rounded-full bg-cs-cyan text-cs-dark shrink-0 shadow-[0_0_8px_-2px_rgb(var(--cs-cyan)/0.8)] ${dims || size} ${className}`}
+      className={`inline-flex items-center justify-center rounded-full bg-cs-cyan text-cs-dark shrink-0 ${dims || size} ${className}`}
     >
       <FiCheck className="h-[0.7em] w-[0.7em]" strokeWidth={3.5} />
     </span>

@@ -11,6 +11,7 @@ import AiIcon from '../components/AiIcon';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from '../utils/toast';
 import { highlightAllCode } from '../utils/highlight';
+import { LessonSkeleton } from '../components/Skeletons';
 
 function LessonView() {
   const { slug, moduleId, lessonId } = useParams();
@@ -179,12 +180,7 @@ function LessonView() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">Loading lesson...</p>
-      </div>
-    );
+    return <LessonSkeleton />;
   }
 
   if (!lesson) return null;
@@ -266,7 +262,7 @@ function LessonView() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="badge badge-primary">{lesson.xp_reward || 10} XP</span>
-                <span className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted font-mono">
+                <span className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted">
                   <FiClock /> ~{estimatedReadTime(lesson.content)} min
                 </span>
               </div>
@@ -287,7 +283,7 @@ function LessonView() {
             {lesson.code_example && (
               <div className="mt-8 card-code overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-2.5 code-tab">
-                  <span className="font-mono text-[13px] text-cs-text flex items-center gap-2">
+                  <span className="text-[13px] text-cs-text flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-cs-red/70" />
                     <span className="w-2 h-2 rounded-full bg-cs-orange/70" />
                     <span className="w-2 h-2 rounded-full bg-cs-green/70" />
@@ -295,7 +291,7 @@ function LessonView() {
                       <FiCode /> example.{slug === 'python' ? 'py' : 'js'}
                     </span>
                   </span>
-                  <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-cs-text-muted">
+                  <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-cs-text-muted">
                     <FiBook /> read-only
                   </span>
                 </div>
@@ -314,14 +310,14 @@ function LessonView() {
           <section className="card flex-grow">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-cs-green bg-opacity-20 rounded-xl flex items-center justify-center text-cs-green">
+                <div className="w-10 h-10 bg-cs-green rounded-xl flex items-center justify-center text-white">
                   <FiPlay />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold">
                     Practice: {currentExercise?.title}
                   </h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-cs-text-muted">
                     Exercise {activeExercise + 1} of {lesson?.exercises?.length || 0}
                   </p>
                 </div>
@@ -337,7 +333,7 @@ function LessonView() {
               </div>
             </div>
 
-            <p className="text-sm text-gray-400 mb-4">{currentExercise?.description}</p>
+            <p className="text-sm text-cs-text-dim mb-4">{currentExercise?.description}</p>
 
             <div className="h-[300px] rounded-2xl bg-cs-darker border border-white border-opacity-10 overflow-hidden mb-4">
               <div className="flex items-center gap-2 px-4 py-3 bg-white bg-opacity-5">
@@ -358,14 +354,14 @@ function LessonView() {
                 <FiXCircle className="text-cs-red mt-1 shrink-0" />
                 <div>
                   <p className="font-semibold text-cs-red mb-1">Your code has an error</p>
-                  <p className="text-sm text-gray-300 font-mono">{error}</p>
+                  <p className="text-sm text-cs-text-dim">{error}</p>
                 </div>
               </div>
             )}
 
             {testResults.length > 0 && (
               <div className="mb-4 p-4 rounded-xl bg-white bg-opacity-5 border border-white border-opacity-10">
-                <p className="text-sm text-gray-400 mb-3">Test Results:</p>
+                <p className="text-sm text-cs-text-dim mb-3">Test Results:</p>
                 <div className="space-y-2">
                   {testResults.map((result, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
@@ -378,7 +374,7 @@ function LessonView() {
                         {result.description}
                       </span>
                       {!result.passed && result.error && (
-                        <span className="text-xs text-gray-500 font-mono">{result.error}</span>
+                        <span className="text-xs text-cs-text-muted font-mono">{result.error}</span>
                       )}
                     </div>
                   ))}
@@ -394,7 +390,7 @@ function LessonView() {
                 </div>
                 <div className="space-y-2">
                   {hints.map((hint, index) => (
-                    <div key={index} className="p-3 rounded-xl bg-cs-orange bg-opacity-10 border border-cs-orange border-opacity-20 text-sm text-gray-300">
+                    <div key={index} className="p-3 rounded-xl bg-cs-orange bg-opacity-10 border border-cs-orange border-opacity-20 text-sm text-cs-text-dim">
                       <span className="font-bold text-cs-orange mr-2">Hint {hint.level}:</span>
                       {hint.text}
                     </div>

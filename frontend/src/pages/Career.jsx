@@ -1,190 +1,170 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { careerService } from '../services/api';
-import {
-  FiBriefcase, FiArrowRight, FiCheckCircle, FiCircle, FiTrendingUp,
-  FiTerminal, FiZap,
-} from 'react-icons/fi';
+import { FiBriefcase, FiArrowRight, FiTrendingUp, FiZap, FiChevronRight } from 'react-icons/fi';
+import { Sk } from '../components/Skeletons';
+import { LEVEL_COLOR, LEVEL_PILL, PILL_BASE } from '../utils/levels';
 
-const LEVEL_CLS = {
-  Novice: 'text-cs-text-muted border-cs-line/20 bg-cs-overlay/[0.05]',
-  Learning: 'text-cs-orange border-cs-orange/30 bg-cs-orange/10',
-  Proficient: 'text-cs-cyan border-cs-cyan/30 bg-cs-cyan/10',
-  Strong: 'text-cs-green border-cs-green/30 bg-cs-green/10',
-};
 
-const LEVEL_BAR = {
-  Novice: 'rgb(var(--cs-text-muted) / 0.4)',
-  Learning: 'rgb(var(--cs-orange) / 0.9)',
-  Proficient: '#22d3ee',
-  Strong: '#4ade80',
-};
-
-function Bar({ value, color = 'rgb(var(--cs-primary))', className = '', glow = true }) {
+function Bar({ value, color = 'rgb(var(--cs-primary))', className = 'h-1.5' }) {
   return (
-    <div className={`h-2 rounded-full bg-cs-overlay/10 overflow-hidden ${className}`}>
+    <div className={`rounded-full bg-cs-overlay/10 overflow-hidden ${className}`}>
       <div
         className="h-full rounded-full transition-all duration-700"
-        style={{
-          width: `${Math.max(2, value)}%`,
-          background: `linear-gradient(90deg, ${color}66, ${color})`,
-          boxShadow: glow ? `0 0 12px -2px ${color}` : undefined,
-        }}
+        style={{ width: `${Math.max(2, value)}%`, background: color }}
       />
     </div>
   );
 }
 
+// Wide banner per major (backend/scripts/gen_career_banners.py). Hidden if missing.
+function MajorBanner({ major, label }) {
+  const [ok, setOk] = useState(true);
+  if (!ok) return null;
+  return (
+    <div className="relative -mx-6 -mt-6 mb-6 aspect-[3/1] overflow-hidden rounded-t-2xl bg-cs-overlay/5">
+      <img
+        src={`/banners/career/${major}.webp`}
+        alt=""
+        onError={() => setOk(false)}
+        className="w-full h-full object-cover"
+      />
+      <span className="absolute left-5 bottom-4 px-3 py-1 rounded-full bg-cs-dark/90 backdrop-blur text-sm font-semibold text-cs-text shadow-sm">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function CareerSkeleton() {
+  return (
+    <div className="w-full space-y-6" aria-busy="true">
+      <div className="card overflow-hidden space-y-4">
+        <Sk className="-mx-6 -mt-6 mb-2 aspect-[3/1] w-[calc(100%+3rem)] rounded-none" />
+        <div className="flex justify-between"><Sk className="h-5 w-40" /><Sk className="h-10 w-20" /></div>
+        <Sk className="h-2.5 w-full rounded-full" />
+        <div className="flex gap-6"><Sk className="h-4 w-28" /><Sk className="h-4 w-28" /><Sk className="h-4 w-28" /></div>
+      </div>
+      <div className="card space-y-5">
+        {Array.from({ length: 5 }).map((_, i) => <Sk key={i} className="h-6 w-full" />)}
+      </div>
+    </div>
+  );
+}
+
 function Career() {
-  const [data, setData] = useState(null);   // null = loading, false = error
+  const [data, setData] = useState(null); // null = loading, false = error
 
   useEffect(() => {
     careerService.getReadiness().then((r) => setData(r.data)).catch(() => setData(false));
   }, []);
 
-  if (data === null) {
-    return (
-      <main className="w-full px-6 lg:px-10 py-8">
-        <p className="text-cs-text-muted font-mono text-sm">mounting /career…</p>
-      </main>
-    );
-  }
-
   const noMajor = data && !data.major;
+  // Older API builds only send plain-text next_steps; show those without buttons.
+  const actions = data?.actions?.length
+    ? data.actions
+    : (data?.next_steps || [])
+        .filter((s) => /(finish|solve|build|keep)/i.test(s))
+        .map((text) => ({ text, to: '/roadmap', cta: 'Open' }));
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label text-cs-primary"> career</span>
+      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 lg:pr-52 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+        <span className="mono-label">Career</span>
         <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
-          <FiTerminal className="text-cs-primary" /> Job Readiness
+          <FiBriefcase className="text-cs-primary" /> Job Readiness
         </h1>
       </div>
 
+      {data === null && <CareerSkeleton />}
+
+      {data === false && (
+        <p className="text-cs-text-dim text-sm">Couldn’t load your readiness right now. Please try again.</p>
+      )}
+
       {noMajor && (
-        <div className="card text-center py-14 border-cs-primary/20">
+        <div className="card text-center py-14 max-w-xl">
           <p className="text-4xl mb-3">🎯</p>
-          <p className="text-cs-text-dim mb-6 max-w-sm mx-auto font-mono text-sm">
-            pick_a_major() — CodeSphere will score how close you are to job-ready
-            and tell you exactly what to work on.
+          <p className="text-cs-text-dim mb-6 max-w-sm mx-auto text-sm">
+            Choose a career major and CodeSquare will score how close you are to job-ready,
+            and tell you exactly what to work on next.
           </p>
           <Link to="/profile" className="btn btn-primary btn-sm">Choose a major</Link>
         </div>
       )}
 
       {data && data.major && (
-        <div className="max-w-none grid lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
-          {/* Left column */}
-          <div className="space-y-6">
-            {/* Overall */}
-            <div className="card border-cs-primary/30 relative overflow-hidden">
-              <div className="flex items-end justify-between mb-3 gap-4 flex-wrap">
-                <div>
-                  <span className="mono-label text-cs-primary flex items-center gap-1.5">
-                    <FiZap className="text-[11px]" /> {data.major_label}
-                  </span>
-                  <p className="text-sm text-cs-text-dim font-mono">overall job readiness</p>
-                </div>
-                <div className="text-right">
-                  <span className="font-mono text-5xl font-bold text-cs-primary leading-none flex items-end">
-                    {data.overall}<span className="text-xl text-cs-text-muted">%</span>
-                  </span>
-                </div>
-              </div>
-              <Bar value={data.overall} className="h-3" />
-              {data.overall >= 75 && (
-                <p className="mt-3 text-sm text-cs-green flex items-center gap-1.5 font-mono">
-                  <FiTrendingUp /> You’re close — polish the focus areas below.
+        <div className="w-full space-y-6">
+          {/* 1 — Overall score + breakdown */}
+          <section className="card overflow-hidden">
+            <MajorBanner major={data.major} label={data.major_label} />
+            <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
+              <div>
+                <p className="text-sm font-semibold text-cs-primary flex items-center gap-1.5">
+                  <FiZap className="text-xs" /> {data.major_label}
                 </p>
-              )}
+                <p className="text-cs-text-dim text-sm mt-0.5">Overall job readiness</p>
+              </div>
+              <p className="text-5xl font-bold leading-none">
+                {data.overall}
+                <span className="text-xl text-cs-text-muted">%</span>
+              </p>
+            </div>
+            <Bar value={data.overall} className="h-2.5" />
+
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-cs-text-dim">
+              {data.components.map((c) => (
+                <span key={c.key}>
+                  {c.label} <strong className="text-cs-text">{c.score}%</strong>
+                </span>
+              ))}
             </div>
 
-            {/* Target skills — terminal table */}
-            <div className="card">
-              <span className="mono-label text-cs-text-dim"> skills that make you job-ready</span>
-              <div className="mt-3 rounded-lg border border-cs-line/10 overflow-hidden">
-                {data.target_skills.map((sk, i) => (
-                  <div key={sk.key} className={`px-4 py-3 ${i > 0 ? 'border-t border-cs-line/10' : ''}`}>
-                    <div className="flex items-center justify-between gap-3 mb-1.5">
-                      <span className="font-mono text-sm font-semibold text-cs-text truncate">{sk.label}</span>
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wide border shrink-0 ${LEVEL_CLS[sk.level] || LEVEL_CLS.Novice}`}>
-                        {sk.level}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Bar
-                        value={sk.score}
-                        color={LEVEL_BAR[sk.level]}
-                        glow={false}
-                        className="flex-1 h-1.5"
-                      />
-                      <span className="font-mono text-xs text-cs-text-dim w-8 text-right shrink-0">{sk.score}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right column */}
-          <div className="space-y-6">
-            {/* Components */}
-            <div className="card">
-              <span className="mono-label text-cs-text-dim"> readiness breakdown</span>
-              <div className="mt-3 grid grid-cols-1 gap-3">
-                {data.components.map((c) => (
-                  <div key={c.key} className="rounded-lg border border-cs-line/10 bg-cs-overlay/[0.03] p-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs text-cs-text-muted font-mono">{c.label}</span>
-                      <span className="font-mono text-sm font-bold text-cs-primary">{c.score}<span className="text-[10px] text-cs-text-muted">%</span></span>
-                    </div>
-                    <Bar value={c.score} className="h-1.5" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Focus next */}
-            {data.focus?.length > 0 && (
-              <div className="card">
-                <span className="mono-label text-cs-text-dim"> focus next on</span>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {data.focus.map((f) => (
-                    <span key={f} className="px-2.5 py-1 rounded-md text-xs font-mono text-cs-orange bg-cs-orange/10 border border-cs-orange/30">
-                      <span className="text-cs-text-muted select-none">$&nbsp;</span>{f}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            {data.overall >= 75 && (
+              <p className="mt-3 text-sm text-cs-green flex items-center gap-1.5">
+                <FiTrendingUp /> You’re close to job-ready — tighten the weak spots below.
+              </p>
             )}
+          </section>
 
-            {/* Plan */}
-            {data.next_steps?.length > 0 && (
-              <div className="card border-cs-primary/25">
-                <span className="mono-label text-cs-primary"> your plan</span>
-                <div className="mt-3 rounded-lg bg-cs-darkest/60 border border-cs-line/10 p-3 space-y-1.5">
-                  {data.next_steps.map((s, i) => {
-                    const action = /(finish|solve|build|keep)/i.test(s);
-                    return (
-                      <div key={i} className="flex items-start gap-2.5 text-sm font-mono">
-                        <span
-                          className={`shrink-0 mt-0.5 ${action ? 'text-cs-text-muted' : 'text-cs-green'}`}
-                          style={{ fontFamily: 'monospace' }}
-                        >
-                          {action ? '>' : '✔'}
-                        </span>
-                        <span className={action ? 'text-cs-text-dim' : 'text-cs-text'}>{s}</span>
-                      </div>
-                    );
-                  })}
+          {/* 2 — Skills */}
+          <section className="card">
+            <h2 className="text-lg font-bold mb-4">Skills</h2>
+            <div className="space-y-4">
+              {data.target_skills.map((sk) => (
+                <div key={sk.key} className="grid grid-cols-[1fr_auto_2.5rem] sm:grid-cols-[minmax(0,10rem)_5.5rem_1fr_2.5rem] items-center gap-x-3 gap-y-1.5">
+                  <span className="text-sm font-medium truncate">{sk.label}</span>
+                  <span className={`${PILL_BASE} justify-self-start ${LEVEL_PILL[sk.level] || LEVEL_PILL.Novice}`}>
+                    {sk.level}
+                  </span>
+                  <Bar value={sk.score} color={LEVEL_COLOR[sk.level]} className="h-1.5 col-span-3 order-last sm:col-span-1 sm:order-none" />
+                  <span className="text-sm text-cs-text-dim text-right tabular-nums">{sk.score}</span>
                 </div>
-                <div className="flex gap-2 mt-4 flex-wrap">
-                  <Link to="/practice" className="btn btn-primary btn-sm"><FiZap /> Go practice <FiArrowRight /></Link>
-                  <Link to="/roadmap" className="btn btn-ghost btn-sm">View roadmap</Link>
-                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 3 — Next steps (focus areas + plan, merged) */}
+          {actions.length > 0 && (
+            <section className="card">
+              <h2 className="text-lg font-bold mb-3">Next steps</h2>
+              <ul className="divide-y divide-cs-line/10">
+                {actions.map((a) => (
+                  <li key={a.text} className="flex items-center gap-3 py-3">
+                    <FiChevronRight className="text-cs-primary shrink-0" />
+                    <span className="flex-1 text-sm">{a.text}</span>
+                    <Link to={a.to} className="btn btn-secondary btn-sm shrink-0">
+                      {a.cta} <FiArrowRight />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex gap-2 mt-4 flex-wrap">
+                <Link to="/practice" className="btn btn-primary btn-sm"><FiZap /> Go practice</Link>
+                <Link to="/roadmap" className="btn btn-ghost btn-sm">View roadmap</Link>
               </div>
-            )}
-          </div>
+            </section>
+          )}
         </div>
       )}
     </main>

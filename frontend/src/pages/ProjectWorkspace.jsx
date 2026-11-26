@@ -142,14 +142,14 @@ function ProjectWorkspace() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">Loading…</p>
+        <p className="text-cs-text-dim">Loading…</p>
       </div>
     );
   }
   if (notFound || !project) {
     return (
       <main className="w-full px-6 lg:px-10 py-16 text-center">
-        <p className="text-lg text-gray-400 mb-4">That project doesn’t exist.</p>
+        <p className="text-lg text-cs-text-dim mb-4">That project doesn’t exist.</p>
         <Link to="/projects" className="btn btn-primary">Back to Projects</Link>
       </main>
     );
@@ -159,7 +159,7 @@ function ProjectWorkspace() {
     <main className="w-full pb-10">
       {/* locked header */}
       <div className="sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/10 px-4 lg:px-6 pt-4 pb-3">
-        <Link to="/projects" className="inline-flex items-center gap-2 text-xs font-mono text-cs-text-muted hover:text-cs-text mb-2">
+        <Link to="/projects" className="inline-flex items-center gap-2 text-xs text-cs-text-muted hover:text-cs-text mb-2">
           <FiArrowLeft /> Projects
         </Link>
         <div className="flex items-center gap-3 flex-wrap">
@@ -172,7 +172,7 @@ function ProjectWorkspace() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="text-xs font-mono bg-cs-overlay/5 border border-cs-line/15 rounded-lg px-2 py-1"
+            className="text-xs bg-cs-overlay/5 border border-cs-line/15 rounded-lg px-2 py-1"
           >
             <option value="active">active</option>
             <option value="done">done</option>
@@ -180,7 +180,7 @@ function ProjectWorkspace() {
           </select>
           <button
             onClick={() => setPinned((v) => !v)}
-            className={pinned ? 'text-cs-orange' : 'text-cs-text-muted/50 hover:text-cs-text-muted'}
+            className={pinned ? 'text-cs-orange' : 'text-cs-text-muted hover:text-cs-text-muted'}
             title={pinned ? 'Unpin' : 'Pin'}
           >
             <FiStar className={pinned ? 'fill-current' : ''} />
@@ -208,17 +208,17 @@ function ProjectWorkspace() {
             )}
           </div>
 
-          <button onClick={() => setPendingDelete(true)} className="text-cs-text-muted/60 hover:text-cs-red" title="Delete project">
+          <button onClick={() => setPendingDelete(true)} className="text-cs-text-muted hover:text-cs-red" title="Delete project">
             <FiTrash2 />
           </button>
 
-          <span className="text-[11px] font-mono text-cs-text-muted w-14 text-right">
+          <span className="text-[11px] text-cs-text-muted w-14 text-right">
             {saveState === 'saving' ? 'saving…' : saveState === 'dirty' ? 'unsaved' : 'saved'}
           </span>
         </div>
 
         {project.track_slug && (
-          <Link to={`/learn/${project.track_slug}`} className="inline-block mt-1.5 text-[11px] font-mono text-cs-primary hover:text-cs-cyan">
+          <Link to={`/learn/${project.track_slug}`} className="inline-block mt-1.5 text-[11px] text-cs-primary hover:text-cs-cyan">
             ↳ part of the {project.track_slug} track
           </Link>
         )}
@@ -234,7 +234,7 @@ function ProjectWorkspace() {
             >
               <t.icon className="text-xs" /> {t.label}
               {t.id === 'tasks' && tasks.length > 0 && (
-                <span className="text-[10px] font-mono text-cs-text-muted">
+                <span className="text-[10px] text-cs-text-muted">
                   {tasks.filter((x) => x.done).length}/{tasks.length}
                 </span>
               )}
@@ -347,7 +347,7 @@ function ProjectWorkspace() {
                     </span>
                     <button
                       onClick={() => setTasks((prev) => prev.filter((x) => x.id !== t.id))}
-                      className="text-cs-text-muted/0 group-hover:text-cs-text-muted/60 hover:!text-cs-red shrink-0"
+                      className="text-cs-text-muted group-hover:text-cs-text-muted hover:!text-cs-red shrink-0"
                     >
                       <FiX />
                     </button>
@@ -369,7 +369,7 @@ function ProjectWorkspace() {
             {review ? (
               <div className="card-dev">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className={`text-3xl font-bold font-mono ${review.score >= 70 ? 'text-cs-green' : 'text-cs-orange'}`}>
+                  <span className={`text-3xl font-bold ${review.score >= 70 ? 'text-cs-green' : 'text-cs-orange'}`}>
                     {Math.round(review.score)}<span className="text-cs-text-muted text-base">/100</span>
                   </span>
                 </div>

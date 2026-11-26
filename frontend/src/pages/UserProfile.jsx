@@ -93,7 +93,7 @@ function StatSwitcher({ stats }) {
         <div className="flex-1 flex items-center justify-center gap-4 text-center">
           <span className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${s.chip} ${s.cls}`}>{s.icon}</span>
           <div className="min-w-0">
-            <div className="text-3xl font-bold font-mono leading-tight">{s.value}</div>
+            <div className="text-3xl font-bold leading-tight">{s.value}</div>
             <div className="text-xs text-cs-text-dim mt-0.5">{s.label}</div>
           </div>
         </div>
@@ -133,8 +133,8 @@ function FollowerChip({ icon, count, label, onClick }) {
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 ${onClick ? 'hover:text-cs-primary' : ''} transition-colors`}
     >
-      <span className="font-mono text-sm font-bold text-cs-text">{count}</span>
-      <span className="font-mono text-xs text-cs-text-muted inline-flex items-center gap-1">{icon} {label}</span>
+      <span className="text-sm font-bold text-cs-text">{count}</span>
+      <span className="text-xs text-cs-text-muted inline-flex items-center gap-1">{icon} {label}</span>
     </Comp>
   );
 }
@@ -229,8 +229,8 @@ export default function UserProfile() {
     return (
       <main className="w-full px-6 lg:px-10 py-16">
         <div className="max-w-md mx-auto card text-center py-14 border-cs-orange/25">
-          <p className="font-mono text-5xl mb-4 text-cs-text-muted select-none">404</p>
-          <p className="text-cs-text-dim mb-6 font-mono">user_not_found: /u/{username}</p>
+          <p className="text-5xl mb-4 text-cs-text-muted select-none">404</p>
+          <p className="text-cs-text-dim mb-6">We couldn't find that user.</p>
           <Link to="/community" className="btn btn-primary btn-sm">Back to Community</Link>
         </div>
       </main>
@@ -240,7 +240,7 @@ export default function UserProfile() {
   if (!data) {
     return (
       <main className="w-full px-6 lg:px-10 py-8">
-        <p className="text-cs-text-muted font-mono text-sm">loading /u/{username}…</p>
+        <p className="text-cs-text-muted text-sm">Loading profile…</p>
       </main>
     );
   }
@@ -249,13 +249,13 @@ export default function UserProfile() {
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky profile header */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/community" className="inline-flex items-center gap-2 text-sm font-mono text-cs-text-dim hover:text-cs-primary mb-4">
+        <Link to="/community" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-4">
           <FiArrowLeft /> ../community
         </Link>
 
         {/* Hero */}
         <div className="flex items-start gap-5">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-main flex items-center justify-center text-4xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40 shadow-[0_0_28px_-6px_rgb(var(--cs-primary)/0.5)]">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-main flex items-center justify-center text-4xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40">
             {data.avatar
               ? <img src={data.avatar} alt={name} className="w-full h-full object-cover" />
               : <span>{(name).charAt(0).toUpperCase()}</span>}
@@ -266,14 +266,14 @@ export default function UserProfile() {
               <h1 className="text-3xl font-bold truncate">{name}</h1>
               {data.verified && <VerifiedBadge />}
               {data.is_staff && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-cs-violet/40 bg-cs-violet/10 text-cs-violet font-mono text-[10px] uppercase tracking-wide">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-cs-violet/40 bg-cs-violet/10 text-cs-violet text-[10px] uppercase tracking-wide">
                   <FiAward className="text-[11px]" /> dev team
                 </span>
               )}
             </div>
 
             {/* Meta line */}
-            <p className="font-mono text-sm text-cs-text-muted mt-1.5 flex items-center gap-x-2 gap-y-1 flex-wrap">
+            <p className="text-sm text-cs-text-muted mt-1.5 flex items-center gap-x-2 gap-y-1 flex-wrap">
               <span>@{data.username}</span>
               {major && <span className="text-cs-mint">· {major.label}</span>}
               {data.rank ? <span>· rank #{data.rank}</span> : null}
@@ -317,7 +317,7 @@ export default function UserProfile() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-lg border-b-2 font-mono text-sm whitespace-nowrap transition-colors ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-lg border-b-2 text-sm whitespace-nowrap transition-colors ${
                 tab === t.id
                   ? 'border-cs-primary text-cs-primary'
                   : 'border-transparent text-cs-text-dim hover:text-cs-text'
@@ -336,17 +336,17 @@ export default function UserProfile() {
           {(data.github_url || data.website_url || data.linkedin_url) && (
             <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-cs-line/8">
               {data.github_url && (
-                <a href={data.github_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs font-mono text-cs-text-muted hover:text-cs-primary transition-colors">
+                <a href={data.github_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted hover:text-cs-primary transition-colors">
                   <FiGithub /> github
                 </a>
               )}
               {data.website_url && (
-                <a href={data.website_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs font-mono text-cs-text-muted hover:text-cs-primary transition-colors">
+                <a href={data.website_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted hover:text-cs-primary transition-colors">
                   <FiGlobe /> website
                 </a>
               )}
               {data.linkedin_url && (
-                <a href={data.linkedin_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs font-mono text-cs-text-muted hover:text-cs-primary transition-colors">
+                <a href={data.linkedin_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted hover:text-cs-primary transition-colors">
                   <FiLinkedin /> linkedin
                 </a>
               )}
@@ -393,13 +393,13 @@ export default function UserProfile() {
           )}
           {posts === false && (
             <div className="card text-center py-14 border-cs-red/20">
-              <p className="text-cs-text-dim font-mono text-sm">Couldn't load {name}'s posts.</p>
+              <p className="text-cs-text-dim text-sm">Couldn't load {name}'s posts.</p>
             </div>
           )}
           {Array.isArray(posts) && posts.length === 0 && (
             <div className="card text-center py-14">
               <FiMessageSquare className="text-3xl text-cs-text-muted mx-auto mb-3" />
-              <p className="text-cs-text-dim font-mono text-sm">
+              <p className="text-cs-text-dim text-sm">
                 {tab === 'posts'
                   ? (isMe ? 'You haven’t posted anything yet.' : `${name} hasn’t posted anything yet.`)
                   : tab === 'reposts'
@@ -446,15 +446,15 @@ export default function UserProfile() {
                       <FiCode />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-mono text-sm font-semibold truncate">{p.title}</p>
-                      <p className="font-mono text-[11px] text-cs-text-muted truncate capitalize">
+                      <p className="text-sm font-semibold truncate">{p.title}</p>
+                      <p className="text-[11px] text-cs-text-muted truncate capitalize">
                         {p.language || 'unknown'}
                         {p.status ? ` · ${p.status}` : ''}
                       </p>
                     </div>
                   </div>
                   {p.updated_at && (
-                    <p className="mt-3 pt-3 border-t border-cs-line/8 font-mono text-[11px] text-cs-text-muted">
+                    <p className="mt-3 pt-3 border-t border-cs-line/8 text-[11px] text-cs-text-muted">
                       updated {formatDate(p.updated_at)}
                     </p>
                   )}
@@ -464,7 +464,7 @@ export default function UserProfile() {
           ) : (
             <div className="card text-center py-12">
               <FiCode className="text-3xl text-cs-text-muted mx-auto mb-3" />
-              <p className="text-cs-text-dim font-mono text-sm">
+              <p className="text-cs-text-dim text-sm">
                 {isMe ? 'You haven’t shared any projects yet.' : 'No shared projects yet.'}
               </p>
             </div>
@@ -481,17 +481,17 @@ export default function UserProfile() {
               {(data.github_url || data.website_url || data.linkedin_url) && (
                 <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-cs-line/8">
                   {data.github_url && (
-                    <a href={data.github_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs font-mono text-cs-text-muted hover:text-cs-primary transition-colors">
+                    <a href={data.github_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted hover:text-cs-primary transition-colors">
                       <FiGithub /> github
                     </a>
                   )}
                   {data.website_url && (
-                    <a href={data.website_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs font-mono text-cs-text-muted hover:text-cs-primary transition-colors">
+                    <a href={data.website_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted hover:text-cs-primary transition-colors">
                       <FiGlobe /> website
                     </a>
                   )}
                   {data.linkedin_url && (
-                    <a href={data.linkedin_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs font-mono text-cs-text-muted hover:text-cs-primary transition-colors">
+                    <a href={data.linkedin_url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-xs text-cs-text-muted hover:text-cs-primary transition-colors">
                       <FiLinkedin /> linkedin
                     </a>
                   )}

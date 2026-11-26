@@ -22,30 +22,30 @@ function Row({ r, highlight }) {
       }`}
     >
       <span
-        className={`w-9 shrink-0 text-center font-mono text-base font-bold ${
+        className={`w-9 shrink-0 text-center text-base font-bold ${
           medal ? '' : 'text-cs-text-muted'
         }`}
         style={medal ? { color: medal } : undefined}
       >
         {r.rank}
       </span>
-      <span className="w-12 h-12 rounded-xl bg-cs-darkest border border-cs-primary/25 flex items-center justify-center font-mono font-bold text-cs-primary overflow-hidden shrink-0">
+      <span className="w-12 h-12 rounded-xl bg-cs-darkest border border-cs-primary/25 flex items-center justify-center font-bold text-cs-primary overflow-hidden shrink-0">
         {r.avatar_url
           ? <img src={r.avatar_url} alt={r.username} className="w-full h-full object-cover" />
           : <span>{r.username?.charAt(0).toUpperCase()}</span>}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-mono text-sm font-semibold truncate">
+        <p className="text-sm font-semibold truncate">
           <span className="inline-flex items-center gap-1">
             <span className="truncate group-hover:text-cs-primary transition-colors">{r.username}</span>
             {r.verified && <VerifiedBadge size="h-4 w-4" />}
           </span>
           {highlight && <span className="text-cs-primary font-normal"> · you</span>}
         </p>
-        <p className="font-mono text-[11px] text-cs-text-muted truncate">{major || '—'}</p>
+        <p className="text-[11px] text-cs-text-muted truncate">{major || '—'}</p>
       </div>
       <span
-        className="inline-flex items-center gap-1.5 font-mono text-sm font-bold text-cs-primary shrink-0 bg-cs-primary/10 border border-cs-primary/20 rounded-lg px-2.5 py-1"
+        className="inline-flex items-center gap-1.5 text-sm font-bold text-cs-primary shrink-0 bg-cs-primary/10 border border-cs-primary/20 rounded-lg px-2.5 py-1"
       >
         <FiZap className="text-[11px]" /> {r.xp.toLocaleString()} <span className="text-[10px] font-medium text-cs-text-muted">xp</span>
       </span>
@@ -73,18 +73,18 @@ function Leaderboard() {
       </div>
 
       {data === null && (
-        <p className="text-cs-text-muted font-mono text-sm">mounting /leaderboard…</p>
+        <p className="text-cs-text-muted text-sm">Loading leaderboard…</p>
       )}
       {data === false && (
         <div className="card text-center py-14 border-cs-red/20">
-          <p className="text-cs-text-dim font-mono text-sm">Couldn’t load the leaderboard. Try again in a bit.</p>
+          <p className="text-cs-text-dim text-sm">Couldn’t load the leaderboard. Try again in a bit.</p>
         </div>
       )}
 
       {data && data.total_ranked === 0 && (
         <div className="card text-center py-14 border-cs-primary/20">
           <p className="text-4xl mb-3">🏁</p>
-          <p className="text-cs-text-dim mb-6 max-w-sm mx-auto font-mono text-sm">
+          <p className="text-cs-text-dim mb-6 max-w-sm mx-auto text-sm">
             No one’s on the board yet. Finish a lesson or solve a challenge to be first.
           </p>
           <Link to="/practice" className="btn btn-primary btn-sm"><FiZap /> Go practice</Link>
@@ -105,14 +105,14 @@ function Leaderboard() {
                 <FiChevronUp />
               </div>
               <Row r={data.me} highlight />
-              <p className="text-center font-mono text-[11px] text-cs-text-muted mt-3">
+              <p className="text-center text-[11px] text-cs-text-muted mt-3">
                 {data.total_ranked} learners ranked
               </p>
             </>
           )}
 
           {!data.me && (
-            <p className="text-center font-mono text-[11px] text-cs-text-muted mt-3">
+            <p className="text-center text-[11px] text-cs-text-muted mt-3">
               {data.total_ranked} learner{data.total_ranked === 1 ? '' : 's'} ranked
             </p>
           )}

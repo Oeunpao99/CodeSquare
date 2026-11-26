@@ -86,7 +86,7 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
             <>
               <div className="flex items-baseline justify-between mb-3">
                 <h2 className="text-lg font-bold">CodeSquare Pro</h2>
-                <span className="font-mono text-cs-primary font-bold">
+                <span className="text-cs-primary font-bold">
                   {checkout ? `${checkout.amount_display} · ${checkout.period_days} days` : '…'}
                 </span>
               </div>
@@ -114,24 +114,24 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
                         <span key={i} className={`aspect-square ${i % 3 ? 'bg-cs-text-muted/60' : 'bg-cs-text-muted/20'}`} />
                       ))}
                     </div>
-                    <p className="font-mono text-[10px] text-cs-text-muted leading-tight">
+                    <p className="text-[10px] text-cs-text-muted leading-tight">
                       add your KHQR at<br />frontend/public/pro-khqr.png
                     </p>
                   </div>
                 )}
-                <p className="font-mono text-[11px] text-cs-text-muted text-center">
+                <p className="text-[11px] text-cs-text-muted text-center">
                   Scan with any Cambodian bank app (KHQR / Bakong)
                 </p>
               </div>
 
-              <p className="mt-3 font-mono text-[10px] text-cs-text-muted text-center">
+              <p className="mt-3 text-[10px] text-cs-text-muted text-center">
                 demo checkout — no real charge is made
               </p>
 
               <button
                 onClick={startVerify}
                 disabled={phase !== 'qr'}
-                className="btn btn-primary w-full mt-4 font-mono disabled:opacity-50"
+                className="btn btn-primary w-full mt-4 disabled:opacity-50"
               >
                 I&apos;ve completed the payment
               </button>
@@ -141,8 +141,8 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
           {phase === 'verifying' && (
             <div className="py-10 flex flex-col items-center gap-3 text-center">
               <FiLoader className="text-3xl text-cs-primary animate-spin" />
-              <p className="font-mono text-sm text-cs-text">Verifying payment…</p>
-              <p className="font-mono text-[11px] text-cs-text-muted">checking the transaction with the bank</p>
+              <p className="text-sm text-cs-text">Verifying payment…</p>
+              <p className="text-[11px] text-cs-text-muted">checking the transaction with the bank</p>
             </div>
           )}
 
@@ -150,17 +150,17 @@ export default function UpgradeModal({ open, onClose, onUpgraded }) {
             <div className="py-8 flex flex-col items-center gap-3 text-center">
               <FiCheckCircle className="text-4xl text-cs-green" />
               <h2 className="text-lg font-bold">You&apos;re on Pro 🎉</h2>
-              <p className="font-mono text-[12px] text-cs-text-dim">
+              <p className="text-[12px] text-cs-text-dim">
                 {until ? <>Active until <span className="text-cs-text">{until}</span></> : 'Pro is now active'}
               </p>
-              <button onClick={finish} className="btn btn-primary w-full mt-3 font-mono">Done</button>
+              <button onClick={finish} className="btn btn-primary w-full mt-3">Done</button>
             </div>
           )}
 
           {phase === 'error' && (
             <div className="py-8 flex flex-col items-center gap-3 text-center">
-              <p className="font-mono text-[13px] text-cs-red">{errMsg}</p>
-              <button onClick={onClose} className="btn btn-ghost w-full mt-2 font-mono">Close</button>
+              <p className="text-[13px] text-cs-red">{errMsg}</p>
+              <button onClick={onClose} className="btn btn-ghost w-full mt-2">Close</button>
             </div>
           )}
         </div>

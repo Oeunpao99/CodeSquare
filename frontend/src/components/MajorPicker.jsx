@@ -30,7 +30,7 @@ function MajorPicker({ onboarding = false, onPicked }) {
       ) : (
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-lg font-bold">Your Major</h2>
-          <span className="font-mono text-xs text-cs-text-muted">
+          <span className="text-xs text-cs-text-muted">
             {major ? majors[major].label : 'not set'}
           </span>
         </div>
@@ -64,13 +64,13 @@ function MajorPicker({ onboarding = false, onPicked }) {
                 )}
               </div>
               <h3 className="font-bold text-base">{m.label}</h3>
-              <p className="text-xs font-mono text-cs-text-muted mb-2">{m.tagline}</p>
+              <p className="text-xs text-cs-text-muted mb-2">{m.tagline}</p>
               <p className="text-sm text-cs-text-dim leading-relaxed mb-4">{m.blurb}</p>
               <div className="flex flex-wrap gap-1.5">
                 {m.focus.slice(0, 4).map((f) => (
                   <span
                     key={f}
-                    className="text-[11px] font-mono px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted"
+                    className="text-[11px] px-2 py-0.5 rounded border border-cs-line/10 text-cs-text-muted"
                   >
                     {f}
                   </span>

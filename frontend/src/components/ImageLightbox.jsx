@@ -61,7 +61,7 @@ export default function ImageLightbox({ sources, start = 0, onClose }) {
         onClick={(e) => e.stopPropagation()}
       />
       {sources.length > 1 && (
-        <p className="absolute bottom-4 font-mono text-xs text-cs-text-muted">
+        <p className="absolute bottom-4 text-xs text-cs-text-muted">
           {index + 1} / {sources.length}
         </p>
       )}

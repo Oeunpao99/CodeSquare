@@ -43,7 +43,7 @@ function ThemeMenu({ className = '' }) {
             />
           ))}
         </span>
-        <span className="hidden sm:inline font-mono text-xs text-cs-text-dim">
+        <span className="hidden sm:inline text-xs text-cs-text-dim">
           {themes[theme]?.label}
         </span>
       </button>

@@ -51,20 +51,20 @@ function Portfolio() {
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-bold">{user?.display_name || user?.username}</h2>
-          {user?.headline && <p className="text-sm text-cs-primary font-mono mt-0.5">{user.headline}</p>}
+          {user?.headline && <p className="text-sm text-cs-primary mt-0.5">{user.headline}</p>}
           {user?.bio && <p className="text-sm text-cs-text-dim mt-2 max-w-2xl whitespace-pre-line">{user.bio}</p>}
           <div className="flex flex-wrap items-center gap-2 mt-3">
             {links.map((l) => (
               <a
                 key={l.key} href={user[l.key]} target="_blank" rel="noreferrer noopener"
-                className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md glass glass-hover text-cs-text-dim hover:text-cs-primary"
+                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md glass glass-hover text-cs-text-dim hover:text-cs-primary"
               >
                 {l.icon} {l.label}
               </a>
             ))}
             <Link
               to="/profile"
-              className="inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md text-cs-text-muted hover:text-cs-primary"
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md text-cs-text-muted hover:text-cs-primary"
             >
               <FiEdit3 /> edit
             </Link>
@@ -72,16 +72,15 @@ function Portfolio() {
         </div>
       </div>
 
-      {items === null && <p className="text-cs-text-muted font-mono text-sm">scanning ~/projects…</p>}
+      {items === null && <p className="text-cs-text-muted text-sm">Loading your projects…</p>}
 
       {items && items.length === 0 && (
         <div className="card border-cs-primary/15 flex flex-col items-center justify-center py-16 text-center">
-          <div className="font-mono text-sm text-cs-primary mb-4 flex items-center gap-2">
-            <span className="inline-block w-2 h-4 bg-cs-primary/70 animate-blink" />
-            <span>$ ls --done</span>
+          <div className="text-sm text-cs-primary mb-4 flex items-center gap-2">
+            <span>Finished projects</span>
           </div>
-          <p className="font-mono text-3xl mb-3 text-cs-text-muted select-none"> empty: 0 files</p>
-          <p className="text-cs-text-dim mb-6 max-w-sm mx-auto font-mono text-sm">
+          <p className="text-3xl mb-3 text-cs-text-muted select-none">Nothing here yet</p>
+          <p className="text-cs-text-dim mb-6 max-w-sm mx-auto text-sm">
             Finish a project and set its status to <span className="text-cs-green">done</span> in the
             workspace — it auto-appears here.
           </p>
@@ -100,7 +99,7 @@ function Portfolio() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <LangLogo name={p.language} className="text-lg shrink-0" />
-                  <span className="font-semibold truncate font-mono">{p.title}</span>
+                  <span className="font-semibold truncate">{p.title}</span>
                 </div>
                 <FiArrowUpRight className="text-cs-text-muted group-hover:text-cs-primary shrink-0" />
               </div>
@@ -117,7 +116,7 @@ function Portfolio() {
                 </pre>
               )}
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-auto pt-2 font-mono text-[11px] border-t border-cs-line/10 text-cs-text-muted">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-auto pt-2 text-[11px] border-t border-cs-line/10 text-cs-text-muted">
                 <span className="inline-flex items-center gap-1">
                   <FiFolder className="text-cs-primary" /> {p.language}
                 </span>

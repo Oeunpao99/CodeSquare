@@ -7,6 +7,7 @@ import { MAJORS } from '../majors';
 import CollectionLogo from '../components/CollectionLogo';
 import TutorDock from '../components/TutorDock';
 import { highlightAllCode } from '../utils/highlight';
+import { ArticleSkeleton } from '../components/Skeletons';
 
 const slugifyHeading = (t) =>
   String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'section';
@@ -248,18 +249,13 @@ function LibraryArticle() {
   // Only block the whole view on the very first load. Sibling navigation keeps
   // the current article visible (dimmed) while the next one fetches.
   if (loading && !data) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">Loading…</p>
-      </div>
-    );
+    return <ArticleSkeleton />;
   }
 
   if (notFound || !data) {
     return (
       <main className="w-full px-6 lg:px-10 py-16 text-center">
-        <p className="text-lg text-gray-400 mb-4">That article doesn’t exist.</p>
+        <p className="text-lg text-cs-text-dim mb-4">That article doesn’t exist.</p>
         <Link to={`/library/${collection}`} className="btn btn-primary">Back to collection</Link>
       </main>
     );
@@ -283,7 +279,7 @@ function LibraryArticle() {
 
       {/* locked breadcrumb header */}
       <div className="hidden lg:block sticky top-0 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/10 px-6 lg:px-10">
-        <nav className="flex items-center gap-2 h-12 text-xs font-mono text-cs-text-muted whitespace-nowrap overflow-hidden">
+        <nav className="flex items-center gap-2 h-12 text-xs text-cs-text-muted whitespace-nowrap overflow-hidden">
           <Link to="/library" className="hover:text-cs-text shrink-0">Library</Link>
           <span className="text-cs-line/20 shrink-0">/</span>
           <Link
@@ -308,8 +304,8 @@ function LibraryArticle() {
             <span className="w-7 h-7 rounded-lg bg-cs-primary/10 flex items-center justify-center text-base shrink-0">
               <CollectionLogo slug={data.collection_slug} fallback={data.collection_title.slice(0, 2)} />
             </span>
-            <b className="font-mono text-sm font-medium truncate">{data.collection_title}</b>
-            <span className="ml-auto font-mono text-[11px] text-cs-text-muted shrink-0">
+            <b className="text-sm font-medium truncate">{data.collection_title}</b>
+            <span className="ml-auto text-[11px] text-cs-text-muted shrink-0">
               {data.position} / {data.total}
             </span>
           </div>
@@ -317,7 +313,7 @@ function LibraryArticle() {
           {navGroups.map(([label, items]) => (
             <div key={label} className="mb-5">
               <div className="flex items-center gap-2 px-2 mb-1.5">
-                <span className="font-mono text-[10px] tracking-[0.12em] text-cs-text-muted">
+                <span className="text-[10px] tracking-wider text-cs-text-muted">
                   {label.toUpperCase()}
                 </span>
                 <span className="flex-1 h-px bg-cs-line/10" />
@@ -335,9 +331,9 @@ function LibraryArticle() {
                     }`}
                   >
                     <span
-                      className={`w-3.5 h-3.5 shrink-0 rounded-full border grid place-items-center ${
+                      className={`w-4 h-4 shrink-0 rounded-full border grid place-items-center ${
                         s.completed
-                          ? 'border-transparent bg-cs-green/20 text-cs-green'
+                          ? 'border-transparent bg-cs-green text-white'
                           : on
                           ? 'border-cs-primary'
                           : 'border-cs-line/20'
@@ -357,10 +353,10 @@ function LibraryArticle() {
         {/* ---------- article ---------- */}
         <article className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-5">
-            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-full border border-cs-orange/25 bg-cs-orange/[0.07] text-cs-orange">
+            <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border border-cs-orange/25 bg-cs-orange/[0.07] text-cs-orange">
               <FiClock className="text-[11px]" /> {data.reading_minutes} min read
             </span>
-            <span className="font-mono text-[11px] px-2.5 py-1 rounded-full border border-cs-line/10 bg-cs-darker text-cs-text-dim">
+            <span className="text-[11px] px-2.5 py-1 rounded-full border border-cs-line/10 bg-cs-darker text-cs-text-dim">
               {data.position} of {data.total}
             </span>
             <span className="flex-1" />
@@ -368,7 +364,7 @@ function LibraryArticle() {
               onClick={toggleBookmark}
               aria-pressed={bookmarked}
               title={bookmarked ? 'Remove bookmark' : 'Bookmark this article'}
-              className={`inline-flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
                 bookmarked
                   ? 'border-cs-primary/40 bg-cs-primary/10 text-cs-primary'
                   : 'border-cs-line/15 text-cs-text-dim hover:text-cs-text hover:border-cs-line/30'
@@ -380,7 +376,7 @@ function LibraryArticle() {
             <button
               onClick={() => toggleRead()}
               aria-pressed={read}
-              className={`inline-flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
                 read
                   ? 'border-cs-green/40 bg-cs-green/10 text-cs-green'
                   : 'border-cs-line/15 text-cs-text-dim hover:text-cs-text hover:border-cs-line/30'
@@ -391,7 +387,7 @@ function LibraryArticle() {
             </button>
           </div>
 
-          <h1 className="font-mono text-[32px] leading-[1.14] font-medium tracking-tight text-cs-text">
+          <h1 className="text-[32px] leading-[1.14] font-medium tracking-tight text-cs-text">
             {data.title}
           </h1>
 
@@ -403,7 +399,7 @@ function LibraryArticle() {
 
           {majorLabels.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-5">
-              <span className="font-mono text-[10px] tracking-[0.1em] text-cs-text-muted mr-1">
+              <span className="text-[10px] tracking-[0.1em] text-cs-text-muted mr-1">
                 SHOWS UP IN
               </span>
               {majorLabels.map((l) => (
@@ -425,7 +421,7 @@ function LibraryArticle() {
 
           {showPlayground && (
             <section className="mt-9">
-              <h2 className="font-mono text-lg font-medium text-cs-text flex items-center gap-2.5 mb-2">
+              <h2 className="text-lg font-medium text-cs-text flex items-center gap-2.5 mb-2">
                 <span className="w-1.5 h-[1.1em] rounded-full bg-gradient-to-b from-cs-primary to-cs-cyan" />
                 Try it
               </h2>
@@ -435,18 +431,18 @@ function LibraryArticle() {
               <div className="rounded-xl border border-cs-line/15 bg-cs-darker overflow-hidden">
                 <div className="flex items-center gap-2 px-3.5 py-2.5 bg-cs-darkest border-b border-cs-line/15">
                   <FiPlay className="text-cs-orange text-xs" />
-                  <b className="font-mono text-xs font-medium">Playground</b>
-                  <span className="ml-auto font-mono text-[11px] text-cs-text-muted">Python 3.12</span>
+                  <b className="text-xs font-medium">Playground</b>
+                  <span className="ml-auto text-[11px] text-cs-text-muted">Python 3.12</span>
                 </div>
                 <div className="grid md:grid-cols-2">
                   <textarea
                     value={editor}
                     onChange={(e) => setEditor(e.target.value)}
                     spellCheck={false}
-                    className="w-full min-h-[20rem] p-3.5 bg-cs-darker text-cs-text font-mono text-[13px] leading-[22px] resize-y outline-none border-0"
+                    className="w-full min-h-[20rem] p-3.5 bg-cs-darker text-cs-text text-[13px] leading-[22px] resize-y outline-none border-0"
                   />
                   <div
-                    className="border-t md:border-t-0 md:border-l border-cs-line/10 p-3.5 bg-[#05070c] font-mono text-[12.5px] leading-[22px] whitespace-pre-wrap min-h-[20rem]"
+                    className="border-t md:border-t-0 md:border-l border-cs-line/10 p-3.5 bg-[#05070c] text-[12.5px] leading-[22px] whitespace-pre-wrap min-h-[20rem]"
                     style={{
                       color: output.ran
                         ? output.error
@@ -465,19 +461,19 @@ function LibraryArticle() {
                 <div className="flex gap-2 px-3.5 py-2.5 bg-cs-darkest border-t border-cs-line/15">
                   <button
                     onClick={run}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs bg-cs-primary text-cs-btn-text hover:brightness-110 transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-cs-primary text-cs-btn-text hover:brightness-110 transition"
                   >
                     <FiPlay className="text-xs" /> Run
                   </button>
                   <button
                     onClick={reset}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs border border-cs-line/15 text-cs-text hover:border-cs-line/30 transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-cs-line/15 text-cs-text hover:border-cs-line/30 transition"
                   >
                     Reset
                   </button>
                   <Link
                     to="/tutor"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs border border-cs-line/15 text-cs-text hover:border-cs-line/30 transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-cs-line/15 text-cs-text hover:border-cs-line/30 transition"
                   >
                     Ask why
                   </Link>
@@ -489,7 +485,7 @@ function LibraryArticle() {
           {rel && (
             <div className="mt-11 rounded-xl border border-cs-line/15 bg-cs-darkest p-6 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h3 className="font-mono text-base font-medium text-cs-text mb-1">
+                <h3 className="text-base font-medium text-cs-text mb-1">
                   Ready to write it yourself?
                 </h3>
                 <p className="text-sm text-cs-text-dim max-w-[46ch]">
@@ -498,7 +494,7 @@ function LibraryArticle() {
               </div>
               <Link
                 to={`/learn/${rel.slug}/module/${rel.module_id}/lesson/${rel.lesson_id}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-[13.5px] font-medium bg-cs-orange text-cs-dark hover:brightness-110 transition whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-medium bg-cs-orange text-cs-dark hover:brightness-110 transition whitespace-nowrap"
               >
                 Do the lesson <FiArrowRight />
               </Link>
@@ -515,10 +511,10 @@ function LibraryArticle() {
               >
                 <FiArrowLeft className="shrink-0 text-lg text-cs-text-muted transition-all group-hover:-translate-x-0.5 group-hover:text-cs-primary" />
                 <span className="min-w-0">
-                  <span className="block font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-0.5">
+                  <span className="block text-[10px] tracking-wider text-cs-text-muted mb-0.5">
                     PREVIOUS
                   </span>
-                  <span className="block font-mono text-sm font-medium text-cs-text truncate transition-colors group-hover:text-cs-primary">
+                  <span className="block text-sm font-medium text-cs-text truncate transition-colors group-hover:text-cs-primary">
                     {data.prev.title}
                   </span>
                 </span>
@@ -527,10 +523,10 @@ function LibraryArticle() {
               <span className="flex items-center gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 opacity-40">
                 <FiArrowLeft className="shrink-0 text-lg text-cs-text-muted" />
                 <span className="min-w-0">
-                  <span className="block font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-0.5">
+                  <span className="block text-[10px] tracking-wider text-cs-text-muted mb-0.5">
                     PREVIOUS
                   </span>
-                  <span className="block font-mono text-sm text-cs-text-dim">Start of collection</span>
+                  <span className="block text-sm text-cs-text-dim">Start of collection</span>
                 </span>
               </span>
             )}
@@ -540,10 +536,10 @@ function LibraryArticle() {
                 className="group flex items-center justify-end gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 text-right hover:border-cs-primary/30 hover:bg-cs-overlay/[0.04] transition"
               >
                 <span className="min-w-0">
-                  <span className="block font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-0.5">
+                  <span className="block text-[10px] tracking-wider text-cs-text-muted mb-0.5">
                     NEXT
                   </span>
-                  <span className="block font-mono text-sm font-medium text-cs-text truncate transition-colors group-hover:text-cs-primary">
+                  <span className="block text-sm font-medium text-cs-text truncate transition-colors group-hover:text-cs-primary">
                     {data.next.title}
                   </span>
                 </span>
@@ -552,10 +548,10 @@ function LibraryArticle() {
             ) : (
               <span className="flex items-center justify-end gap-3 rounded-xl border border-cs-line/10 bg-cs-darker p-4 text-right opacity-40">
                 <span className="min-w-0">
-                  <span className="block font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-0.5">
+                  <span className="block text-[10px] tracking-wider text-cs-text-muted mb-0.5">
                     NEXT
                   </span>
-                  <span className="block font-mono text-sm text-cs-text-dim">End of collection</span>
+                  <span className="block text-sm text-cs-text-dim">End of collection</span>
                 </span>
                 <FiArrowRight className="shrink-0 text-lg text-cs-text-muted" />
               </span>
@@ -565,7 +561,7 @@ function LibraryArticle() {
 
         {/* ---------- on this page ---------- */}
         <aside className="hidden lg:block sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto">
-          <p className="font-mono text-[10px] tracking-[0.12em] text-cs-text-muted mb-3">
+          <p className="text-[10px] tracking-wider text-cs-text-muted mb-3">
             ON THIS PAGE
           </p>
           <ul>

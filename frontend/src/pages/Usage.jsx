@@ -40,7 +40,7 @@ function WindowCard({ w, tick }) {
     <div className="card flex flex-col justify-between bg-gradient-to-br from-cs-darker to-cs-darker/40">
       <div className="flex items-start justify-between gap-3">
         <p className="mono-label text-cs-text-dim">{w.label}</p>
-        <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+        <span className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider ${
           warn ? 'border-cs-orange/40 bg-cs-orange/10 text-cs-orange' : 'border-cs-line/15 text-cs-text-muted'
         }`}>
           {warn ? 'high' : 'meter'}
@@ -48,10 +48,10 @@ function WindowCard({ w, tick }) {
       </div>
 
       <div className="mt-2">
-        <p className="font-mono text-3xl font-bold leading-none">
+        <p className="text-3xl font-bold leading-none">
           {w.percent}<span className="text-base text-cs-text-muted">%</span>
         </p>
-        <p className="font-mono text-[11px] text-cs-text-muted mt-1">
+        <p className="text-[11px] text-cs-text-muted mt-1">
           {fmtInt(w.used)} / {fmtInt(w.limit)} tokens
         </p>
       </div>
@@ -62,12 +62,11 @@ function WindowCard({ w, tick }) {
             className="h-full rounded-full transition-[width] duration-700"
             style={{
               width: `${Math.max(1.5, w.percent)}%`,
-              background: `linear-gradient(90deg, ${color}66, ${color})`,
-              boxShadow: `0 0 12px -2px ${color}`,
+              background: color,
             }}
           />
         </div>
-        <div className="flex items-center justify-between font-mono text-[10px] text-cs-text-muted">
+        <div className="flex items-center justify-between text-[10px] text-cs-text-muted">
           <span>resets</span>
           <span className={warn ? 'text-cs-orange font-semibold' : ''}>{fmtCountdown(secs)}</span>
         </div>
@@ -121,10 +120,10 @@ function Usage() {
         </h1>
       </div>
 
-      {data === null && <p className="text-cs-text-muted font-mono text-sm">reading meters…</p>}
+      {data === null && <p className="text-cs-text-muted text-sm">Loading usage…</p>}
       {data === false && (
         <div className="card text-center py-14 border-cs-red/20">
-          <p className="text-cs-text-dim font-mono text-sm">Couldn’t load usage. Try again shortly.</p>
+          <p className="text-cs-text-dim text-sm">Couldn’t load usage. Try again shortly.</p>
         </div>
       )}
 
@@ -135,32 +134,32 @@ function Usage() {
             {/* Account card */}
             <div className="card flex flex-col justify-between gap-6 bg-gradient-to-br from-cs-primary/[0.06] to-transparent">
               <div className="flex items-center gap-4">
-                <span className="w-14 h-14 rounded-2xl bg-cs-primary/15 text-cs-primary flex items-center justify-center font-mono font-bold text-xl shrink-0">
+                <span className="w-14 h-14 rounded-2xl bg-cs-primary/15 text-cs-primary flex items-center justify-center font-bold text-xl shrink-0">
                   {user?.username?.charAt(0).toUpperCase()}
                 </span>
                 <div className="min-w-0">
-                  <p className="font-mono font-semibold text-lg truncate">{user?.username}</p>
-                  <p className="text-xs text-cs-text-muted font-mono truncate">{user?.email}</p>
+                  <p className="font-semibold text-lg truncate">{user?.username}</p>
+                  <p className="text-xs text-cs-text-muted truncate">{user?.email}</p>
                 </div>
               </div>
               <div>
-                <span className="px-3 py-1.5 rounded-full text-xs font-mono font-semibold uppercase tracking-wider border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
+                <span className="px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider border border-cs-primary/30 bg-cs-primary/10 text-cs-primary">
                   {data.plan_label} plan
                 </span>
                 {data.plan_expires_at && (
-                  <p className="font-mono text-[11px] text-cs-primary/80 mt-2">
+                  <p className="text-[11px] text-cs-primary/80 mt-2">
                     active until {fmtDate(data.plan_expires_at)}
                   </p>
                 )}
                 {data.plan === 'free' && (
                   <button
                     onClick={() => setShowUpgrade(true)}
-                    className="btn btn-primary btn-sm w-full mt-3 font-mono"
+                    className="btn btn-primary btn-sm w-full mt-3"
                   >
                     <FiZap /> Upgrade to Pro
                   </button>
                 )}
-                <p className="font-mono text-[11px] text-cs-text-muted mt-3">
+                <p className="text-[11px] text-cs-text-muted mt-3">
                   {data.calls_this_week} AI call{data.calls_this_week === 1 ? '' : 's'} this week · limits soft — nothing blocked
                 </p>
               </div>
@@ -186,11 +185,11 @@ function Usage() {
                     return (
                       <div key={k} className={`flex items-center gap-3 px-4 py-2.5 ${i > 0 ? 'border-t border-cs-line/10' : ''}`}>
                         <meta.icon className="text-cs-text-muted shrink-0" />
-                        <span className="font-mono text-sm text-cs-text w-40 sm:w-52 shrink-0">{meta.label}</span>
+                        <span className="text-sm text-cs-text w-40 sm:w-52 shrink-0">{meta.label}</span>
                         <div className="flex-1 hidden sm:block h-1.5 rounded-full bg-cs-overlay/10 overflow-hidden">
                           <div className="h-full rounded-full bg-gradient-main" style={{ width: `${(v / max) * 100}%` }} />
                         </div>
-                        <span className="font-mono text-xs text-cs-text-dim shrink-0">{fmtInt(v)}</span>
+                        <span className="text-xs text-cs-text-dim shrink-0">{fmtInt(v)}</span>
                       </div>
                     );
                   })}
@@ -205,14 +204,14 @@ function Usage() {
               {planList.map((p) => (
                 <div
                   key={p.key}
-                  className={`card flex flex-col ${p.current ? 'border-cs-primary/50 shadow-[0_0_30px_-12px_rgb(var(--cs-primary)/0.4)]' : ''}`}
+                  className={`card flex flex-col ${p.current ? 'border-cs-primary/50' : ''}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h3 className="text-lg font-bold">{p.label}</h3>
                       <p className="text-sm text-cs-text-dim mt-1">{p.blurb}</p>
                     </div>
-                    <span className="font-mono text-lg font-bold text-cs-primary shrink-0">{p.price}</span>
+                    <span className="text-lg font-bold text-cs-primary shrink-0">{p.price}</span>
                   </div>
                   <ul className="mt-4 space-y-1.5 flex-1">
                     {p.features.map((f) => (
@@ -222,13 +221,13 @@ function Usage() {
                     ))}
                   </ul>
                   {p.current ? (
-                    <button disabled className="btn btn-sm btn-ghost w-full mt-5 font-mono">
+                    <button disabled className="btn btn-sm btn-ghost w-full mt-5">
                       Current plan
                     </button>
                   ) : p.key === 'pro' ? (
                     <button
                       onClick={() => setShowUpgrade(true)}
-                      className="btn btn-sm btn-primary w-full mt-5 font-mono"
+                      className="btn btn-sm btn-primary w-full mt-5"
                     >
                       <FiZap /> Upgrade to {p.label}
                     </button>
@@ -236,7 +235,7 @@ function Usage() {
                     <button
                       onClick={() => choosePlan(p.key)}
                       disabled={busy}
-                      className="btn btn-sm btn-ghost w-full mt-5 font-mono"
+                      className="btn btn-sm btn-ghost w-full mt-5"
                     >
                       Switch to {p.label} <FiArrowRight />
                     </button>

@@ -7,6 +7,8 @@ import { useMajor } from '../context/MajorContext';
 import { MAJORS } from '../majors';
 import { partitionByMajor } from '../libraryMap';
 import CollectionLogo from '../components/CollectionLogo';
+import LibraryThumb from '../components/LibraryThumb';
+import { LibrarySkeleton } from '../components/Skeletons';
 
 const CAT_LABELS = {
   python: 'Python',
@@ -23,7 +25,7 @@ function MajorChips({ slugs = [] }) {
   const labels = slugs.map((s) => MAJORS[s]?.label).filter(Boolean).slice(0, 3);
   if (!labels.length) return null;
   return (
-    <p className="text-[11px] text-cs-text-muted mt-3 font-mono">
+    <p className="text-[11px] text-cs-text-muted mt-3">
       appears in: {labels.join(' · ')}
     </p>
   );
@@ -32,20 +34,26 @@ function MajorChips({ slugs = [] }) {
 function CollectionCard({ c, forMajor = false }) {
   const { t } = useTranslation();
   return (
-    <Link to={`/library/${c.slug}`} className="card group relative flex flex-col">
+    <Link to={`/library/${c.slug}`} className="card group relative flex flex-col overflow-hidden text-cs-text hover:border-cs-primary/40">
+      <LibraryThumb
+        path={c.slug}
+        className="-mx-6 -mt-6 mb-4 w-[calc(100%+3rem)] max-w-none aspect-[3/2] transition-transform duration-500 group-hover:scale-[1.03]"
+      />
       {forMajor && (
-        <span className="absolute top-3 right-3 text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-cs-primary/15 text-cs-primary">
+        <span className="absolute top-3 right-3 z-10 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-cs-darkest/80 backdrop-blur text-cs-primary">
           {t('dashboard.for_your_major')}
         </span>
       )}
-      <span className="w-12 h-12 rounded-xl bg-cs-overlay/5 flex items-center justify-center text-3xl shrink-0 mb-4">
-        <CollectionLogo slug={c.slug} fallback={c.icon} />
-      </span>
-      <h3 className="text-lg font-bold">{c.title}</h3>
+      <div className="flex items-center gap-3">
+        <span className="w-10 h-10 rounded-xl bg-cs-overlay/5 flex items-center justify-center text-2xl shrink-0">
+          <CollectionLogo slug={c.slug} fallback={c.icon} />
+        </span>
+        <h3 className="text-lg font-bold">{c.title}</h3>
+      </div>
       <p className="text-sm text-cs-text-dim mt-1 line-clamp-2">{c.description}</p>
 
       {/* community stats — learners, finishers, rating */}
-      <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 mt-2.5 text-xs font-mono text-cs-text-muted">
+      <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 mt-2.5 text-xs text-cs-text-muted">
         <span className="inline-flex items-center gap-1.5" title="learners with activity on this shelf">
           <FiUsers className="text-sm" /> {c.learners || 0}
         </span>
@@ -64,7 +72,7 @@ function CollectionCard({ c, forMajor = false }) {
 
       {c.trackable > 0 && (
         <div className="mt-4">
-          <div className="flex items-center justify-between text-[11px] font-mono text-cs-text-muted mb-1.5">
+          <div className="flex items-center justify-between text-[11px] text-cs-text-muted mb-1.5">
             <span className={c.completed === c.trackable ? 'text-cs-green' : ''}>
               {c.completed} / {c.trackable} {t('library.done')}
             </span>
@@ -82,7 +90,7 @@ function CollectionCard({ c, forMajor = false }) {
       )}
 
       <div className="flex items-center justify-between mt-4 text-sm">
-        <span className="text-cs-text-muted font-mono">{t('library.topics', { count: c.topic_count })}</span>
+        <span className="text-cs-text-muted">{t('library.topics', { count: c.topic_count })}</span>
         <span className="inline-flex items-center gap-1 text-cs-primary group-hover:text-cs-cyan transition-colors">
           Browse <FiArrowRight />
         </span>
@@ -145,12 +153,7 @@ function Library() {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">{t('loading_library')}</p>
-      </div>
-    );
+    return <LibrarySkeleton />;
   }
 
   const isSearching = results !== null;
@@ -160,50 +163,50 @@ function Library() {
       {/* Sticky header — the whole thing (title, description, search and category
           filters) stays locked while the collections scroll beneath it. */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <span className="mono-label"> {t('library.knowledge_base')}</span>
-        <h1 className="text-3xl font-bold mt-3 mb-2 flex items-center gap-3">
+        <span className="mono-label">{t('library.knowledge_base')}</span>
+        <h1 className="text-3xl font-bold mt-2 mb-4 flex items-center gap-3">
           <FiBookOpen className="text-cs-primary" /> {t('library.library_title')}
         </h1>
-        <p className="text-cs-text-dim mb-6">
-          {t('library.library_desc')}
-        </p>
 
-        <div className="relative max-w-lg mb-6">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('library.search_placeholder')}
-            className="input w-full pl-9 pr-9"
-          />
-          {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-cs-text-muted hover:text-cs-text"
-              aria-label="Clear search"
-            >
-              <FiX />
-            </button>
+        {/* Search (left) + category tabs (right) on one row to save header height. */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="relative w-full lg:max-w-md shrink-0">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('library.search_placeholder')}
+              className="input w-full h-10 !py-0 pl-9 pr-9"
+            />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-cs-text-muted hover:text-cs-text"
+                aria-label="Clear search"
+              >
+                <FiX />
+              </button>
+            )}
+          </div>
+
+          {!isSearching && cats.length > 1 && (
+            <div className="flex gap-1.5 overflow-x-auto lg:ml-auto lg:justify-end -mx-1 px-1 pb-1 lg:pb-0">
+              {['all', ...cats].map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setCat(k)}
+                  className={`h-9 px-3.5 rounded-full text-sm whitespace-nowrap shrink-0 transition-colors ${
+                    cat === k
+                      ? 'bg-cs-primary text-cs-btn-text font-semibold'
+                      : 'text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06]'
+                  }`}
+                >
+                  {k === 'all' ? t('library.all') : CAT_LABELS[k] || k}
+                </button>
+              ))}
+            </div>
           )}
         </div>
-
-        {!isSearching && cats.length > 1 && (
-          <div className="flex flex-wrap gap-2">
-            {['all', ...cats].map((k) => (
-              <button
-                key={k}
-                onClick={() => setCat(k)}
-                className={`px-3 py-1.5 rounded-full text-xs font-mono transition-colors ${
-                  cat === k
-                    ? 'bg-cs-primary/15 text-cs-primary border border-cs-primary/30'
-                    : 'text-cs-text-dim border border-cs-line/10 hover:text-cs-text hover:border-cs-line/25'
-                }`}
-              >
-                {k === 'all' ? t('library.all') : CAT_LABELS[k] || k}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {!isSearching && resume && (
@@ -219,7 +222,7 @@ function Library() {
               {resume.resuming ? t('library.continue_reading') : t('library.jump_back')}
             </p>
             <h2 className="text-xl font-bold truncate">{resume.title}</h2>
-            <p className="text-sm text-cs-text-dim font-mono truncate">
+            <p className="text-sm text-cs-text-dim truncate">
               {resume.collection_title} <span className="text-cs-text-muted">·</span>{' '}
               {resume.position} of {resume.total} · {resume.reading_minutes} min
             </p>
@@ -232,7 +235,7 @@ function Library() {
 
       {isSearching ? (
         <section>
-          <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-cs-text-muted mb-4">
+          <h2 className="text-sm uppercase tracking-wider text-cs-text-muted mb-4">
             {searching
               ? 'Searching…'
               : `${results.length} result${results.length === 1 ? '' : 's'} for “${query.trim()}”`}
@@ -259,21 +262,21 @@ function Library() {
                     {r.title}
                   </div>
                   <div className="text-xs text-cs-text-muted truncate mt-0.5">
-                    <span className="font-mono">{r.collection_title}</span>
+                    <span className="">{r.collection_title}</span>
                     {r.summary ? ` · ${r.summary}` : ''}
                   </div>
                 </div>
-                <span className="flex items-center gap-1 text-[11px] font-mono text-cs-text-muted/60 shrink-0">
+                <span className="flex items-center gap-1 text-[11px] text-cs-text-muted shrink-0">
                   <FiClock /> {r.reading_minutes}m
                 </span>
-                <FiCornerDownLeft className="text-cs-text-muted/30 group-hover:text-cs-primary transition-colors shrink-0" />
+                <FiCornerDownLeft className="text-cs-text-muted group-hover:text-cs-primary transition-colors shrink-0" />
               </Link>
             ))}
           </div>
         </section>
       ) : cat !== 'all' ? (
         <section>
-          <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-cs-text-muted mb-4">
+          <h2 className="text-sm uppercase tracking-wider text-cs-text-muted mb-4">
             {CAT_LABELS[cat] || cat}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -288,7 +291,7 @@ function Library() {
         <>
           {hasMajor && forMajor.length > 0 && (
             <section className="mb-12">
-              <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-cs-text-muted mb-4">
+              <h2 className="text-sm uppercase tracking-wider text-cs-text-muted mb-4">
                 {t('library.your_library', { major: majorData?.label })}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -300,12 +303,12 @@ function Library() {
           )}
 
           <section>
-            <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-cs-text-muted mb-4">
+            <h2 className="text-sm uppercase tracking-wider text-cs-text-muted mb-4">
               {hasMajor ? t('library.all_collections') : t('library.collections')}
             </h2>
             {!hasMajor && (
               <p className="text-sm text-cs-text-muted mb-4">
-                <Link to="/dashboard" className="text-cs-primary font-mono">
+                <Link to="/dashboard" className="text-cs-primary">
                   → {t('library.pick_major')}
                 </Link>{' '}
                 {t('library.pick_major_desc')}

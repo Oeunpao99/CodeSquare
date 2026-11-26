@@ -27,14 +27,14 @@ function Preview({ kind, body, images, tagList, link }) {
   return (
     <div className="rounded-xl border border-cs-line/15 bg-cs-darkest/40 p-4">
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border font-mono text-[10px] uppercase tracking-wide ${ACCENT[m.accent]}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] uppercase tracking-wide ${ACCENT[m.accent]}`}>
           <Icon className="text-[10px]" /> {m.label}
         </span>
         {tagList.map((t) => (
-          <span key={t} className="font-mono text-[11px] text-cs-text-muted">#{t}</span>
+          <span key={t} className="text-[11px] text-cs-text-muted">#{t}</span>
         ))}
-        {link && <span className="font-mono text-[11px] text-cs-primary truncate max-w-[180px]">{link}</span>}
-        <span className="ml-auto font-mono text-[10px] text-cs-text-muted uppercase tracking-wide">preview</span>
+        {link && <span className="text-[11px] text-cs-primary truncate max-w-[180px]">{link}</span>}
+        <span className="ml-auto text-[10px] text-cs-text-muted uppercase tracking-wide">preview</span>
       </div>
       {body.trim() ? (
         <Markdown>{body}</Markdown>
@@ -154,7 +154,7 @@ function Composer({ onPosted, sendRef }) {
               key={k}
               type="button"
               onClick={() => setKind(k)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border font-mono text-[11px] uppercase tracking-wide transition-colors ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] uppercase tracking-wide transition-colors ${
                 active ? ACCENT[km.accent] : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
               }`}
             >
@@ -175,7 +175,7 @@ function Composer({ onPosted, sendRef }) {
           rows={2}
           maxLength={4000}
           placeholder={PLACEHOLDER[kind]}
-          className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/50 resize-none leading-relaxed overflow-y-auto min-h-[4.5rem] max-h-[30rem]"
+          className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/50 resize-none leading-relaxed overflow-y-auto min-h-[4.5rem] max-h-[30rem]"
         />
       )}
 
@@ -197,7 +197,7 @@ function Composer({ onPosted, sendRef }) {
           >
             <FiX className="text-xs" />
           </button>
-          <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center font-mono text-[10px] text-cs-text-muted/70 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[10px] text-cs-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
             click image to view full size
           </span>
         </div>
@@ -228,14 +228,14 @@ function Composer({ onPosted, sendRef }) {
       )}
 
       {dragging && (
-        <div className="mt-3 rounded-xl border-2 border-dashed border-cs-primary/60 bg-cs-primary/5 p-6 text-center font-mono text-sm text-cs-primary">
+        <div className="mt-3 rounded-xl border-2 border-dashed border-cs-primary/60 bg-cs-primary/5 p-6 text-center text-sm text-cs-primary">
           drop images to add them
         </div>
       )}
 
       <div className="flex flex-wrap items-center gap-2 mt-3">
         <div className="flex flex-1 flex-wrap items-center gap-2 min-w-[200px]">
-          <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-cs-line/25 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 text-xs font-mono cursor-pointer transition-colors">
+          <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-cs-line/25 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 text-xs cursor-pointer transition-colors">
             <FiImage /> {images.length ? `+ image (${images.length}/${MAX_IMAGES})` : 'add images · click or drop'}
             <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
           </label>
@@ -243,10 +243,10 @@ function Composer({ onPosted, sendRef }) {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="tags: python, sql"
-            className="flex-1 min-w-[140px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs font-mono outline-none focus:border-cs-primary/50"
+            className="flex-1 min-w-[140px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50"
           />
           {!showLink ? (
-            <button type="button" onClick={() => setShowLink(true)} className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary text-xs font-mono">
+            <button type="button" onClick={() => setShowLink(true)} className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary text-xs">
               <FiLink /> add link
             </button>
           ) : (
@@ -255,7 +255,7 @@ function Composer({ onPosted, sendRef }) {
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 placeholder="https://github.com/you/project"
-                className="flex-1 rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs font-mono outline-none focus:border-cs-primary/50"
+                className="flex-1 rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50"
               />
               <button type="button" onClick={() => { setShowLink(false); setLink(''); }} className="p-2 text-cs-text-muted hover:text-cs-red"><FiX /></button>
             </div>
@@ -263,7 +263,7 @@ function Composer({ onPosted, sendRef }) {
         </div>
 
         <div className="flex items-center gap-2 ml-auto shrink-0">
-          <span className="font-mono text-[10px] text-cs-text-muted tabular-nums">{body.length}/4000</span>
+          <span className="text-[10px] text-cs-text-muted tabular-nums">{body.length}/4000</span>
           <button
             type="button"
             onClick={() => setShowPreview((p) => !p)}
@@ -365,11 +365,8 @@ function Community() {
       <div className="sticky top-0 z-30 -mx-6 lg:-ml-10 lg:-mr-16 xl:-mr-24 px-6 lg:pl-10 lg:pr-16 xl:pr-24 -mt-8 pt-6 pb-4 mb-6 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/[0.07]">
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0">
-            <span className="font-mono text-xs text-cs-text-muted tracking-wide">~/community</span>
+            <span className="text-xs text-cs-text-muted tracking-wide">Community</span>
             <h1 className="text-2xl font-semibold mt-0.5 tracking-tight">Dev community</h1>
-            <p className="text-sm text-cs-text-dim mt-1.5 max-w-[52ch]">
-              Learn in public — share ideas, progress, questions and what you're building.
-            </p>
           </div>
           <Link to="/leaderboard" className="btn btn-ghost btn-sm shrink-0 hidden sm:inline-flex">
             <FiAward /> Leaderboard
@@ -391,7 +388,7 @@ function Community() {
                   onChange={(e) => setSearchInput(e.target.value)}
                   onBlur={() => { if (!searchInput.trim() && !search) setSearchOpen(false); }}
                   placeholder="search users, devs or the feed…"
-                  className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 pl-9 pr-3 py-1.5 text-sm font-mono outline-none focus:border-cs-primary/50 placeholder:text-cs-text-muted/60"
+                  className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 pl-9 pr-3 py-1.5 text-sm outline-none focus:border-cs-primary/50 placeholder:text-cs-text-muted"
                 />
               </div>
               <button type="submit" className="btn btn-primary btn-sm">Search</button>
@@ -399,7 +396,7 @@ function Community() {
                 <button
                   type="button"
                   onClick={() => { setSearch(''); setSearchInput(''); }}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-text font-mono text-xs"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-text text-xs"
                 >
                   clear <FiX />
                 </button>
@@ -419,7 +416,7 @@ function Community() {
               type="button"
               onClick={() => setSearchOpen(true)}
               title="Search feed"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 font-mono text-xs transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 text-xs transition-colors"
             >
               <FiSearch className="text-sm" />
               {search && <span className="text-cs-primary">#{search}</span>}
@@ -436,12 +433,12 @@ function Community() {
           onClick={() => setComposerOpen(true)}
           className="w-full max-w-3xl mb-6 flex items-center gap-3 rounded-2xl border border-cs-line/10 bg-cs-darker/40 px-4 py-3 text-left transition-colors hover:border-cs-primary/40 group"
         >
-          <span className="w-9 h-9 rounded-xl bg-cs-darkest border border-cs-primary/25 flex items-center justify-center font-mono font-bold text-cs-primary overflow-hidden shrink-0">
+          <span className="w-9 h-9 rounded-xl bg-cs-darkest border border-cs-primary/25 flex items-center justify-center font-bold text-cs-primary overflow-hidden shrink-0">
             {me?.avatar
               ? <img src={me.avatar} alt="" className="w-full h-full object-cover" />
               : <span>{(me?.display_name || me?.username)?.charAt(0).toUpperCase() || '?'}</span>}
           </span>
-          <span className="flex-1 font-mono text-sm text-cs-text-muted group-hover:text-cs-text transition-colors">
+          <span className="flex-1 text-sm text-cs-text-muted group-hover:text-cs-text transition-colors">
             Share progress, ask a question or show what you built…
           </span>
           <FiSend className="text-cs-text-muted group-hover:text-cs-primary transition-colors shrink-0" />
@@ -475,7 +472,7 @@ function Community() {
                 <button
                   key={k || 'all'}
                   onClick={() => setKind(k)}
-                  className={`tap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-xs whitespace-nowrap ${
+                  className={`tap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs whitespace-nowrap ${
                     active
                       ? Meta ? ACCENT[Meta.accent] : 'bg-cs-primary/15 text-cs-primary border-cs-primary/40'
                       : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
@@ -492,12 +489,12 @@ function Community() {
             {tag && (
               <button
                 onClick={() => setParams({})}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-cs-primary/40 bg-cs-primary/10 text-cs-primary font-mono text-xs"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-cs-primary/40 bg-cs-primary/10 text-cs-primary text-xs"
               >
                 #{tag} <FiX />
               </button>
             )}
-            <div className="inline-flex rounded-full border border-cs-line/15 overflow-hidden font-mono text-xs">
+            <div className="inline-flex rounded-full border border-cs-line/15 overflow-hidden text-xs">
               {['new', 'top'].map((s) => (
                 <button
                   key={s}
@@ -514,16 +511,16 @@ function Community() {
         </div>
       </div>
 
-      {posts === null && <p className="text-cs-text-muted font-mono text-sm">loading /community…</p>}
+      {posts === null && <p className="text-cs-text-muted text-sm">Loading posts…</p>}
       {posts === false && (
         <div className="card text-center py-14 border-cs-red/20">
-          <p className="text-cs-text-dim font-mono text-sm">Couldn't load the feed. Try again in a bit.</p>
+          <p className="text-cs-text-dim text-sm">Couldn't load the feed. Try again in a bit.</p>
         </div>
       )}
       {Array.isArray(posts) && posts.length === 0 && (
         <div className="card text-center py-14 border-cs-primary/20">
           <p className="text-4xl mb-3">👋</p>
-          <p className="text-cs-text-dim font-mono text-sm max-w-sm mx-auto">
+          <p className="text-cs-text-dim text-sm max-w-sm mx-auto">
             {search
               ? `Nothing matches “${search}”.`
               : tag

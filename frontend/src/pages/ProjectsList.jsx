@@ -91,12 +91,12 @@ function NewProjectModal({ onClose, onCreated, languageOptions, tracks }) {
           </>
         )}
 
-        <button onClick={create} disabled={busy} className="btn btn-primary w-full font-mono">
-          {busy ? 'Working…' : '$ create project'}
+        <button onClick={create} disabled={busy} className="btn btn-primary w-full">
+          {busy ? 'Working…' : 'Create project'}
         </button>
         <p className="text-xs text-cs-text-muted text-center mt-3">
           Want a brief and starter code?{' '}
-          <Link to="/projects/generate" className="text-cs-primary font-mono">generate with AI →</Link>
+          <Link to="/projects/generate" className="text-cs-primary">generate with AI →</Link>
         </p>
       </div>
     </div>
@@ -153,14 +153,14 @@ function ProjectsList() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-gray-400">Loading your projects...</p>
+        <p className="text-cs-text-dim">Loading your projects...</p>
       </div>
     );
   }
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 lg:pr-14 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] flex items-start justify-between gap-4 flex-wrap">
+      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 lg:pr-52 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07] flex items-start justify-between gap-4 flex-wrap">
         <div>
           <span className="mono-label"> workspace</span>
           <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
@@ -169,10 +169,10 @@ function ProjectsList() {
           <p className="text-cs-text-dim mt-1">Code, notes, tasks and AI reviews — all saved.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link to="/projects/generate" className="btn btn-ghost font-mono">
+          <Link to="/projects/generate" className="btn btn-ghost">
             <FiZap /> Generate with AI
           </Link>
-          <button onClick={() => setShowNew(true)} className="btn btn-primary font-mono">
+          <button onClick={() => setShowNew(true)} className="btn btn-primary">
             <FiPlus /> New project
           </button>
         </div>
@@ -184,7 +184,7 @@ function ProjectsList() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-full text-xs font-mono capitalize transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-xs capitalize transition-colors ${
                 filter === f
                   ? 'bg-cs-primary/15 text-cs-primary border border-cs-primary/30'
                   : 'text-cs-text-dim border border-cs-line/10 hover:text-cs-text'
@@ -202,7 +202,7 @@ function ProjectsList() {
           <p className="text-cs-text-dim mb-4">
             {projects.length === 0 ? 'No projects yet.' : `No ${filter} projects.`}
           </p>
-          <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm font-mono">
+          <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm">
             <FiPlus /> Create your first project
           </button>
         </div>
@@ -221,7 +221,7 @@ function ProjectsList() {
                   <h3 className="font-bold text-[15px] flex-grow min-w-0 truncate">{p.title}</h3>
                   <button
                     onClick={(e) => togglePin(p, e)}
-                    className={`shrink-0 ${p.pinned ? 'text-cs-orange' : 'text-cs-text-muted/40 hover:text-cs-text-muted'}`}
+                    className={`shrink-0 ${p.pinned ? 'text-cs-orange' : 'text-cs-text-muted hover:text-cs-text-muted'}`}
                     title={p.pinned ? 'Unpin' : 'Pin'}
                   >
                     <FiStar className={p.pinned ? 'fill-current' : ''} />
@@ -236,7 +236,7 @@ function ProjectsList() {
                   <p className="text-xs text-cs-text-muted italic mb-3">No code yet</p>
                 )}
 
-                <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono mt-auto">
+                <div className="flex items-center gap-2 flex-wrap text-[11px] mt-auto">
                   <span className={`px-2 py-0.5 rounded ${st.cls}`}>{st.label}</span>
                   {p.task_total > 0 && (
                     <span className="inline-flex items-center gap-1 text-cs-text-muted">
@@ -251,7 +251,7 @@ function ProjectsList() {
 
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(p.id); }}
-                  className="absolute top-3 right-9 text-cs-text-muted/0 group-hover:text-cs-text-muted/60 hover:!text-cs-red transition-colors"
+                  className="absolute top-3 right-9 text-cs-text-muted group-hover:text-cs-text-muted hover:!text-cs-red transition-colors"
                   title="Delete"
                 >
                   <FiTrash2 />

@@ -33,6 +33,7 @@ from seed_docs_infra import INFRA_SHELVES
 MIRROR_ORDER = [
     "python", "python-intermediate", "javascript", "html-css",
     "react-typescript", "backend-foundations", "full-stack", "linux-shell",
+    "power-bi",
 ]
 
 # Filter facet for the Library index. One of: python | web | backend | data | devops | cs
@@ -45,6 +46,7 @@ CATEGORY_BY_SLUG = {
     "full-stack": "web",
     "backend-foundations": "backend",
     "linux-shell": "devops",
+    "power-bi": "data",
     "version-control": "devops",
     "dev-workflow": "devops",
 }
@@ -106,7 +108,10 @@ def article_body(content_html: str, code_example: str) -> str:
 #  Pass 1 — mirror lesson tracks
 # --------------------------------------------------------------------------- #
 
-async def mirror_tracks(db) -> None:
+async def mirror_tracks(db, only=None) -> None:
+    """Mirror tracks into Library shelves. `only` = iterable of track slugs to
+    limit the rebuild to (re-mirroring an existing shelf wipes its users'
+    read/bookmark state, so add a new track with `--only <slug>`)."""
     langs = (
         await db.execute(
             select(Language).options(
@@ -122,6 +127,8 @@ async def mirror_tracks(db) -> None:
         if not language:
             continue
         order += 10
+        if only and slug not in only:
+            continue
 
         existing = (
             await db.execute(select(DocCollection).where(DocCollection.slug == slug))
@@ -2589,15 +2596,23 @@ async def seed_standalone(db) -> None:
         print(f"  standalone {shelf['slug']}: {len(shelf['topics'])} topics")
 
 
-async def seed_docs() -> None:
+async def seed_docs(only=None) -> None:
     async with async_session() as db:
-        print("Mirroring lesson tracks...")
-        await mirror_tracks(db)
-        print("Seeding standalone reference shelves...")
-        await seed_standalone(db)
+        print("Mirroring lesson tracks..." + (f" (only: {', '.join(only)})" if only else ""))
+        await mirror_tracks(db, only=only)
+        if not only:
+            print("Seeding standalone reference shelves...")
+            await seed_standalone(db)
         await db.commit()
     print("Library seeded.")
 
 
 if __name__ == "__main__":
-    asyncio.run(seed_docs())
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--only", nargs="+", metavar="SLUG",
+        help="mirror just these tracks (keeps other shelves and their users' reading progress untouched)",
+    )
+    asyncio.run(seed_docs(set(ap.parse_args().only or []) or None))

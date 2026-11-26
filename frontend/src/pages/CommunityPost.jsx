@@ -39,11 +39,11 @@ function EditForm({ post, onSaved, onCancel }) {
         onChange={(e) => setBody(e.target.value)}
         rows={5}
         maxLength={4000}
-        className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/50 resize-y leading-relaxed"
+        className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/50 resize-y leading-relaxed"
       />
       <div className="flex flex-wrap items-center gap-2 mt-2">
-        <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="tags" className="flex-1 min-w-[140px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs font-mono outline-none focus:border-cs-primary/50" />
-        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="link (optional)" className="flex-1 min-w-[160px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs font-mono outline-none focus:border-cs-primary/50" />
+        <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="tags" className="flex-1 min-w-[140px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50" />
+        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="link (optional)" className="flex-1 min-w-[160px] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50" />
         <button type="button" onClick={onCancel} className="btn btn-ghost btn-sm">Cancel</button>
         <button type="submit" disabled={saving} className="btn btn-primary btn-sm disabled:opacity-40">{saving ? 'Saving…' : 'Save'}</button>
       </div>
@@ -245,11 +245,11 @@ function CommunityPost() {
     >
       <div className="flex items-center gap-2.5 mb-1.5">
         <Avatar author={c.author} size="w-7 h-7" />
-        <span className="flex items-center gap-1 font-mono text-sm font-semibold min-w-0">
+        <span className="flex items-center gap-1 text-sm font-semibold min-w-0">
           <AuthorName author={c.author} to={`/u/${c.author.username}`} className="text-sm font-semibold" />
           {c.is_mine && <span className="text-cs-primary font-normal whitespace-nowrap">· you</span>}
         </span>
-        <span className="font-mono text-[10px] text-cs-text-muted">{timeAgo(c.created_at)}</span>
+        <span className="text-[10px] text-cs-text-muted">{timeAgo(c.created_at)}</span>
         <span className="flex-grow" />
         {c.can_delete && (
           <button onClick={() => setConfirmDelete(c.id)} className="text-cs-text-muted hover:text-cs-red p-1" title="Delete">
@@ -263,7 +263,7 @@ function CommunityPost() {
         <button
           type="button"
           onClick={() => likeComment(c)}
-          className={`inline-flex items-center gap-1 text-[11px] font-mono transition-colors ${
+          className={`inline-flex items-center gap-1 text-[11px] transition-colors ${
             c.liked_by_me
               ? 'text-cs-red'
               : 'text-cs-text-muted hover:text-cs-red'
@@ -276,7 +276,7 @@ function CommunityPost() {
         <button
           type="button"
           onClick={() => launchReply(c.id)}
-          className="inline-flex items-center gap-1 text-[11px] font-mono text-cs-text-muted hover:text-cs-primary transition-colors"
+          className="inline-flex items-center gap-1 text-[11px] text-cs-text-muted hover:text-cs-primary transition-colors"
         >
           <FiCornerUpLeft className="text-xs" /> {replyTo === c.id ? 'Cancel reply' : 'Reply'}
         </button>
@@ -292,7 +292,7 @@ function CommunityPost() {
             maxLength={1000}
             placeholder="Reply to this comment…"
             autoFocus
-            className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-sm font-mono outline-none focus:border-cs-primary/50 resize-none overflow-hidden"
+            className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-sm outline-none focus:border-cs-primary/50 resize-none overflow-hidden"
           />
           <div className="flex justify-end gap-2 mt-1.5">
             <button type="button" onClick={() => { setReplyTo(null); setReplyText(''); }} className="btn btn-ghost btn-sm">Cancel</button>
@@ -314,16 +314,16 @@ function CommunityPost() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/community" className="inline-flex items-center gap-2 text-sm font-mono text-cs-text-dim hover:text-cs-primary">
+        <Link to="/community" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary">
           <FiArrowLeft /> ../community
         </Link>
       </div>
 
-      {post === null && <p className="text-cs-text-muted font-mono text-sm">loading post…</p>}
+      {post === null && <p className="text-cs-text-muted text-sm">Loading post…</p>}
       {post === false && (
         <div className="card text-center py-14 border-cs-orange/25">
-          <p className="font-mono text-4xl mb-3 text-cs-text-muted select-none">404</p>
-          <p className="text-cs-text-dim mb-6 font-mono text-sm">This post doesn’t exist or was removed.</p>
+          <p className="text-4xl mb-3 text-cs-text-muted select-none">404</p>
+          <p className="text-cs-text-dim mb-6 text-sm">This post doesn’t exist or was removed.</p>
           <Link to="/community" className="btn btn-primary btn-sm">Back to the feed</Link>
         </div>
       )}
@@ -348,7 +348,7 @@ function CommunityPost() {
           )}
 
           <section className="mt-6">
-            <h2 className="font-mono text-sm text-cs-text-muted mb-3">
+            <h2 className="text-sm text-cs-text-muted mb-3">
               {post.comment_count || 0} comment{post.comment_count === 1 ? '' : 's'}
             </h2>
 
@@ -360,7 +360,7 @@ function CommunityPost() {
                 rows={2}
                 maxLength={1000}
                 placeholder="Add a comment…"
-                className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm font-mono outline-none focus:border-cs-primary/50 resize-none overflow-hidden"
+                className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/50 resize-none overflow-hidden"
               />
               <div className="flex justify-end mt-2">
                 <button ref={commentSendRef} type="submit" disabled={sending || !comment.trim()} className="btn btn-primary btn-sm disabled:opacity-40">
@@ -389,7 +389,7 @@ function CommunityPost() {
             <div ref={commentListRef} className="space-y-3">
               {post.comments.map((c) => renderThread(c, 0))}
               {post.comments.length === 0 && (
-                <p className="text-cs-text-muted font-mono text-xs">No comments yet — start the thread.</p>
+                <p className="text-cs-text-muted text-xs">No comments yet — start the thread.</p>
               )}
             </div>
 

@@ -43,7 +43,7 @@
     "clear": "Clear",
     "log_out": "Log out",
     "themes": "themes",
-    "accent_color": "// accent color"
+    "accent_color": "Accent color"
   },
 
   "activity": {
@@ -55,7 +55,7 @@
   },
 
   "usage": {
-    "ai_token_usage": "ai token usage",
+    "ai_token_usage": "AI token usage",
     "ai_calls_this_week": "{{count}} AI call this week · limits are soft (nothing blocked)",
     "ai_calls_this_week_plural": "{{count}} AI calls this week · limits are soft (nothing blocked)",
     "full_usage_plans": "Full usage & plans"
@@ -69,7 +69,7 @@
     "your_major": "your major",
     "view_roadmap": "View Roadmap",
     "change": "Change",
-    "pick_up_where": "pick up where you left off",
+    "pick_up_where": "Pick up where you left off",
     "in_track": "in track",
     "resume": "Resume",
     "choose_language": "Choose a Language to Learn",
@@ -78,7 +78,7 @@
     "explore_all": "Explore all tracks ({{count}} more)",
     "tracks_not_seeded": "Your major's tracks aren't seeded yet — hit \"Explore all tracks\" to start anywhere.",
     "start_learning": "Start Learning",
-    "for_your_major": "for your major",
+    "for_your_major": "For your major",
     "quick_actions": "Quick Actions",
     "build_project": "Build a Project",
     "build_project_desc": "Apply your skills to real projects",
@@ -124,7 +124,7 @@
     "sign_in": "Sign In",
     "get_started": "Get Started",
     "start_learning_now": "Start Learning Now",
-    "watch_demo": "$ watch demo",
+    "watch_demo": "Watch demo",
     "structured_lessons": "Structured Lessons",
     "tutor_modes": "CodeSquareAgent Modes",
     "challenges_quizzes": "Challenges & Quizzes",
@@ -178,7 +178,7 @@
     "progress_title": "Progress",
     "skills": "skills",
     "loading_skills": "loading skill profile…",
-    "no_skill_data": "no data — complete a lesson or challenge to start building your skill profile.",
+    "no_skill_data": "No data yet — complete a lesson or challenge to start building your skill profile.",
     "worth_look": "worth another look",
     "next_label": "next",
     "practice": "Practice"
