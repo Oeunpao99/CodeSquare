@@ -106,7 +106,7 @@ export function ArticleSkeleton() {
     <Screen label="Loading article">
       <div className="max-w-3xl">
         <Sk className="h-4 w-40 mb-6" />
-        <Sk className="w-full aspect-[3/1] rounded-2xl mb-8" />
+        <Sk className="w-full aspect-[5/1] rounded-2xl mb-8" />
         <Sk className="h-9 w-3/4 mb-4" />
         <Sk className="h-4 w-1/3 mb-10" />
         {[100, 96, 88, 92, 60].map((w, i) => (

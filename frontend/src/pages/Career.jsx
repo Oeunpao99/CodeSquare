@@ -22,7 +22,7 @@ function MajorBanner({ major, label }) {
   const [ok, setOk] = useState(true);
   if (!ok) return null;
   return (
-    <div className="relative -mx-6 -mt-6 mb-6 aspect-[3/1] overflow-hidden rounded-t-2xl bg-cs-overlay/5">
+    <div className="relative -mx-6 -mt-6 mb-6 aspect-[5/1] overflow-hidden rounded-t-2xl bg-cs-overlay/5">
       <img
         src={`/banners/career/${major}.webp`}
         alt=""
@@ -40,7 +40,7 @@ function CareerSkeleton() {
   return (
     <div className="w-full space-y-6" aria-busy="true">
       <div className="card overflow-hidden space-y-4">
-        <Sk className="-mx-6 -mt-6 mb-2 aspect-[3/1] w-[calc(100%+3rem)] rounded-none" />
+        <Sk className="-mx-6 -mt-6 mb-2 aspect-[5/1] w-[calc(100%+3rem)] rounded-none" />
         <div className="flex justify-between"><Sk className="h-5 w-40" /><Sk className="h-10 w-20" /></div>
         <Sk className="h-2.5 w-full rounded-full" />
         <div className="flex gap-6"><Sk className="h-4 w-28" /><Sk className="h-4 w-28" /><Sk className="h-4 w-28" /></div>

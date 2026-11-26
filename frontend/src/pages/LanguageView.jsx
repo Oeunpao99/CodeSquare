@@ -20,7 +20,7 @@ function CourseBanner({ slug }) {
   const [ok, setOk] = useState(true);
   if (!ok) return null; // no banner yet: show the clean header, no empty strip
   return (
-    <div className="-mx-6 -mt-6 mb-6 aspect-[3/1] overflow-hidden rounded-t-2xl bg-cs-overlay/5">
+    <div className="-mx-6 -mt-6 mb-6 aspect-[5/1] overflow-hidden rounded-t-2xl bg-cs-overlay/5">
       <img
         src={`/banners/course/${slug}.webp`}
         alt=""
