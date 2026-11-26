@@ -30,6 +30,10 @@ WORKDIR /app
 
 COPY --from=build --chown=app:app /app/.venv /app/.venv
 COPY --chown=app:app . .
+# Class uploads (storage.py local backend). Mounted as a named volume in
+# docker-compose.prod.yml so files survive rebuilds; created here so the volume
+# is initialised owned by the unprivileged user.
+RUN mkdir -p /app/uploads && chown app:app /app/uploads
 
 USER app
 

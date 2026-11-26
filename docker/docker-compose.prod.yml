@@ -97,6 +97,8 @@ services:
       <<: *db-env
     expose:
       - "8000"
+    volumes:
+      - uploads:/app/uploads   # class files + student hand-ins (unless Azure Blob is configured)
     depends_on:
       db:
         condition: service_healthy
@@ -119,3 +121,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:
