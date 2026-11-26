@@ -14,7 +14,7 @@ const KIND_META = {
 };
 
 // Where a notification opens: the class for class notifications, else the post.
-const targetOf = (n) => (n.class_public_id ? `/classes/${n.class_public_id}` : `/community/${n.post_public_id}`);
+const targetOf = (n) => (n.class_public_id ? `/classes/${n.class_public_id}` : `/community/post/${n.post_public_id}`);
 
 /**
  * Dev-team notification bell. Polls the notifications API for a red unread

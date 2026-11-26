@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { FiUsers, FiSend, FiX, FiLink, FiAward, FiImage, FiSearch, FiEye } from 'react-icons/fi';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FiUsers, FiSend, FiX, FiLink, FiAward, FiImage, FiSearch, FiEye, FiMessageSquare, FiPlus } from 'react-icons/fi';
 import { communityService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from '../utils/toast';
@@ -71,7 +72,7 @@ function Preview({ kind, body, images, tagList, link }) {
 }
 const PAGE = 20;
 
-function Composer({ onPosted, sendRef }) {
+export function Composer({ onPosted, sendRef }) {
   const [kind, setKind] = useState('idea');
   const [body, setBody] = useState('');
   const [tags, setTags] = useState('');
@@ -287,6 +288,7 @@ function Composer({ onPosted, sendRef }) {
 
 function Community() {
   const { user: me } = useAuth();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const tag = params.get('tag') || '';
   const [sort, setSort] = useState('new');
@@ -361,91 +363,118 @@ function Community() {
   };
 
   return (
-    <main className="w-full px-6 lg:pl-10 lg:pr-16 xl:pr-24 py-8">
-      <div className="sticky top-0 z-30 -mx-6 lg:-ml-10 lg:-mr-16 xl:-mr-24 px-6 lg:pl-10 lg:pr-16 xl:pr-24 -mt-8 pt-6 pb-4 mb-6 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        {/* extra right padding keeps the Leaderboard button clear of the fixed header controls */}
-        <div className="flex items-end justify-between gap-4 lg:pr-40 xl:pr-32">
-          <div className="min-w-0">
-            <span className="text-xs text-cs-text-muted tracking-wide">Community</span>
-            <h1 className="text-2xl font-semibold mt-0.5 tracking-tight">Dev community</h1>
+    <main className="w-full px-6 lg:px-10 py-8">
+      {/* Same sticky page header as the other pages */}
+      <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 -mt-8 mb-4 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/10">
+        <div className="flex flex-wrap items-end justify-between gap-4 lg:pr-64">
+          <div>
+            <span className="mono-label">Community</span>
+            <h1 className="text-3xl font-bold mt-2 flex items-center gap-3">
+              <FiMessageSquare className="text-cs-primary" /> Community
+            </h1>
           </div>
-          <Link to="/leaderboard" className="btn btn-ghost btn-sm shrink-0 hidden sm:inline-flex">
-            <FiAward /> Leaderboard
-          </Link>
         </div>
-
-        {/* Search */}
-        <div className="mt-4 flex items-center justify-end gap-2">
-          {searchOpen ? (
-            <form
-              onSubmit={(e) => { e.preventDefault(); setSearch(searchInput.trim()); }}
-              className="flex items-center gap-2 flex-1 max-w-md"
-            >
-              <div className="relative flex-1 min-w-0">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted text-sm" />
-                <input
-                  autoFocus
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onBlur={() => { if (!searchInput.trim() && !search) setSearchOpen(false); }}
-                  placeholder="search users, devs or the feed…"
-                  className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 pl-9 pr-3 py-1.5 text-sm outline-none focus:border-cs-primary/50 placeholder:text-cs-text-muted"
-                />
+          {/* Filter tabs live in the pinned header, so they never move while scrolling */}
+          <div className="mx-auto w-full max-w-[64rem] mt-3 -mb-px">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center flex-1 min-w-0 overflow-x-auto scrollbar-none" ref={feedRef}>
+                {['', ...KIND_KEYS].map((k) => {
+                  const Meta = k ? KIND_META[k] : null;
+                  const Icon = Meta ? Meta.icon : FiUsers;
+                  const active = kind === k;
+                  return (
+                    <button
+                      key={k || 'all'}
+                      onClick={() => setKind(k)}
+                      className={`relative h-11 px-3 inline-flex items-center gap-1.5 text-sm whitespace-nowrap transition-colors ${
+                        active ? 'text-cs-primary font-semibold' : 'text-cs-text-dim hover:text-cs-text'
+                      }`}
+                    >
+                      <Icon className="text-[13px]" />
+                      {k ? Meta.label : 'All'}
+                      {active && (
+                        <motion.span
+                          layoutId="feed-kind-underline"
+                          className="absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-cs-primary"
+                          transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-              <button type="submit" className="btn btn-primary btn-sm">Search</button>
-              {search ? (
-                <button
-                  type="button"
-                  onClick={() => { setSearch(''); setSearchInput(''); }}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-text text-xs"
-                >
-                  clear <FiX />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => { setSearchInput(''); setSearchOpen(false); }}
-                  aria-label="Close search"
-                  className="p-2 rounded-lg text-cs-text-muted hover:text-cs-text hover:bg-cs-overlay/5"
-                >
-                  <FiX />
-                </button>
-              )}
-            </form>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              title="Search feed"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cs-line/15 text-cs-text-muted hover:text-cs-primary hover:border-cs-primary/40 text-xs transition-colors"
-            >
-              <FiSearch className="text-sm" />
-              {search && <span className="text-cs-primary">#{search}</span>}
-            </button>
-          )}
-        </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {searchOpen ? (
+                  // Compact search: opens in place of the icon; the tabs stay visible
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); setSearch(searchInput.trim()); }}
+                    className="flex items-center gap-1"
+                  >
+                    <div className="relative">
+                      <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-cs-text-muted text-sm" />
+                      <input
+                        autoFocus
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onBlur={() => { if (!searchInput.trim() && !search) setSearchOpen(false); }}
+                        onKeyDown={(e) => { if (e.key === 'Escape') { setSearch(''); setSearchInput(''); setSearchOpen(false); } }}
+                        placeholder="Search posts and people…"
+                        className="input w-44 sm:w-60 h-8 !py-0 !rounded-lg pl-8 pr-2 text-sm"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setSearch(''); setSearchInput(''); setSearchOpen(false); }}
+                      aria-label="Close search"
+                      className="p-1.5 rounded-lg text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06]"
+                    >
+                      <FiX />
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setSearchOpen(true)}
+                    title="Search the feed"
+                    aria-label="Search the feed"
+                    className={`h-8 inline-flex items-center gap-1.5 px-2.5 rounded-lg text-sm transition-colors ${
+                      search ? 'bg-cs-primary/10 text-cs-primary' : 'text-cs-text-dim hover:text-cs-text hover:bg-cs-overlay/[0.06]'
+                    }`}
+                  >
+                    <FiSearch />
+                    {search && <span className="max-w-[8rem] truncate">“{search}”</span>}
+                  </button>
+                )}
+                {tag && (
+                  <button
+                    onClick={() => setParams({})}
+                    className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-cs-primary/10 text-cs-primary text-xs font-medium"
+                  >
+                    #{tag} <FiX />
+                  </button>
+                )}
+                <div className="inline-flex p-0.5 rounded-lg bg-cs-overlay/[0.06] text-xs">
+                  {['new', 'top'].map((so) => (
+                    <button
+                      key={so}
+                      onClick={() => setSort(so)}
+                      className={`px-2.5 h-7 rounded-md capitalize transition-colors ${
+                        sort === so ? 'bg-cs-dark text-cs-text font-semibold shadow-sm' : 'text-cs-text-dim hover:text-cs-text'
+                      }`}
+                    >
+                      {so}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
       </div>
 
-      {composerOpen ? (
-        <Composer onPosted={onPost} sendRef={sendRef} />
-      ) : (
-        <button
-          type="button"
-          onClick={() => setComposerOpen(true)}
-          className="w-full max-w-3xl mb-6 flex items-center gap-3 rounded-2xl border border-cs-line/10 bg-cs-darker/40 px-4 py-3 text-left transition-colors hover:border-cs-primary/40 group"
-        >
-          <span className="w-9 h-9 rounded-xl bg-cs-darkest border border-cs-primary/25 flex items-center justify-center font-bold text-cs-primary overflow-hidden shrink-0">
-            {me?.avatar
-              ? <img src={me.avatar} alt="" className="w-full h-full object-cover" />
-              : <span>{(me?.display_name || me?.username)?.charAt(0).toUpperCase() || '?'}</span>}
-          </span>
-          <span className="flex-1 text-sm text-cs-text-muted group-hover:text-cs-text transition-colors">
-            Share progress, ask a question or show what you built…
-          </span>
-          <FiSend className="text-cs-text-muted group-hover:text-cs-primary transition-colors shrink-0" />
-        </button>
-      )}
-
+      {/* One centred feed column */}
+      <div className="mx-auto w-full max-w-[64rem]">
+        <section className="min-w-0">
       {term && (
         <PublishTerminal
           anchor={term.anchor}
@@ -461,57 +490,6 @@ function Community() {
         </FlyIcon>
       )}
 
-      {/* Filter bar: kind pills + sort */}
-      <div className="-mx-6 lg:-ml-10 lg:-mr-16 xl:-mr-24 px-6 lg:pl-10 lg:pr-16 xl:pr-24 mb-3 pb-2.5 border-b border-cs-line/[0.07]">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none" ref={feedRef}>
-            {['', ...KIND_KEYS].map((k) => {
-              const Meta = k ? KIND_META[k] : null;
-              const Icon = Meta ? Meta.icon : FiUsers;
-              const active = kind === k;
-              return (
-                <button
-                  key={k || 'all'}
-                  onClick={() => setKind(k)}
-                  className={`tap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs whitespace-nowrap ${
-                    active
-                      ? Meta ? ACCENT[Meta.accent] : 'bg-cs-primary/15 text-cs-primary border-cs-primary/40'
-                      : 'border-cs-line/15 text-cs-text-muted hover:text-cs-text'
-                  }`}
-                >
-                  <Icon className="text-[11px]" />
-                  {k ? Meta.label : 'all'}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {tag && (
-              <button
-                onClick={() => setParams({})}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-cs-primary/40 bg-cs-primary/10 text-cs-primary text-xs"
-              >
-                #{tag} <FiX />
-              </button>
-            )}
-            <div className="inline-flex rounded-full border border-cs-line/15 overflow-hidden text-xs">
-              {['new', 'top'].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSort(s)}
-                  className={`tap px-3 py-1.5 capitalize ${
-                    sort === s ? 'bg-cs-primary/15 text-cs-primary' : 'text-cs-text-muted hover:text-cs-text'
-                  } ${s === 'top' ? 'border-l border-cs-line/15' : ''}`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {posts === null && <p className="text-cs-text-muted text-sm">Loading posts…</p>}
       {posts === false && (
         <div className="card text-center py-14 border-cs-red/20">
@@ -526,7 +504,7 @@ function Community() {
               ? `Nothing matches “${search}”.`
               : tag
                 ? `Nothing tagged #${tag} yet.`
-                : 'No posts yet — be the first to share what you’re learning.'}
+                : 'No posts yet. Tap + to share what you’re learning.'}
           </p>
         </div>
       )}
@@ -551,6 +529,18 @@ function Community() {
           )}
         </div>
       )}
+        </section>
+      </div>
+
+      {/* Floating ➕ (same as My Classes): open the composer for a new post */}
+      <button
+        onClick={() => navigate('/community/new')}
+        aria-label="New post"
+        title="New post"
+        className="fixed bottom-16 right-12 z-50 w-14 h-14 rounded-full bg-cs-primary text-white grid place-items-center shadow-xl hover:scale-105 active:scale-95 transition-transform"
+      >
+        <FiPlus className="text-2xl" />
+      </button>
     </main>
   );
 }

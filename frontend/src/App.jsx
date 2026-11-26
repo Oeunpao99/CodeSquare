@@ -28,6 +28,13 @@ import Leaderboard from './pages/Leaderboard';
 import Devs from './pages/Devs';
 import Community from './pages/Community';
 import CommunityPost from './pages/CommunityPost';
+import CommunityNew from './pages/CommunityNew';
+import { useParams } from 'react-router-dom';
+
+function LegacyPostRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/community/post/${id}`} replace />;
+}
 import UserProfile from './pages/UserProfile';
 import Usage from './pages/Usage';
 import Practice from './pages/Practice';
@@ -99,7 +106,10 @@ function AppRoutes() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/devs" element={<Devs />} />
           <Route path="/community" element={<Community />} />
-          <Route path="/community/:id" element={<CommunityPost />} />
+          <Route path="/community/new" element={<CommunityNew />} />
+          <Route path="/community/post/:id" element={<CommunityPost />} />
+          {/* Old post links (/community/<id>) redirect to /community/post/<id> */}
+          <Route path="/community/:id" element={<LegacyPostRedirect />} />
 
           <Route path="/library" element={<Library />} />
           <Route path="/library/:collection" element={<LibraryCollection />} />

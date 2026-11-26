@@ -314,22 +314,24 @@ function CommunityPost() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/community" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary">
-          <FiArrowLeft /> ../community
-        </Link>
+        <div className="mx-auto w-full max-w-[64rem]">
+          <Link to="/community" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-text">
+            <FiArrowLeft /> Community
+          </Link>
+        </div>
       </div>
 
       {post === null && <p className="text-cs-text-muted text-sm">Loading post…</p>}
       {post === false && (
-        <div className="card text-center py-14 border-cs-orange/25">
-          <p className="text-4xl mb-3 text-cs-text-muted select-none">404</p>
+        <div className="mx-auto w-full max-w-[64rem] text-center py-14">
+          <p className="font-semibold mb-1">Post not found</p>
           <p className="text-cs-text-dim mb-6 text-sm">This post doesn’t exist or was removed.</p>
           <Link to="/community" className="btn btn-primary btn-sm">Back to the feed</Link>
         </div>
       )}
 
       {post && post !== false && (
-        <div className="max-w-3xl">
+        <div className="mx-auto w-full max-w-[64rem]">
           {editing ? (
             <EditForm
               post={post}
@@ -348,11 +350,14 @@ function CommunityPost() {
           )}
 
           <section className="mt-6">
-            <h2 className="text-sm text-cs-text-muted mb-3">
+            <h2 className="text-base font-semibold mb-3">
               {post.comment_count || 0} comment{post.comment_count === 1 ? '' : 's'}
             </h2>
 
-            <form onSubmit={addComment} className="card mb-4">
+            <form
+              onSubmit={addComment}
+              className="mb-5 rounded-2xl border border-cs-line/15 bg-cs-darker focus-within:border-cs-primary/50 transition-colors"
+            >
               <textarea
                 ref={commentRef}
                 value={comment}
@@ -360,9 +365,9 @@ function CommunityPost() {
                 rows={2}
                 maxLength={1000}
                 placeholder="Add a comment…"
-                className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/50 resize-none overflow-hidden"
+                className="w-full bg-transparent px-4 pt-3 text-sm outline-none resize-none overflow-hidden placeholder:text-cs-text-muted"
               />
-              <div className="flex justify-end mt-2">
+              <div className="flex justify-end px-3 pb-3">
                 <button ref={commentSendRef} type="submit" disabled={sending || !comment.trim()} className="btn btn-primary btn-sm disabled:opacity-40">
                   <FiSend /> {sending ? 'Sending…' : 'Comment'}
                 </button>
@@ -389,7 +394,7 @@ function CommunityPost() {
             <div ref={commentListRef} className="space-y-3">
               {post.comments.map((c) => renderThread(c, 0))}
               {post.comments.length === 0 && (
-                <p className="text-cs-text-muted text-xs">No comments yet — start the thread.</p>
+                <p className="text-cs-text-dim text-sm py-6 text-center">No comments yet. Start the conversation.</p>
               )}
             </div>
 

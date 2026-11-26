@@ -163,7 +163,7 @@ export default function Classes() {
 
       {/* Floating ➕: students join; instructors get Join / Create */}
       {fabOpen && <div className="fixed inset-0 z-40" onClick={() => setFabOpen(false)} />}
-      <div className="fixed bottom-24 right-12 z-50 flex flex-col items-end gap-3">
+      <div className="fixed bottom-16 right-12 z-50 flex flex-col items-end gap-3">
         {fabOpen && (
           <div className="flex flex-col items-end gap-2 animate-tab-in">
             <button

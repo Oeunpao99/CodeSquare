@@ -249,8 +249,8 @@ export default function UserProfile() {
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky profile header */}
       <div className="sticky top-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <Link to="/community" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-4">
-          <FiArrowLeft /> ../community
+        <Link to="/community" className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-text mb-4">
+          <FiArrowLeft /> Community
         </Link>
 
         {/* Hero */}

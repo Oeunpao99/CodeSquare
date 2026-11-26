@@ -374,7 +374,7 @@ function PostCard({ post, full = false, onChange, onDelete }) {
           </div>
 
           {/* Body */}
-          {full ? body : <Link to={`/community/${p.id}`} className="block">{body}</Link>}
+          {full ? body : <Link to={`/community/post/${p.id}`} className="block">{body}</Link>}
 
           {/* Tags */}
           {p.tags?.length > 0 && (
@@ -482,7 +482,7 @@ function PostCard({ post, full = false, onChange, onDelete }) {
               <FiHeart className={p.liked_by_me ? 'fill-current' : ''} /> <span className="tabular-nums">{p.like_count || 0}</span>
             </button>
             <Link
-              to={`/community/${p.id}`}
+              to={`/community/post/${p.id}`}
               className="tap inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-cs-text-muted hover:text-cs-text"
             >
               <FiMessageSquare /> <span className="tabular-nums">{p.comment_count || 0}</span>
