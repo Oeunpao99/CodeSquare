@@ -91,7 +91,7 @@ const csHighlight = syntaxHighlighting(
   ])
 );
 
-function CodeEditor({ value, onChange, language = 'python', readOnly = false, onSubmit, minimal = false, compact = false }) {
+function CodeEditor({ value, onChange, language = 'python', readOnly = false, onSubmit, minimal = false, compact = true }) {
   // Keep the latest onSubmit without rebuilding the editor extensions each render.
   const submitRef = useRef(onSubmit);
   submitRef.current = onSubmit;
