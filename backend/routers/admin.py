@@ -7,6 +7,7 @@ Bootstrap an admin by setting ADMIN_EMAIL (+ ADMIN_PASSWORD) in the env — see
 `python set_admin_password.py <email> <password>`.
 """
 import os
+from common.avatars import effective_avatar
 from datetime import datetime, timedelta
 from typing import List, Optional
 
@@ -128,7 +129,7 @@ def _tok_sum():
 
 
 def _avatar(u: User) -> Optional[str]:
-    return u.avatar_data or u.avatar_url
+    return effective_avatar(u)
 
 
 # --------------------------------------------------------------------------- #

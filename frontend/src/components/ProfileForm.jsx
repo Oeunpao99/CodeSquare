@@ -26,7 +26,9 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
   }), [user]);
 
   const [form, setForm] = useState(initial);
-  const [avatar, setAvatar] = useState(user?.avatar || '');
+  // Only an uploaded / OAuth photo counts here; without one we show the illustrated avatar.
+  const [avatar, setAvatar] = useState(user?.has_photo ? user.avatar : '');
+  const [style, setStyle] = useState(user?.avatar_style || 'neutral');
   const [avatarDirty, setAvatarDirty] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -47,6 +49,7 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
     if (avatarDirty) {
       payload.avatar_data = avatar.startsWith('data:') ? avatar : '';
     }
+    if (style !== (user?.avatar_style || 'neutral') || !user?.avatar_style) payload.avatar_style = style;
 
     setSaving(true);
     try {
@@ -63,7 +66,25 @@ function ProfileForm({ onSaved, submitLabel = 'Save changes', extraPayload = {} 
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <AvatarUpload value={avatar} name={user?.display_name || user?.username} onChange={onAvatar} />
+      <AvatarUpload value={avatar} name={user?.display_name || user?.username} onChange={onAvatar}
+        fallback={user ? `/api/avatars/${style}/${user.id}.svg` : ''} />
+
+      {/* Illustrated avatar, used whenever there's no photo */}
+      <div>
+        <span className="mono-label text-cs-text-muted"> pick your avatar</span>
+        <p className="text-[0.75rem] text-cs-text-muted mt-0.5">Shown when you haven’t uploaded a photo.</p>
+        <div className="mt-2.5 flex gap-3" role="radiogroup" aria-label="Avatar">
+          {[['woman', 'Woman'], ['man', 'Man'], ['neutral', 'Neutral']].map(([k, label]) => (
+            <button key={k} type="button" role="radio" aria-checked={style === k} onClick={() => setStyle(k)}
+              className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-colors ${
+                style === k ? 'border-cs-primary bg-cs-primary/[0.06]' : 'border-cs-line/15 hover:border-cs-line/30'
+              }`}>
+              <img src={`/api/avatars/${k}/${user?.id || 0}.svg`} alt="" className="w-14 h-14 rounded-full" />
+              <span className={`text-xs ${style === k ? 'text-cs-primary font-semibold' : 'text-cs-text-dim'}`}>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
         <label className="block">

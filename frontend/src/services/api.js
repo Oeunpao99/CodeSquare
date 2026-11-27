@@ -170,6 +170,14 @@ export const roadmapService = {
   getForMajor: (major) => api.get(`/roadmap/${major}`),
 };
 
+export const githubService = {
+  status: () => api.get('/github/status'),
+  connect: () => api.get('/github/connect'),
+  disconnect: () => api.delete('/github/connection'),
+  repos: () => api.get('/github/repos'),
+  importRepo: (repo) => api.post('/github/import', { repo }),
+};
+
 export const projectService = {
   list: () => api.get('/projects'),
   portfolio: () => api.get('/projects/portfolio'),

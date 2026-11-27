@@ -1,13 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import SelectMenu from '../components/SelectMenu';
 import { Link } from 'react-router-dom';
-import {
-  FiUsers, FiSearch, FiZap, FiBook, FiCode,
-  FiMessageSquare, FiUserPlus, FiAward, FiX,
-} from 'react-icons/fi';
+import { FiUsers, FiSearch, FiX, FiUserPlus, FiZap, FiChevronDown } from 'react-icons/fi';
+import SelectMenu from '../components/SelectMenu';
 import { communityService } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { MAJORS } from '../majors';
+import { MAJORS, MAJOR_KEYS } from '../majors';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { Sk } from '../components/Skeletons';
 
@@ -20,24 +16,74 @@ const CrownIcon = ({ className = '' }) => (
   </svg>
 );
 
-const MAJOR_KEYS = ['ai-engineer', 'backend-engineer', 'frontend-developer', 'devops', 'data-scientist', 'automation-engineer'];
+function DevCard({ d }) {
+  const majorData = d.major ? MAJORS[d.major] : null;
+  const name = d.display_name || d.username;
+  return (
+    <Link to={`/u/${d.username}`}
+      className="group rounded-xl border border-cs-line/10 p-5 flex flex-col text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/25 transition-colors">
+      <div className="flex items-center gap-4">
+        <span className="relative shrink-0">
+          <span className="block w-14 h-14 rounded-full overflow-hidden bg-cs-primary/10 text-cs-primary grid place-items-center text-lg font-bold">
+            {d.avatar ? <img src={d.avatar} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
+          </span>
+          {d.verified && <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-cs-dark p-px"><VerifiedBadge size="h-4 w-4" /></span>}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-2 min-w-0">
+            <span className="font-semibold truncate group-hover:text-cs-primary transition-colors">{name}</span>
+            {d.rank === 1 && (
+              <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-cs-gold/15 text-cs-gold text-[0.6875rem] font-bold px-2 py-0.5">
+                <CrownIcon className="w-3 h-3" /> Top dev
+              </span>
+            )}
+            {d.is_staff && (
+              <span className="shrink-0 rounded-full bg-cs-violet/15 text-cs-violet text-[0.6875rem] font-semibold px-2 py-0.5">Dev team</span>
+            )}
+          </p>
+          <p className="text-sm text-cs-text-dim truncate mt-0.5">{d.headline || `@${d.username}`}</p>
+        </div>
+        <span className="self-start text-xs text-cs-text-muted tabular-nums shrink-0" title="Leaderboard rank">#{d.rank}</span>
+      </div>
+
+      <div className="mt-4 pt-3.5 border-t border-cs-line/10 flex items-center gap-3 text-sm text-cs-text-dim">
+        {majorData ? (
+          <span className="inline-flex items-center gap-1.5 min-w-0 truncate" style={{ color: majorData.color }}>
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: majorData.color }} />
+            <span className="truncate">{majorData.label}</span>
+          </span>
+        ) : <span className="truncate text-cs-text-muted">@{d.username}</span>}
+        <span className="ml-auto inline-flex items-center gap-3.5 shrink-0">
+          <span className="inline-flex items-center gap-1" title="XP"><FiZap className="text-cs-orange" /> {d.xp.toLocaleString()}</span>
+          <span className="inline-flex items-center gap-1" title="Followers"><FiUserPlus /> {d.follower_count}</span>
+        </span>
+      </div>
+    </Link>
+  );
+}
 
 export default function Devs() {
-  const { user: me } = useAuth();
+  const [input, setInput] = useState('');
   const [q, setQ] = useState('');
   const [major, setMajor] = useState('');
-  const [input, setInput] = useState('');
+  const [sort, setSort] = useState('rank');
   const [devs, setDevs] = useState(null); // null = loading, false = error
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const offsetRef = useRef(0);
 
+  // search as you type
+  useEffect(() => {
+    const t = setTimeout(() => setQ(input.trim()), 300);
+    return () => clearTimeout(t);
+  }, [input]);
+
   const load = useCallback(async (reset) => {
     if (reset) { offsetRef.current = 0; setDevs(null); }
     try {
       const r = await communityService.devs({
-        q: q || undefined, major: major || undefined,
+        q: q || undefined, major: major || undefined, sort,
         limit: PAGE, offset: reset ? 0 : offsetRef.current,
       });
       setTotal(r.data.total);
@@ -47,165 +93,93 @@ export default function Devs() {
     } catch {
       setDevs((prev) => prev || false);
     }
-  }, [q, major]);
+  }, [q, major, sort]);
 
   useEffect(() => { load(true); }, [load]);
 
   const more = async () => { setLoadingMore(true); await load(false); setLoadingMore(false); };
 
-  const submitSearch = (e) => { e.preventDefault(); setQ(input.trim()); };
-
-  const clearFilters = () => { setQ(''); setInput(''); setMajor(''); };
+  const tabs = [['', 'All'], ...MAJOR_KEYS.map((k) => [k, MAJORS[k]?.label || k])];
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      {/* Sticky header */}
-      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-          </div>
-          {total > 0 && (
-            <span className="text-sm text-cs-text-dim shrink-0 self-end">
-              {total} dev{total === 1 ? '' : 's'} found
-            </span>
-          )}
-        </div>
+      {/* Hero */}
+      <section className="text-center pt-2 pb-7">
+        <h1 className="text-3xl md:text-4xl font-semibold">People</h1>
+        <p className="mt-2 text-cs-text-dim">Find developers learning alongside you, and follow their progress.</p>
+      </section>
 
-        {/* Search + filters */}
-        <form onSubmit={submitSearch} className="mt-4 flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[13.75rem]">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-cs-text-muted text-sm" />
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Search by name, handle or headline…"
-              className="input w-full h-10 !py-0 pl-9 pr-3 text-sm"
-            />
-          </div>
-          <SelectMenu
-            value={major}
-            onChange={setMajor}
-            ariaLabel="Filter by major"
-            buttonClassName="h-10 px-3 text-sm"
-            options={[
-              { value: '', label: 'All majors' },
-              ...[...MAJOR_KEYS, ...Object.keys(MAJORS).filter((k) => !MAJOR_KEYS.includes(k))]
-                .map((k) => ({ value: k, label: MAJORS[k]?.label || k })),
-            ]}
-          />
-          <button type="submit" className="btn btn-primary h-10 !py-0">Search</button>
-          {(q || major) && (
-            <button type="button" onClick={clearFilters} className="h-10 inline-flex items-center gap-1.5 px-2 text-cs-text-dim hover:text-cs-text text-sm">
-              Clear <FiX />
-            </button>
-          )}
-        </form>
+      {/* Search + sort */}
+      <div className="flex gap-3">
+        <label className="flex-1 h-11 flex items-center gap-2 px-4 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.02] focus-within:border-cs-primary/50 transition-colors">
+          <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Search by name, handle or headline"
+            aria-label="Search people"
+            className="flex-1 min-w-0 bg-transparent outline-none text-[0.9375rem] placeholder:text-cs-text-muted" />
+          {input
+            ? <button type="button" onClick={() => setInput('')} className="text-cs-text-muted hover:text-cs-text" aria-label="Clear search"><FiX /></button>
+            : <FiSearch className="text-cs-text-muted text-lg" />}
+        </label>
+        <SelectMenu value={sort} onChange={setSort} align="right" ariaLabel="Sort people"
+          buttonClassName="h-11 px-4 text-[0.9375rem] min-w-[11rem] bg-cs-overlay/[0.02]"
+          options={[
+            { value: 'rank', label: 'Top ranked' },
+            { value: 'followers', label: 'Most followed' },
+            { value: 'newest', label: 'Newest' },
+            { value: 'name', label: 'Name' },
+          ]} />
       </div>
 
-      {/* Loading skeletons */}
+      {/* Major tabs */}
+      <div className="mt-5 flex gap-x-7 border-b border-cs-line/10 overflow-x-auto">
+        {tabs.map(([k, label]) => (
+          <button key={k || 'all'} onClick={() => setMajor(k)}
+            className={`relative h-11 px-0.5 text-[0.9375rem] whitespace-nowrap transition-colors ${major === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+            {label}
+            {major === k && devs && <span className="ml-1.5 text-xs text-cs-text-muted">{total}</span>}
+            {major === k && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+          </button>
+        ))}
+      </div>
+
       {devs === null && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="card !p-5 space-y-4">
-              <div className="flex items-center gap-3">
-                <Sk className="w-12 h-12 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Sk className="h-4 w-32" />
-                  <Sk className="h-3 w-24" />
-                </div>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-cs-line/10 p-5">
+              <div className="flex items-center gap-4">
+                <Sk className="w-14 h-14 rounded-full" />
+                <div className="flex-1 space-y-2"><Sk className="h-4 w-32" /><Sk className="h-3 w-48" /></div>
               </div>
-              <Sk className="h-3.5 w-full" />
-              <Sk className="h-3.5 w-2/3" />
+              <Sk className="h-3.5 w-full mt-5" />
             </div>
           ))}
         </div>
       )}
 
       {devs === false && (
-        <div className="card text-center py-14 border-cs-red/20">
-          <p className="text-cs-text-dim text-sm">Couldn't load the directory.</p>
-        </div>
+        <p className="text-center text-cs-text-dim text-sm py-16">Couldn’t load the directory. Try again in a moment.</p>
       )}
 
       {Array.isArray(devs) && devs.length === 0 && (
-        <div className="card text-center py-14">
+        <div className="text-center py-16">
           <FiUsers className="text-3xl text-cs-text-muted mx-auto mb-3" />
-          <p className="text-cs-text-dim text-sm">No developers match that search.</p>
+          <p className="text-cs-text-dim text-sm">No one matches that yet.</p>
         </div>
       )}
 
       {Array.isArray(devs) && devs.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {devs.map((d) => {
-            const majorData = d.major ? MAJORS[d.major] : null;
-            const champion = d.rank === 1;
-            return (
-              <Link
-                key={d.username}
-                to={`/u/${d.username}`}
-                className="group card !p-5 flex flex-col gap-3 text-cs-text hover:border-cs-primary/40 transition-colors"
-              >
-                {/* who */}
-                <div className="flex items-center gap-3">
-                  <span className="w-12 h-12 rounded-full bg-cs-primary/10 text-cs-primary grid place-items-center font-bold text-lg overflow-hidden shrink-0">
-                    {d.avatar
-                      ? <img src={d.avatar} alt="" className="w-full h-full object-cover" />
-                      : (d.display_name || d.username).charAt(0).toUpperCase()}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold truncate flex items-center gap-1.5 group-hover:text-cs-primary transition-colors">
-                      {d.display_name || d.username}
-                      {d.verified && <VerifiedBadge size="h-4 w-4" />}
-                    </p>
-                    <p className="text-sm text-cs-text-dim truncate">
-                      @{d.username}
-                      {d.is_staff && <span className="text-cs-violet"> · Dev team</span>}
-                    </p>
-                  </div>
-                  {champion ? (
-                    <span className="inline-flex items-center gap-1 text-sm font-bold text-cs-gold shrink-0" title="Leaderboard #1">
-                      <CrownIcon className="w-4 h-4" /> #1
-                    </span>
-                  ) : (
-                    <span className="text-sm text-cs-text-dim shrink-0 tabular-nums" title="Leaderboard rank">#{d.rank}</span>
-                  )}
-                </div>
-
-                {/* major + headline */}
-                {majorData && (
-                  <p className="text-sm font-medium inline-flex items-center gap-1.5" style={{ color: majorData.color }}>
-                    <span className="w-2 h-2 rounded-full" style={{ background: majorData.color }} />
-                    {majorData.label}
-                  </p>
-                )}
-                {d.headline && (
-                  <p className="text-sm text-cs-text-dim line-clamp-2">{d.headline}</p>
-                )}
-
-                {/* stats: one plain line */}
-                <div className="mt-auto pt-3 border-t border-cs-line/10 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-cs-text-dim">
-                  <span><strong className="text-cs-text">{d.xp.toLocaleString()}</strong> XP</span>
-                  <span><strong className="text-cs-text">{d.lessons_completed}</strong> lessons</span>
-                  <span><strong className="text-cs-text">{d.challenges_solved}</strong> challenges</span>
-                  <span className="ml-auto inline-flex items-center gap-3 text-xs">
-                    <span className="inline-flex items-center gap-1" title="Followers"><FiUserPlus /> {d.follower_count}</span>
-                    <span className="inline-flex items-center gap-1" title="Posts"><FiMessageSquare /> {d.post_count}</span>
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {devs.map((d) => <DevCard key={d.username} d={d} />)}
         </div>
       )}
 
       {hasMore && (
-        <button
-          onClick={more}
-          disabled={loadingMore}
-          className="btn btn-secondary btn-sm w-full justify-center mt-4"
-        >
-          {loadingMore ? 'Loading…' : `Load more (${total - offsetRef.current} remaining)`}
-        </button>
+        <div className="mt-8 flex justify-center">
+          <button onClick={more} disabled={loadingMore}
+            className="inline-flex items-center gap-2 h-9 px-5 rounded-full border border-cs-line/15 text-sm font-medium hover:border-cs-primary/50 hover:text-cs-primary transition-colors disabled:opacity-60">
+            {loadingMore ? 'Loading…' : <>Load more <FiChevronDown /></>}
+            <span className="text-xs text-cs-text-muted">{total - offsetRef.current} more</span>
+          </button>
+        </div>
       )}
     </main>
   );

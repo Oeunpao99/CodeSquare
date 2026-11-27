@@ -9,7 +9,7 @@ const MAX_ZOOM = 3;
 // Center-crop + zoom/pan avatar picker. Bakes the result to a 256px square
 // WebP (JPEG fallback) data URI and hands it up via onChange. Pass "" up to
 // clear. `value` is the currently-saved avatar (data URI or remote URL).
-function AvatarUpload({ value, name = '', onChange }) {
+function AvatarUpload({ value, name = '', onChange, fallback = '' }) {
   const [editSrc, setEditSrc] = useState(null);   // object URL while cropping
   const [nat, setNat] = useState({ w: 0, h: 0 });
   const [zoom, setZoom] = useState(1);
@@ -149,11 +149,11 @@ function AvatarUpload({ value, name = '', onChange }) {
   // --- resting state ---
   return (
     <div className="flex items-center gap-4">
-      <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-main border-2 border-cs-primary/40 flex items-center justify-center text-2xl font-bold shrink-0">
-        {value ? (
-          <img src={value} alt="Your avatar" className="w-full h-full object-cover" />
+      <div className="w-20 h-20 rounded-full overflow-hidden bg-cs-primary/10 text-cs-primary ring-1 ring-cs-line/10 flex items-center justify-center text-2xl font-bold shrink-0">
+        {value || fallback ? (
+          <img src={value || fallback} alt="Your avatar" className="w-full h-full object-cover" />
         ) : (
-          <span className="text-cs-dark">{initial}</span>
+          <span>{initial}</span>
         )}
       </div>
       <div className="flex flex-col gap-2">

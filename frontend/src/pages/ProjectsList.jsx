@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import SelectMenu from '../components/SelectMenu';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import ImportGithub from '../components/project/ImportGithub';
 import {
   FiPlus, FiStar, FiTrash2, FiCode, FiZap, FiCheckSquare, FiClipboard, FiX, FiSearch, FiGithub,
 } from 'react-icons/fi';
@@ -176,6 +177,17 @@ function ProjectsList() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('recent');
+  const [showImport, setShowImport] = useState(false);
+  const [params, setParams] = useSearchParams();
+  // Back from GitHub sign-in: /projects?github=connected|error
+  useEffect(() => {
+    const gh = params.get('github');
+    if (!gh) return;
+    if (gh === 'connected') { toast.success('GitHub connected', 'Pick a repository to import.'); setShowImport(true); }
+    else toast.error('GitHub connection failed', 'Please try again.');
+    params.delete('github');
+    setParams(params, { replace: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [pendingDelete, setPendingDelete] = useState(null);
 
   const languageOptions = useMemo(() => stacksForMajor(majorData), [majorData]);
@@ -231,6 +243,7 @@ function ProjectsList() {
         <p className="mt-2 text-cs-text-dim">Plan, build and ship projects you can show employers.</p>
         <div className="mt-5 flex items-center justify-center gap-2">
           <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm"><FiPlus /> New project</button>
+          <button onClick={() => setShowImport(true)} className="btn btn-ghost btn-sm"><FiGithub /> Import from GitHub</button>
           <Link to="/projects/generate" className="btn btn-ghost btn-sm"><FiZap /> Generate with AI</Link>
         </div>
       </section>
@@ -284,6 +297,8 @@ function ProjectsList() {
           {shown.map((x) => <ProjectCard key={x.id} p={x} onPin={togglePin} onDelete={() => setPendingDelete(x.id)} />)}
         </div>
       )}
+
+      {showImport && <ImportGithub onClose={() => setShowImport(false)} />}
 
       {showNew && (
         <NewProjectModal

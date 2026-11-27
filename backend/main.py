@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from routers import (
     auth, lessons, ai, progress, roadmap, docs, projects, challenges,
     quizzes, career, community, notes, notifications, admin, billing,
-    classes,
+    classes, github, avatars,
 )
 
 # --------------------------------------------------------------------------- #
@@ -159,6 +159,8 @@ app.include_router(projects.router, prefix="/api/projects", tags=["Projects"])
 app.include_router(challenges.router, prefix="/api/challenges", tags=["Challenges"])
 app.include_router(quizzes.router, prefix="/api/quizzes", tags=["Quizzes"])
 app.include_router(career.router, prefix="/api/career", tags=["Career"])
+app.include_router(github.router, prefix="/api/github", tags=["GitHub"])
+app.include_router(avatars.router, prefix="/api/avatars", tags=["Avatars"])
 app.include_router(community.router, prefix="/api/community", tags=["Community"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 app.include_router(notes.router, prefix="/api/notes", tags=["CodeSquareNote"])

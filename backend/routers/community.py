@@ -9,6 +9,7 @@ import json
 import re
 import base64
 import binascii
+from common.avatars import effective_avatar
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -146,7 +147,7 @@ async def leaderboard(
                 rank=0,
                 user_id=u.id,
                 username=u.username or f"user{u.id}",
-                avatar_url=u.avatar_url,
+                avatar_url=effective_avatar(u),
                 major=u.major,
                 xp=xp,
                 lessons_completed=lc,
@@ -272,7 +273,7 @@ def _author(u: User) -> PostAuthor:
         id=u.id,
         username=u.username or f"user{u.id}",
         display_name=u.display_name,
-        avatar=(u.avatar_data or u.avatar_url),
+        avatar=effective_avatar(u),
         major=u.major,
         headline=u.headline,
         verified=bool(u.verified),
@@ -1485,7 +1486,7 @@ async def public_profile(
     return PublicProfile(
         username=u.username or f"user{u.id}",
         display_name=u.display_name,
-        avatar=(u.avatar_data or u.avatar_url),
+        avatar=effective_avatar(u),
         headline=u.headline,
         bio=u.bio,
         major=u.major,
@@ -1619,6 +1620,7 @@ async def dev_directory(
     major: Optional[str] = None,
     limit: int = 60,
     offset: int = 0,
+    sort: str = "rank",   # rank | followers | newest | name
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -1735,7 +1737,7 @@ async def dev_directory(
             DevRow(
                 username=u.username or f"user{u.id}",
                 display_name=u.display_name,
-                avatar=(u.avatar_data or u.avatar_url),
+                avatar=effective_avatar(u),
                 headline=u.headline,
                 major=u.major,
                 verified=bool(u.verified),
@@ -1757,6 +1759,15 @@ async def dev_directory(
     # Assign ranks based on the sorted order (XP leaderboard style)
     for i, r in enumerate(rows, start=1):
         r.rank = i
+
+    # Other orders keep the XP rank as a label.
+    if sort == "followers":
+        rows.sort(key=lambda r: (-r.follower_count, r.rank))
+    elif sort == "name":
+        rows.sort(key=lambda r: (r.display_name or r.username).lower())
+    elif sort == "newest":
+        joined = {u.username or f"user{u.id}": u.created_at or datetime.min for u in users}
+        rows.sort(key=lambda r: joined.get(r.username, datetime.min), reverse=True)
 
     total = len(rows)
     devs = rows[offset : offset + limit]

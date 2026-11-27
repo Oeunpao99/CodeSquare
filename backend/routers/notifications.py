@@ -4,6 +4,7 @@ A lightweight inbox: when another user likes or comments on one of your posts,
 a Notification row is created for you. The bell in the top bar polls this for an
 unread count and lists recent items.
 """
+from common.avatars import effective_avatar
 from datetime import datetime
 from typing import List, Optional
 
@@ -45,7 +46,7 @@ def _actor(u: User) -> Actor:
     return Actor(
         username=u.username or f"user{u.id}",
         display_name=u.display_name,
-        avatar=(u.avatar_data or u.avatar_url),
+        avatar=effective_avatar(u),
     )
 
 

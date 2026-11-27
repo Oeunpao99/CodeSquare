@@ -90,7 +90,7 @@ const csHighlight = syntaxHighlighting(
   ])
 );
 
-function CodeEditor({ value, onChange, language = 'python', readOnly = false, onSubmit, minimal = false }) {
+function CodeEditor({ value, onChange, language = 'python', readOnly = false, onSubmit, minimal = false, compact = false }) {
   // Keep the latest onSubmit without rebuilding the editor extensions each render.
   const submitRef = useRef(onSubmit);
   submitRef.current = onSubmit;
@@ -101,12 +101,20 @@ function CodeEditor({ value, onChange, language = 'python', readOnly = false, on
       'backend-foundations': python,
       javascript: javascript, js: javascript, typescript: javascript, 'react-typescript': javascript,
       'full-stack': javascript,
+      react: () => javascript({ jsx: true }), jsx: () => javascript({ jsx: true }),
+      tsx: () => javascript({ jsx: true, typescript: true }),
       html: html, 'html-css': html, css: css,
     }[(language || '').toLowerCase()];
     return [
       ...(lang ? [lang()] : []),
       csEditorTheme,
       ...(minimal ? [csMinimalTheme, EditorView.lineWrapping] : []),
+      // compact: a denser editor for big workspaces (Projects)
+      ...(compact ? [Prec.high(EditorView.theme({
+        '&': { fontSize: '13px' },
+        '.cm-content': { lineHeight: '1.6' },
+        '.cm-gutters': { fontSize: '12px' },
+      }))] : []),
       csHighlight,
       // Ctrl/Cmd+Enter runs the code. Highest precedence so it wins over the
       // default newline binding.
@@ -126,7 +134,7 @@ function CodeEditor({ value, onChange, language = 'python', readOnly = false, on
         ])
       ),
     ];
-  }, [language, minimal]);
+  }, [language, minimal, compact]);
 
   // `minimal` = a read-only, chrome-free view for rendering code inside prose
   // (chat replies, AI reviews). Same theme-following syntax colors, no gutters.

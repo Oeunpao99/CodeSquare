@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,38 @@ import api from '../services/api';
 import { toast } from '../utils/toast';
 
 const TG_SCRIPT = 'https://telegram.org/js/telegram-widget.js?22';
+
+// Turn an API error into one plain sentence. FastAPI's 422 sends a list of
+// field errors; map those to what the person needs to change.
+const FIELD_HELP = {
+  username: 'Username: 3–32 characters, letters, numbers, dots, dashes or underscores (no spaces).',
+  password: 'Password must be at least 10 characters.',
+  email: 'Please enter a valid email address.',
+};
+function errorText(error) {
+  const detail = error?.response?.data?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail) && detail.length) {
+    const field = detail[0]?.loc?.[detail[0].loc.length - 1];
+    return FIELD_HELP[field] || detail[0]?.msg || 'Please check the form and try again.';
+  }
+  if (!error?.response) return 'Can’t reach the server. Check your connection and try again.';
+  return 'Something went wrong. Please try again.';
+}
+
+// Load Google Identity Services once, on demand.
+let googleInitFor = null; // client id we've already initialised with
+function loadGoogle() {
+  if (window.google?.accounts?.id) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Google script failed to load'));
+    document.head.appendChild(s);
+  });
+}
 
 // Load Telegram's login script once, on demand.
 function loadTelegram() {
@@ -49,6 +81,11 @@ function Auth() {
     if (user) navigate('/dashboard');
   }, [user, navigate]);
 
+  // Google: fetch the client id from the backend, load Google's script and render
+  // its official button (more reliable than One Tap, which browsers often suppress).
+  const googleBtn = useRef(null);
+  const [googleState, setGoogleState] = useState('loading'); // loading | ready | off
+  const googleCallback = useRef(null);
   useEffect(() => {
     const handleGoogleSignIn = async (response) => {
       try {
@@ -62,12 +99,28 @@ function Auth() {
         setLoading(false);
       }
     };
-    if (window.google?.accounts?.id) {
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id.apps.googleusercontent.com',
-        callback: handleGoogleSignIn,
-      });
-    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: cfg } = await api.get('/auth/google/config');
+        if (!cfg.enabled) { if (!cancelled) setGoogleState('off'); return; }
+        await loadGoogle();
+        if (cancelled || !googleBtn.current) return;
+        if (googleInitFor !== cfg.client_id) {
+          window.google.accounts.id.initialize({ client_id: cfg.client_id, callback: (r) => googleCallback.current?.(r) });
+          googleInitFor = cfg.client_id;
+        }
+        googleCallback.current = handleGoogleSignIn;
+        window.google.accounts.id.renderButton(googleBtn.current, {
+          type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular',
+          logo_alignment: 'center', width: Math.min(400, googleBtn.current.offsetWidth || 360),
+        });
+        setGoogleState('ready');
+      } catch {
+        if (!cancelled) setGoogleState('off');
+      }
+    })();
+    return () => { cancelled = true; };
   }, [loginWithGoogle, navigate]);
 
   const continueWithTelegram = async () => {
@@ -108,18 +161,20 @@ function Auth() {
         await login(email, password);
         toast.success('Welcome back!');
       } else {
-        if (!username.trim()) {
-          toast.error('Please enter a username');
+        const problem = !username.trim() ? 'Please choose a username.'
+          : !/^[A-Za-z0-9_.-]{3,32}$/.test(username.trim()) ? FIELD_HELP.username
+            : password.length < 10 ? FIELD_HELP.password : null;
+        if (problem) {
+          toast.error(problem);
           setLoading(false);
           return;
         }
-        await register(email, username, password);
+        await register(email, username.trim(), password);
         toast.success('Account created! Welcome to CodeSquare!');
       }
       navigate('/dashboard');
     } catch (error) {
-      const message = error.response?.data?.detail || 'Something went wrong';
-      toast.error(typeof message === 'string' ? message : 'Something went wrong');
+      toast.error(errorText(error));
     } finally {
       setLoading(false);
     }
@@ -140,14 +195,20 @@ function Auth() {
           </p>
 
           <div className="mt-5 space-y-2.5">
-            <button
-              type="button"
-              onClick={() => window.google?.accounts?.id?.prompt()}
-              disabled={loading}
-              className="w-full h-11 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] hover:bg-cs-overlay/[0.08] inline-flex items-center justify-center gap-2.5 text-[0.9375rem] font-medium transition-colors disabled:opacity-60"
-            >
-              <GoogleLogo /> Continue with Google
-            </button>
+            {/* Google's own button renders into this box */}
+            <div className="relative h-11">
+              <div ref={googleBtn} className={`flex justify-center [color-scheme:light] ${googleState === 'ready' ? '' : 'invisible'}`} />
+              {googleState !== 'ready' && (
+                <button
+                  type="button"
+                  disabled
+                  title={googleState === 'off' ? 'Google sign-in isn’t set up yet' : 'Loading…'}
+                  className="absolute inset-0 w-full h-11 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.04] inline-flex items-center justify-center gap-2.5 text-[0.9375rem] font-medium opacity-60"
+                >
+                  <GoogleLogo /> Continue with Google
+                </button>
+              )}
+            </div>
             <button
               type="button"
               onClick={continueWithTelegram}
@@ -186,7 +247,7 @@ function Auth() {
               <label htmlFor="password" className="block text-sm font-medium mb-1">{t('auth.password')}</label>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} id="password" value={password}
-                  onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6}
+                  onChange={(e) => setPassword(e.target.value)} placeholder={isLogin ? '••••••••' : 'At least 10 characters'} required minLength={isLogin ? 1 : 10}
                   className={`${INPUT} pr-11`} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -213,10 +274,9 @@ function Auth() {
       </div>
 
       <p className="text-xs text-cs-text-muted mt-4 max-w-[26rem] text-center leading-relaxed">
-        By continuing with Google, Telegram or email, you agree to our{' '}
-        <Link to="/terms" className="text-cs-text-dim underline underline-offset-2 hover:text-cs-primary">Terms of Service</Link> and{' '}
+        By continuing, you agree to our{' '}
+        <Link to="/terms" className="text-cs-text-dim underline underline-offset-2 hover:text-cs-primary">Terms</Link> and{' '}
         <Link to="/privacy" className="text-cs-text-dim underline underline-offset-2 hover:text-cs-primary">Privacy Policy</Link>.
-        {' '}Telegram shares your name, username and profile photo with us.
       </p>
     </div>
   );

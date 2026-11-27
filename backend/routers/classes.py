@@ -12,6 +12,8 @@ membership; every write endpoint checks the caller teaches that class.
 """
 from __future__ import annotations
 
+from common.avatars import effective_avatar
+
 import secrets
 from datetime import datetime
 from typing import List, Optional
@@ -516,7 +518,7 @@ async def search_candidates(public_id: str, q: str = "", db: AsyncSession = Depe
     return [
         {
             "user_id": u.id, "username": u.username, "display_name": u.display_name or u.username,
-            "headline": u.headline or "", "major": u.major, "avatar": u.avatar_data or u.avatar_url,
+            "headline": u.headline or "", "major": u.major, "avatar": effective_avatar(u),
         }
         for u in rows
     ]

@@ -19,6 +19,9 @@ class User(Base):
     hashed_password = Column(String)
     google_id = Column(String, unique=True, nullable=True)
     telegram_id = Column(String, unique=True, nullable=True)  # Telegram user id (Sign in with Telegram)
+    github_username = Column(String, nullable=True)     # Connect GitHub (project import)
+    avatar_style = Column(String, nullable=True)        # woman | man | neutral: illustrated default avatar
+    github_token = Column(String, nullable=True)        # OAuth token, Fernet-encrypted (NOTE_SECRET_KEY)
     avatar_url = Column(String, nullable=True)          # OAuth-provided picture URL
     avatar_data = Column(String, nullable=True)         # user-uploaded image as a data: URI
     display_name = Column(String, nullable=True)        # shown instead of the login handle

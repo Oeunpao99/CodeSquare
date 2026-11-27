@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import SelectMenu from '../components/SelectMenu';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck,
-  FiX, FiCode, FiFileText, FiClipboard, FiCheckSquare, FiZap, FiSend,
+  FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck, FiX, FiArrowRight, FiCode, FiTerminal, FiZap,
 } from 'react-icons/fi';
+import SelectMenu from '../components/SelectMenu';
 import { toast } from '../utils/toast';
 import { projectService } from '../services/api';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -13,17 +12,7 @@ import Markdown from '../components/Markdown';
 import LangLogo from '../components/LangLogo';
 import { editorMode, stackFile } from '../projectStacks';
 import { useCrumbNames } from '../utils/crumbs';
-import { STAGES, stageState, Stepper, BriefTab, ShipTab } from '../components/project/ProjectFlow';
-
-// Tabs follow the order of the work: plan, build, review, ship.
-const TABS = [
-  { id: 'brief', label: 'Brief', icon: FiClipboard },
-  { id: 'tasks', label: 'Tasks', icon: FiCheckSquare },
-  { id: 'code', label: 'Code', icon: FiCode },
-  { id: 'notes', label: 'Notes', icon: FiFileText },
-  { id: 'review', label: 'Review', icon: FiZap },
-  { id: 'ship', label: 'Ship', icon: FiSend },
-];
+import { STAGES, stageState, BriefTab, ShipTab } from '../components/project/ProjectFlow';
 
 const download = (name, text) => {
   const blob = new Blob([text ?? ''], { type: 'text/plain;charset=utf-8' });
@@ -37,6 +26,141 @@ const download = (name, text) => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
+/** Tasks + notes beside the editor, so building happens on one screen. */
+function BuildSide({ tasks, setTasks, notes, setNotes }) {
+  const [panel, setPanel] = useState('tasks');
+  const [text, setText] = useState('');
+  const [previewNotes, setPreviewNotes] = useState(false);
+  const done = tasks.filter((t) => t.done).length;
+  const add = () => {
+    const t = text.trim();
+    if (!t) return;
+    setTasks((prev) => [...prev, { id: Date.now(), text: t, done: false }]);
+    setText('');
+  };
+  return (
+    <aside className="flex flex-col min-h-0 rounded-xl border border-cs-line/10">
+      <div className="flex gap-5 px-4 border-b border-cs-line/10">
+        {[['tasks', `Tasks${tasks.length ? ` ${done}/${tasks.length}` : ''}`], ['notes', 'Notes']].map(([k, label]) => (
+          <button key={k} onClick={() => setPanel(k)}
+            className={`relative h-10 text-sm transition-colors ${panel === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+            {label}
+            {panel === k && <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-cs-primary" />}
+          </button>
+        ))}
+        {panel === 'notes' && notes.trim() && (
+          <button onClick={() => setPreviewNotes((v) => !v)} className="ml-auto text-xs text-cs-text-muted hover:text-cs-text">
+            {previewNotes ? 'Edit' : 'Preview'}
+          </button>
+        )}
+      </div>
+
+      {panel === 'tasks' ? (
+        <div className="flex-1 min-h-0 flex flex-col">
+          {tasks.length > 0 && (
+            <div className="px-4 pt-3">
+              <div className="h-1 rounded-full bg-cs-overlay/[0.1] overflow-hidden">
+                <div className="h-full rounded-full bg-cs-green transition-all" style={{ width: `${(done / tasks.length) * 100}%` }} />
+              </div>
+            </div>
+          )}
+          <ul className="flex-1 overflow-y-auto py-2">
+            {tasks.length === 0 && (
+              <li className="px-4 py-6 text-sm text-cs-text-muted text-center">No tasks yet. Add one below, or turn your Plan checks into tasks.</li>
+            )}
+            {tasks.map((t) => (
+              <li key={t.id} className="group flex items-start gap-2.5 px-4 py-2 hover:bg-cs-overlay/[0.03]">
+                <button
+                  onClick={() => setTasks((prev) => prev.map((x) => (x.id === t.id ? { ...x, done: !x.done } : x)))}
+                  aria-label={t.done ? 'Mark not done' : 'Mark done'}
+                  className={`mt-0.5 w-4 h-4 rounded border grid place-items-center shrink-0 transition-colors ${
+                    t.done ? 'bg-cs-green border-cs-green text-white' : 'border-cs-line/30 hover:border-cs-primary'
+                  }`}
+                >
+                  {t.done && <FiCheck className="text-[0.625rem]" strokeWidth={4} />}
+                </button>
+                <span className={`flex-1 text-sm leading-5 ${t.done ? 'line-through text-cs-text-muted' : ''}`}>{t.text}</span>
+                <button onClick={() => setTasks((prev) => prev.filter((x) => x.id !== t.id))} aria-label="Remove task"
+                  className="text-cs-text-muted opacity-0 group-hover:opacity-100 hover:!text-cs-red"><FiX /></button>
+              </li>
+            ))}
+          </ul>
+          <div className="p-3 border-t border-cs-line/10 flex gap-2">
+            <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()}
+              placeholder="Add a task…"
+              className="flex-1 min-w-0 h-9 px-3 rounded-lg border border-cs-line/15 bg-transparent text-sm outline-none focus:border-cs-primary/60" />
+            <button onClick={add} className="w-9 h-9 rounded-lg grid place-items-center bg-cs-primary text-white" aria-label="Add task"><FiPlus /></button>
+          </div>
+        </div>
+      ) : previewNotes ? (
+        <div className="flex-1 overflow-y-auto p-4"><Markdown text={notes} /></div>
+      ) : (
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
+          placeholder={'Decisions, links, things you learned…\n\nMarkdown works.'}
+          className="flex-1 min-h-0 p-4 bg-transparent font-mono text-[0.8125rem] leading-6 resize-none outline-none" />
+      )}
+    </aside>
+  );
+}
+
+/**
+ * Shown while the AI review runs. The request is a single call, so the number is
+ * an estimate: it eases toward 95% and only reaches 100 when the answer arrives.
+ */
+const REVIEW_PHASES = [
+  [0, 'Reading your code'],
+  [25, 'Checking structure and naming'],
+  [50, 'Looking for bugs and edge cases'],
+  [75, 'Writing feedback'],
+];
+const FLYERS = [FiCode, FiTerminal, FiZap, FiCheck, FiCode, FiTerminal, FiZap];
+
+function ReviewProgress({ file }) {
+  const [pct, setPct] = useState(0);
+  useEffect(() => {
+    const started = Date.now();
+    const t = setInterval(() => {
+      const secs = (Date.now() - started) / 1000;
+      setPct(Math.min(95, Math.round(95 * (1 - Math.exp(-secs / 9)))));
+    }, 200);
+    return () => clearInterval(t);
+  }, []);
+  const phase = [...REVIEW_PHASES].reverse().find(([at]) => pct >= at)[1];
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-cs-line/10 bg-cs-primary/[0.04] py-14 px-6 text-center">
+      {/* code icons floating up */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        {FLYERS.map((Icon, i) => (
+          <span key={i} className="absolute bottom-0 class-drift text-cs-primary/40"
+            style={{ left: `${8 + i * 13}%`, animationDelay: `${(i * 0.9) % 6}s`, fontSize: `${1 + (i % 3) * 0.35}rem` }}>
+            <Icon />
+          </span>
+        ))}
+      </div>
+
+      <div className="relative">
+        <span className="w-14 h-14 mx-auto rounded-2xl bg-cs-primary text-white grid place-items-center text-2xl shadow-lg shadow-cs-primary/30 class-bob">
+          <FiZap />
+        </span>
+        <p className="mt-5 text-5xl font-bold tabular-nums">{pct}<span className="text-2xl text-cs-text-muted">%</span></p>
+        <p className="mt-2 text-[0.9375rem] font-medium">{phase}…</p>
+        <p className="text-sm text-cs-text-muted">Reviewing <span className="font-mono">{file}</span>. This usually takes 10–30 seconds.</p>
+        <div className="mt-6 mx-auto max-w-md h-1.5 rounded-full bg-cs-overlay/[0.1] overflow-hidden">
+          <div className="h-full rounded-full bg-cs-primary transition-[width] duration-200 ease-out" style={{ width: `${pct}%` }} />
+        </div>
+        <ol className="mt-5 flex justify-center gap-5 text-xs text-cs-text-muted flex-wrap">
+          {REVIEW_PHASES.map(([at, label]) => (
+            <li key={at} className={`inline-flex items-center gap-1.5 ${pct >= at ? 'text-cs-text' : ''}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${pct >= at ? 'bg-cs-primary' : 'bg-cs-overlay/25'}`} />{label}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
 function ProjectWorkspace() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -44,7 +168,7 @@ function ProjectWorkspace() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [tab, setTab] = useState('code');
+  const [step, setStep] = useState('plan');
   const [reviewing, setReviewing] = useState(false);
   const [saveState, setSaveState] = useState('saved'); // saved | saving | dirty
   const [exportOpen, setExportOpen] = useState(false);
@@ -58,9 +182,8 @@ function ProjectWorkspace() {
   const [pinned, setPinned] = useState(false);
   const [brief, setBrief] = useState(null);
   const [ship, setShip] = useState(null);
-  const [newTask, setNewTask] = useState('');
-  useCrumbNames(project ? { [String(id)]: title || project.title } : null);
   const [pendingDelete, setPendingDelete] = useState(false);
+  useCrumbNames(project ? { [String(id)]: title || project.title } : null);
 
   const loadedRef = useRef(false);
   const saveTimer = useRef(0);
@@ -83,8 +206,7 @@ function ProjectWorkspace() {
         setShip(p.ship || null);
         // open the first unfinished step
         const st = stageState({ brief: p.brief, code: p.code, tasks: p.tasks || [], review: p.ai_review, ship: p.ship, status: p.status });
-        const next = STAGES.find((x) => !st[x.id]);
-        setTab(!next ? 'code' : next.id === 'build' ? ((p.tasks || []).length ? 'code' : 'tasks') : next.tab);
+        setStep((STAGES.find((x) => !st[x.id]) || STAGES[1]).id);
         setTimeout(() => { loadedRef.current = true; }, 0);
       })
       .catch((err) => {
@@ -107,7 +229,7 @@ function ProjectWorkspace() {
     [id]
   );
 
-  // debounced autosave of the frequently-edited fields
+  // debounced autosave
   useEffect(() => {
     if (!loadedRef.current) return;
     setSaveState('dirty');
@@ -130,10 +252,11 @@ function ProjectWorkspace() {
   const runReview = async () => {
     if (!code.trim()) return toast.error('Write some code first.');
     setReviewing(true);
+    setStep('review');
     try {
+      await patch({ code });
       const res = await projectService.review(id);
       setProject(res.data);
-      setTab('review');
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Review failed.');
     } finally {
@@ -141,28 +264,22 @@ function ProjectWorkspace() {
     }
   };
 
-  const addTask = () => {
-    const text = newTask.trim();
-    if (!text) return;
-    setTasks((t) => [...t, { id: Date.now(), text, done: false }]);
-    setNewTask('');
-  };
-
   const addTasks = (texts) => {
     if (!texts.length) return;
     setTasks((t) => [...t, ...texts.map((text, i) => ({ id: Date.now() + i, text, done: false }))]);
-    toast.success(`${texts.length} task${texts.length === 1 ? '' : 's'} added`);
-    setTab('tasks');
+    toast.success(`${texts.length} task${texts.length === 1 ? '' : 's'} added`, 'You’ll find them next to the code in Build.');
   };
 
   const review = project?.ai_review;
   const stages = stageState({ brief, code, tasks, review, ship, status });
-  const shipped = stages.ship;
+  const file = useMemo(() => stackFile(project?.language), [project]);
+  const stepIndex = STAGES.findIndex((s) => s.id === step);
+  const nextStep = STAGES[stepIndex + 1];
 
   // "Done" means shipped, so it goes through the Ship step.
   const changeStatus = (v) => {
     if (v === 'done' && !ship?.repo_url) {
-      setTab('ship');
+      setStep('ship');
       toast.error('Add your repository link first', 'Then press Ship it.');
       return;
     }
@@ -173,14 +290,14 @@ function ProjectWorkspace() {
     setStatus('done');
     toast.success('Shipped!', 'Added to your portfolio.');
   };
-  const file = useMemo(() => stackFile(project?.language), [project]);
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-cs-darkest border-t-cs-primary rounded-full animate-spin"></div>
-        <p className="text-cs-text-dim">Loading…</p>
-      </div>
+      <main className="w-full px-6 lg:px-10 py-8">
+        <div className="skeleton h-10 w-80 rounded-lg" />
+        <div className="skeleton h-12 w-full rounded-lg mt-6" />
+        <div className="skeleton h-96 w-full rounded-xl mt-6" />
+      </main>
     );
   }
   if (notFound || !project) {
@@ -194,19 +311,24 @@ function ProjectWorkspace() {
 
   return (
     <main className="w-full pb-10">
-      {/* locked header */}
-      <div className="sticky top-[3.75rem] lg:top-14 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/10 px-4 lg:px-6 pt-4 pb-3">
+      {/* Header: title + actions, then the four steps as the only navigation */}
+      <div className="sticky top-[3.75rem] lg:top-14 z-30 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/10 px-6 lg:px-10 pt-5">
         <div className="flex items-center gap-3 flex-wrap">
           <LangLogo name={project.language} className="text-2xl shrink-0" />
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-transparent text-3xl font-bold outline-none border-b border-transparent focus:border-cs-line/20 min-w-0 flex-grow"
+            aria-label="Project title"
+            className="bg-transparent text-2xl font-bold outline-none border-b border-transparent hover:border-cs-line/20 focus:border-cs-primary/60 min-w-0 flex-grow"
           />
+          <span className="text-xs text-cs-text-muted w-14 text-right">
+            {saveState === 'saving' ? 'Saving…' : saveState === 'dirty' ? 'Unsaved' : 'Saved'}
+          </span>
           <SelectMenu
             value={status}
             onChange={changeStatus}
             ariaLabel="Project status"
+            align="right"
             buttonClassName="h-8 px-2.5 text-sm min-w-[7.5rem]"
             options={[
               { value: 'active', label: 'Active', dot: 'rgb(var(--cs-primary))' },
@@ -214,216 +336,162 @@ function ProjectWorkspace() {
               { value: 'archived', label: 'Archived', dot: 'rgb(var(--cs-overlay) / 0.35)' },
             ]}
           />
-          <button
-            onClick={() => setPinned((v) => !v)}
-            className={pinned ? 'text-cs-orange' : 'text-cs-text-muted hover:text-cs-text-muted'}
-            title={pinned ? 'Unpin' : 'Pin'}
-          >
+          <button onClick={() => setPinned((v) => !v)} title={pinned ? 'Unpin' : 'Pin to top'} aria-label="Pin"
+            className={`w-8 h-8 rounded-lg grid place-items-center hover:bg-cs-overlay/[0.05] ${pinned ? 'text-cs-orange' : 'text-cs-text-muted'}`}>
             <FiStar className={pinned ? 'fill-current' : ''} />
           </button>
-
           <div className="relative">
-            <button
-              onClick={() => setExportOpen((v) => !v)}
-              className="btn btn-ghost btn-sm"
-            >
-              <FiDownload /> Export
+            <button onClick={() => setExportOpen((v) => !v)} title="Export" aria-label="Export"
+              className="w-8 h-8 rounded-lg grid place-items-center text-cs-text-muted hover:text-cs-text hover:bg-cs-overlay/[0.05]">
+              <FiDownload />
             </button>
             {exportOpen && (
-              <div
-                className="absolute right-0 mt-1 w-44 rounded-lg border border-cs-line/15 bg-cs-darkest shadow-xl z-40 py-1 text-sm"
-                onMouseLeave={() => setExportOpen(false)}
-              >
+              <div className="absolute right-0 mt-1 w-44 rounded-lg border border-cs-line/15 bg-cs-darkest shadow-xl z-40 py-1 text-sm"
+                onMouseLeave={() => setExportOpen(false)}>
                 <button className="w-full text-left px-3 py-2 hover:bg-cs-overlay/5" onClick={() => { download(file, code); setExportOpen(false); }}>
                   Download {file}
                 </button>
                 <button className="w-full text-left px-3 py-2 hover:bg-cs-overlay/5" onClick={() => { download('notes.md', notes); setExportOpen(false); }}>
                   Download notes.md
                 </button>
+                {ship?.readme && (
+                  <button className="w-full text-left px-3 py-2 hover:bg-cs-overlay/5" onClick={() => { download('README.md', ship.readme); setExportOpen(false); }}>
+                    Download README.md
+                  </button>
+                )}
               </div>
             )}
           </div>
-
-          <button onClick={() => setPendingDelete(true)} className="text-cs-text-muted hover:text-cs-red" title="Delete project">
+          <button onClick={() => setPendingDelete(true)} title="Delete project" aria-label="Delete project"
+            className="w-8 h-8 rounded-lg grid place-items-center text-cs-text-muted hover:text-cs-red hover:bg-cs-overlay/[0.05]">
             <FiTrash2 />
           </button>
-
-          <span className="text-[0.6875rem] text-cs-text-muted w-14 text-right">
-            {saveState === 'saving' ? 'saving…' : saveState === 'dirty' ? 'unsaved' : 'saved'}
-          </span>
         </div>
-
         {project.track_slug && (
-          <Link to={`/learn/${project.track_slug}`} className="inline-block mt-1 text-xs text-cs-primary hover:underline">
+          <Link to={`/learn/${project.track_slug}`} className="inline-block text-xs text-cs-text-muted hover:text-cs-primary">
             Part of the {project.track_slug} track
           </Link>
         )}
 
-        <Stepper state={stages} onOpen={setTab} />
-
-        <div className="flex gap-6 mt-3 -mb-3 overflow-x-auto">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`relative h-11 inline-flex items-center gap-1.5 px-0.5 text-[0.9375rem] whitespace-nowrap transition-colors ${
-                tab === t.id ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'
-              }`}
-            >
-              <t.icon className="text-sm" /> {t.label}
-              {t.id === 'tasks' && tasks.length > 0 && (
-                <span className="text-xs text-cs-text-muted">
-                  {tasks.filter((x) => x.done).length}/{tasks.length}
+        <nav className="mt-4 flex gap-8 overflow-x-auto" aria-label="Project steps">
+          {STAGES.map((s, i) => {
+            const active = step === s.id;
+            const done = stages[s.id];
+            return (
+              <button key={s.id} onClick={() => setStep(s.id)}
+                className={`relative h-12 inline-flex items-center gap-2 whitespace-nowrap text-[0.9375rem] transition-colors ${
+                  active ? 'text-cs-text font-semibold' : 'text-cs-text-dim hover:text-cs-text'
+                }`}>
+                <span className={`w-5 h-5 rounded-full grid place-items-center text-[0.6875rem] font-bold ${
+                  done ? 'bg-cs-green text-white' : active ? 'bg-cs-primary text-white' : 'bg-cs-overlay/[0.08] text-cs-text-dim'
+                }`}>
+                  {done ? <FiCheck strokeWidth={4} /> : i + 1}
                 </span>
-              )}
-              {tab === t.id && <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-cs-primary" />}
-            </button>
-          ))}
-        </div>
+                {s.label}
+                {s.id === 'build' && tasks.length > 0 && (
+                  <span className="text-xs font-normal text-cs-text-muted">{tasks.filter((x) => x.done).length}/{tasks.length}</span>
+                )}
+                {active && <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-cs-primary" />}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
-      <div className="px-4 lg:px-6 pt-6">
-        {tab === 'code' && (
-          <div className="rounded-xl border border-cs-line/15 bg-cs-darkest overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-cs-line/15 bg-cs-overlay/[0.03]">
-              <span className="font-mono text-xs text-cs-text-muted">{file}</span>
-              <button onClick={runReview} disabled={reviewing} className="btn btn-primary btn-sm">
-                <FiPlay /> {reviewing ? 'Reviewing…' : 'AI Review'}
-              </button>
+      <div className="px-6 lg:px-10 pt-6">
+        {/* What this step is for */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-5">
+          <p className="text-sm text-cs-text-dim">
+            <span className="text-cs-text-muted">Step {stepIndex + 1} of 4 · </span>{STAGES[stepIndex].todo}
+          </p>
+          {stages[step] && step !== 'ship' && nextStep && (
+            <button onClick={() => setStep(nextStep.id)} className="ml-auto inline-flex items-center gap-1.5 text-sm font-medium text-cs-primary hover:underline">
+              Next: {nextStep.label} <FiArrowRight />
+            </button>
+          )}
+        </div>
+
+        {step === 'plan' && (
+          <BriefTab brief={brief} setBrief={setBrief} description={project.description} tasks={tasks} addTasks={addTasks} title={title} />
+        )}
+
+        {step === 'build' && (
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_20rem] gap-4 h-[calc(100vh-17rem)] min-h-[28rem]">
+            <div className="rounded-xl border border-cs-line/10 bg-cs-darkest overflow-hidden flex flex-col min-h-0">
+              <div className="flex items-center justify-between px-4 h-11 border-b border-cs-line/10">
+                <span className="font-mono text-xs text-cs-text-muted">{file}</span>
+                <button onClick={runReview} disabled={reviewing} className="btn btn-ghost btn-sm">
+                  <FiPlay /> {reviewing ? 'Reviewing…' : 'AI review'}
+                </button>
+              </div>
+              <div className="flex-1 min-h-0">
+                <CodeEditor compact value={code} onChange={setCode} language={editorMode(project.language)} onSubmit={() => { if (!reviewing) runReview(); }} />
+              </div>
             </div>
-            <div className="h-[calc(100vh-18rem)] min-h-[22.5rem]">
-              <CodeEditor
-                value={code}
-                onChange={setCode}
-                language={editorMode(project.language)}
-                onSubmit={() => { if (!reviewing) runReview(); }}
-              />
-            </div>
+            <BuildSide tasks={tasks} setTasks={setTasks} notes={notes} setNotes={setNotes} />
           </div>
         )}
 
-        {tab === 'notes' && (
-          <div className="grid lg:grid-cols-2 gap-4">
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={'# Notes\n\nMarkdown works — headings, **bold**, `code`, lists and ```fenced``` blocks.'}
-              className="w-full h-[calc(100vh-18rem)] min-h-[22.5rem] p-4 rounded-xl bg-cs-darkest border border-cs-line/15 font-mono text-[0.8125rem] leading-6 resize-none outline-none focus:border-cs-primary/50"
-            />
-            <div className="h-[calc(100vh-18rem)] min-h-[22.5rem] overflow-y-auto p-4 rounded-xl border border-cs-line/10 bg-cs-darker">
-              {notes.trim()
-                ? <Markdown text={notes} />
-                : <p className="text-sm text-cs-text-muted italic">Preview appears here.</p>}
-            </div>
+        {step === 'review' && (
+          <div className="max-w-5xl">
+            {reviewing ? (
+              <ReviewProgress file={file} />
+            ) : review ? (
+              <>
+                <div className="flex items-end gap-4">
+                  <span className={`text-5xl font-bold tabular-nums ${review.score >= 70 ? 'text-cs-green' : 'text-cs-orange'}`}>
+                    {Math.round(review.score)}<span className="text-cs-text-muted text-lg font-medium">/100</span>
+                  </span>
+                  <button onClick={runReview} disabled={reviewing} className="btn btn-ghost btn-sm ml-auto">
+                    <FiPlay /> {reviewing ? 'Reviewing…' : 'Run again'}
+                  </button>
+                </div>
+                <div className="h-1.5 bg-cs-overlay/[0.1] rounded-full overflow-hidden mt-3 mb-6">
+                  <div className={`h-full rounded-full ${review.score >= 70 ? 'bg-cs-green' : 'bg-cs-orange'}`} style={{ width: `${review.score}%` }} />
+                </div>
+                <p className="text-[0.9375rem] leading-7 text-cs-text-dim whitespace-pre-wrap">{review.feedback}</p>
+                <div className="grid sm:grid-cols-2 gap-8 mt-7">
+                  {review.suggestions?.length > 0 && (
+                    <section>
+                      <h3 className="text-sm font-semibold mb-2">Improve</h3>
+                      <ul className="space-y-2 text-sm text-cs-text-dim">
+                        {review.suggestions.map((s, i) => <li key={i} className="flex gap-2"><span className="text-cs-orange">•</span>{s}</li>)}
+                      </ul>
+                      <button onClick={() => addTasks(review.suggestions)} className="mt-3 text-sm text-cs-primary hover:underline">Add these as tasks</button>
+                    </section>
+                  )}
+                  {review.improvements?.length > 0 && (
+                    <section>
+                      <h3 className="text-sm font-semibold mb-2">Done well</h3>
+                      <ul className="space-y-2 text-sm text-cs-text-dim">
+                        {review.improvements.map((s, i) => <li key={i} className="flex gap-2"><FiCheck className="text-cs-green mt-0.5 shrink-0" />{s}</li>)}
+                      </ul>
+                    </section>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-14 rounded-xl border border-dashed border-cs-line/20">
+                <p className="text-cs-text-dim mb-4">Get feedback on your code like a pull-request review: what works, what to fix.</p>
+                <button onClick={runReview} disabled={reviewing || !code.trim()} className="btn btn-primary btn-sm disabled:opacity-50">
+                  <FiPlay /> {reviewing ? 'Reviewing…' : 'Run AI review'}
+                </button>
+                {!code.trim() && <p className="text-xs text-cs-text-muted mt-3">Write some code in Build first.</p>}
+              </div>
+            )}
           </div>
         )}
 
-        {tab === 'brief' && (
-          <BriefTab brief={brief} setBrief={setBrief} description={project.description} tasks={tasks} addTasks={addTasks} />
-        )}
-
-        {tab === 'ship' && (
+        {step === 'ship' && (
           <ShipTab
             ship={ship}
             setShip={setShip}
-            shipped={shipped}
+            shipped={stages.ship}
             stages={stages}
             onShip={shipIt}
             onUnship={() => setStatus('active')}
             readmeInput={{ title, description: project.description, language: project.language, brief, tasks }}
           />
-        )}
-
-        {tab === 'tasks' && (
-          <div className="max-w-2xl">
-            <div className="flex gap-2 mb-4">
-              <input
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addTask()}
-                placeholder="Add a task…"
-                className="input flex-grow"
-              />
-              <button onClick={addTask} className="btn btn-primary btn-sm"><FiPlus /></button>
-            </div>
-            {tasks.length === 0 ? (
-              <p className="text-sm text-cs-text-muted">
-                No tasks yet. Add them here, or write your "done when" checks on the{' '}
-                <button onClick={() => setTab('brief')} className="text-cs-primary hover:underline">Brief</button> and turn them into tasks.
-              </p>
-            ) : (
-              <ul className="rounded-xl border border-cs-line/10 divide-y divide-cs-line/10 overflow-hidden">
-                {tasks.map((t) => (
-                  <li key={t.id} className="flex items-center gap-3 px-4 py-2.5 group">
-                    <button
-                      onClick={() => setTasks((prev) => prev.map((x) => x.id === t.id ? { ...x, done: !x.done } : x))}
-                      className={`w-4 h-4 rounded border grid place-items-center shrink-0 ${
-                        t.done ? 'bg-cs-green/20 border-cs-green text-cs-green' : 'border-cs-line/25'
-                      }`}
-                    >
-                      {t.done && <FiCheck className="text-[0.625rem]" strokeWidth={3} />}
-                    </button>
-                    <span className={`flex-grow text-sm ${t.done ? 'line-through text-cs-text-muted' : 'text-cs-text-dim'}`}>
-                      {t.text}
-                    </span>
-                    <button
-                      onClick={() => setTasks((prev) => prev.filter((x) => x.id !== t.id))}
-                      className="text-cs-text-muted group-hover:text-cs-text-muted hover:!text-cs-red shrink-0"
-                    >
-                      <FiX />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-
-        {tab === 'review' && (
-          <div className="max-w-3xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">AI Review</h3>
-              <button onClick={runReview} disabled={reviewing} className="btn btn-primary btn-sm">
-                <FiPlay /> {reviewing ? 'Reviewing…' : review ? 'Re-run' : 'Run review'}
-              </button>
-            </div>
-            {review ? (
-              <div className="card-dev">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className={`text-3xl font-bold ${review.score >= 70 ? 'text-cs-green' : 'text-cs-orange'}`}>
-                    {Math.round(review.score)}<span className="text-cs-text-muted text-base">/100</span>
-                  </span>
-                </div>
-                <div className="h-2 bg-cs-dark rounded-full overflow-hidden mb-5">
-                  <div
-                    className={`h-full rounded-full ${review.score >= 70 ? 'bg-cs-green' : 'bg-cs-orange'}`}
-                    style={{ width: `${review.score}%` }}
-                  />
-                </div>
-                <p className="text-sm text-cs-text-dim mb-5 whitespace-pre-wrap">{review.feedback}</p>
-                {review.suggestions?.length > 0 && (
-                  <>
-                    <h4 className="mono-label text-cs-orange mb-2"> improve</h4>
-                    <ul className="space-y-1 text-sm text-cs-text-dim mb-4">
-                      {review.suggestions.map((s, i) => <li key={i}>• {s}</li>)}
-                    </ul>
-                  </>
-                )}
-                {review.improvements?.length > 0 && (
-                  <>
-                    <h4 className="mono-label text-cs-green mb-2"> nailed it</h4>
-                    <ul className="space-y-1 text-sm text-cs-text-dim">
-                      {review.improvements.map((s, i) => <li key={i}>• {s}</li>)}
-                    </ul>
-                  </>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-cs-text-muted italic">
-                No review yet. Write some code and hit “Run review”.
-              </p>
-            )}
-          </div>
         )}
       </div>
 

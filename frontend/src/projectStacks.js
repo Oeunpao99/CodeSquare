@@ -22,7 +22,7 @@ export const STACK_META = {
   python: { mode: 'python', ext: 'py', file: 'main.py' },
   javascript: { mode: 'javascript', ext: 'js', file: 'main.js' },
   html: { mode: 'html', ext: 'html', file: 'index.html' },
-  react: { mode: 'javascript', ext: 'jsx', file: 'App.jsx' },
+  react: { mode: 'react', ext: 'jsx', file: 'App.jsx' },
   bash: { mode: 'python', ext: 'sh', file: 'script.sh' },
 };
 

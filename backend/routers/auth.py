@@ -13,6 +13,7 @@ import re
 import bcrypt
 from database import get_db
 from models.models import User
+from common.avatars import avatar_url as default_avatar, STYLES as AVATAR_STYLES
 import os
 from dotenv import load_dotenv
 
@@ -65,6 +66,7 @@ class UserResponse(BaseModel):
     website_url: Optional[str] = None
     linkedin_url: Optional[str] = None
     major: Optional[str] = None
+    avatar_style: Optional[str] = None
     plan: Optional[str] = "free"
     plan_expires_at: Optional[datetime] = None
     onboarded_at: Optional[datetime] = Field(default=None, exclude=True)
@@ -73,8 +75,13 @@ class UserResponse(BaseModel):
     @computed_field
     @property
     def avatar(self) -> Optional[str]:
-        """Uploaded image wins over an OAuth picture URL."""
-        return self.avatar_data or self.avatar_url
+        """Uploaded image, else OAuth picture, else the illustrated default."""
+        return self.avatar_data or self.avatar_url or default_avatar(self.avatar_style, self.id)
+
+    @computed_field
+    @property
+    def has_photo(self) -> bool:
+        return bool(self.avatar_data or self.avatar_url)
 
     @computed_field
     @property
@@ -94,6 +101,7 @@ class ProfileUpdate(BaseModel):
     linkedin_url: Optional[str] = Field(default=None, max_length=300)
     # data:image/(png|jpeg|webp|gif);base64,<...>  — send "" to clear.
     avatar_data: Optional[str] = Field(default=None, max_length=400_000)
+    avatar_style: Optional[str] = None   # woman | man | neutral
     complete_onboarding: bool = False
 
 class Token(BaseModel):
@@ -196,13 +204,27 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
         user=UserResponse.model_validate(user)
     )
 
+def _google_client_id() -> str:
+    cid = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
+    return cid if cid.endswith(".apps.googleusercontent.com") and not cid.startswith("your") else ""
+
+
+@router.get("/google/config")
+async def google_config():
+    """Public: the OAuth client id the Google button needs (not a secret)."""
+    cid = _google_client_id()
+    return {"enabled": bool(cid), "client_id": cid or None}
+
+
 @router.post("/google", response_model=Token)
 async def google_auth(auth_data: GoogleAuth, db: AsyncSession = Depends(get_db)):
     try:
         from google.oauth2 import id_token
         from google.auth.transport import requests as google_requests
         
-        client_id = os.getenv("GOOGLE_CLIENT_ID")
+        client_id = _google_client_id()
+        if not client_id:
+            raise HTTPException(status_code=503, detail="Google sign-in isn't set up yet.")
         idinfo = id_token.verify_oauth2_token(
             auth_data.token, 
             google_requests.Request(), 
@@ -211,7 +233,9 @@ async def google_auth(auth_data: GoogleAuth, db: AsyncSession = Depends(get_db))
         
         google_id = idinfo["sub"]
         email = idinfo["email"]
-        username = idinfo.get("name", email.split("@")[0])
+        if not idinfo.get("email_verified"):
+            raise HTTPException(status_code=400, detail="Your Google email isn't verified.")
+        full_name = (idinfo.get("name") or "").strip()
         avatar_url = idinfo.get("picture")
         
         result = await db.execute(select(User).where(User.google_id == google_id))
@@ -223,11 +247,12 @@ async def google_auth(auth_data: GoogleAuth, db: AsyncSession = Depends(get_db))
             
             if user:
                 user.google_id = google_id
-                user.avatar_url = avatar_url
+                user.avatar_url = user.avatar_url or avatar_url
             else:
                 user = User(
                     email=email,
-                    username=username,
+                    username=await _free_username(db, full_name.replace(" ", "_") or email.split("@")[0]),
+                    display_name=full_name or None,
                     google_id=google_id,
                     avatar_url=avatar_url,
                     hashed_password=get_password_hash(os.urandom(32).hex())
@@ -309,6 +334,9 @@ async def update_profile(
     if "avatar_data" in data:
         av = (data["avatar_data"] or "").strip()
         current_user.avatar_data = _validate_avatar(av) if av else None
+
+    if "avatar_style" in data:
+        current_user.avatar_style = data["avatar_style"] if data["avatar_style"] in AVATAR_STYLES else None
 
     for field in ("display_name", "headline", "bio"):
         if field in data:
