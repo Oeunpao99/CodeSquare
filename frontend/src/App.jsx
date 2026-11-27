@@ -1,4 +1,5 @@
 import React from 'react';
+import BrandLoader from './components/BrandLoader';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
@@ -59,10 +60,7 @@ function ProtectedRoute({ children }) {
   
   if (loading) {
     return (
-      <div className="loading-screen">
-        <div className="loader"></div>
-        <p>Loading CodeSphere...</p>
-      </div>
+      <BrandLoader label="Loading CodeSquare" />
     );
   }
   

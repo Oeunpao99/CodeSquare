@@ -3,19 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Installable app (PWA): opens full-screen from the home screen, no address bar -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0b0b0e" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CodeSquare" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <!-- The Content-Security-Policy is served as a real HTTP header by
          frontend/nginx.conf (a <meta> CSP would also break the Vite dev
          server's HMR). -->
 
-    <title>codesquare · Learn to code, the practical way</title>
+    <title>CodeSquare · Learn to code, the practical way</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="root"></div>
+    <!-- First-paint splash (React replaces it on mount). Same drawing as BrandLoader.jsx. -->
+    <div id="root">
+      <div id="cs-splash" style="position:fixed;inset:0;display:grid;place-items:center;background:#0b0b0e">
+        <div style="display:flex;align-items:center;gap:16px">
+        <svg viewBox="0 0 120 120" width="104" height="104" aria-label="Loading CodeSquare" role="img">
+          <defs>
+            <linearGradient id="cs-splash-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#22d3ee" /><stop offset=".5" stop-color="#3b82f6" /><stop offset="1" stop-color="#8b5cf6" />
+            </linearGradient>
+          </defs>
+          <path d="M96 40 L60 18 L24 40 L24 80 L60 102 L96 80" fill="none" stroke="rgba(150,150,160,.22)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+          <path class="cs-splash-draw" d="M96 40 L60 18 L24 40 L24 80 L60 102 L96 80" pathLength="100" fill="none" stroke="url(#cs-splash-grad)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+          <path class="cs-splash-mark" d="M51 52 L43 60 L51 68 M69 52 L77 60 L69 68 M63 49 L57 71" fill="none" stroke="#60a5fa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="cs-splash-word">CodeSquare</span>
+        </div>
+      </div>
+      <style>
+        .cs-splash-word { font: 700 48px/1 Inter, 'Segoe UI', system-ui, sans-serif; letter-spacing: -0.02em; background: linear-gradient(90deg,#3b82f6,#8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent; animation: cs-splash-word 3s ease-in-out infinite; }
+        @keyframes cs-splash-word { 0%,100% { opacity: .75 } 50% { opacity: 1 } }
+        .cs-splash-draw { stroke-dasharray: 100; stroke-dashoffset: 100; animation: cs-splash 3s cubic-bezier(.65,0,.35,1) infinite; filter: drop-shadow(0 0 6px rgba(99,102,241,.55)); }
+        .cs-splash-mark { animation: cs-splash-mark 3s ease-in-out infinite; }
+        @keyframes cs-splash { 0% { stroke-dashoffset: 100 } 70% { stroke-dashoffset: 0 } 100% { stroke-dashoffset: 0 } }
+        @keyframes cs-splash-mark { 0%,100% { opacity: .35 } 50% { opacity: 1 } }
+        @media (prefers-color-scheme: light) { #cs-splash { background: #f7f7f8 !important } }
+        @media (prefers-reduced-motion: reduce) { .cs-splash-draw { animation: none; stroke-dashoffset: 0 } .cs-splash-mark { animation: none } }
+      </style>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

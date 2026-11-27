@@ -14,7 +14,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   FiSun, FiMoon, FiGrid, FiSearch, FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
   FiUser, FiSettings, FiLayers, FiCircle, FiActivity, FiChevronRight, FiChevronUp,
-  FiChevronsLeft, FiChevronsRight, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
+  FiChevronsLeft, FiChevronsRight, FiArrowLeft, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
   FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers, FiMessageSquare, FiMail,
 } from 'react-icons/fi';
 import MajorIcon from './MajorIcon';
@@ -133,6 +133,43 @@ function crumbsFor(pathname) {
   if (seg[0] === 'practice' && seg[1] === 'c') return [['Practice', '/practice'], ['Coding challenges', '/practice'], ['Challenge']];
   if (seg[0] === 'quizzes' && seg[1]) return [['Practice', '/practice'], ['Quizzes', '/quizzes'], ['Quiz']];
   return [[pretty(seg[0] || 'Home')]];
+}
+
+// Phone top bar: logo on section home pages; on deeper pages a back arrow +
+// the page's name (an installed app has no browser back button).
+function MobileTitle({ pathname }) {
+  const navigate = useNavigate();
+  const [, bump] = useState(0);
+  useEffect(() => onCrumbNames(() => bump((n) => n + 1)), []);
+  const seg = pathname.split('/').filter(Boolean);
+  if (seg.length < 2) {
+    return (
+      <Link to="/dashboard" className="flex items-center gap-2 min-w-0">
+        <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
+        <span className="text-lg font-bold text-cs-primary">CodeSquare</span>
+      </Link>
+    );
+  }
+  const crumbs = crumbsFor(pathname);
+  const title = crumbs[crumbs.length - 1]?.[0] || 'Back';
+  const parent = [...crumbs.slice(0, -1)].reverse().find(([, to]) => to)?.[1] || '/dashboard';
+  const back = () => {
+    // React Router keeps an index in history.state; 0 means this is the first page of the visit.
+    if ((window.history.state?.idx ?? 0) > 0) navigate(-1);
+    else navigate(parent);
+  };
+  return (
+    <div className="flex items-center gap-1.5 min-w-0">
+      <button type="button" onClick={back} aria-label="Back"
+        className="w-9 h-9 -ml-1.5 shrink-0 grid place-items-center rounded-full text-cs-text hover:bg-cs-overlay/[0.06]">
+        <FiArrowLeft className="text-xl" />
+      </button>
+      <Link to="/dashboard" className="shrink-0" aria-label="CodeSquare home">
+        <img src="/logo.png" alt="" className="h-7 w-auto object-contain" />
+      </Link>
+      <span className="font-semibold truncate">{title}</span>
+    </div>
+  );
 }
 
 function Breadcrumb({ pathname }) {
@@ -496,6 +533,7 @@ function AppLayout() {
   }, [contentKey]);
 
   const close = () => setOpen(false);
+  useEffect(() => { setOpen(false); }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleNavGroup = (id) => {
     setNavGroups((g) => {
@@ -688,9 +726,9 @@ function AppLayout() {
               alt="CodeSquare"
               className="h-10 w-auto object-contain shrink-0"
             />
-            {/* Neutral wordmark: calm grey, follows light/dark theme */}
-            <span className="text-2xl font-bold tracking-tight leading-none text-cs-text-dim whitespace-nowrap">
-              codesquare
+            {/* Brand wordmark in the primary colour */}
+            <span className="text-2xl font-bold tracking-tight leading-none text-cs-primary whitespace-nowrap">
+              CodeSquare
             </span>
           </div>
           <button
@@ -796,7 +834,7 @@ function AppLayout() {
   };
 
   return (
-    <div className={`bg-cs-dark ${isMessages ? 'flex h-dvh flex-col' : 'min-h-screen'}`}>
+    <div className={`bg-cs-dark pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 ${isMessages ? 'flex h-dvh flex-col' : 'min-h-screen'}`}>
       {/* Desktop notification bell — pinned top-right, vertically centered in an
           h-14 strip anchored at top-0 so it sits within the top band that pages'
           sticky headers keep clear on the right (the few pages with a top-right
@@ -814,11 +852,8 @@ function AppLayout() {
       {/* Mobile top bar */}
       <header className="sticky top-0 z-40 shrink-0 lg:hidden bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10">
         <div className="px-4 py-3 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
-            <span className="text-lg font-bold text-cs-text">codesquare</span>
-          </Link>
-          <div className="flex items-center gap-2">
+          <MobileTitle pathname={location.pathname} />
+          <div className="flex items-center gap-2 shrink-0">
             <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
           <LangToggle lang={lang} setLang={setLang} languages={languages} />
             <NotificationBell />
@@ -829,13 +864,6 @@ function AppLayout() {
               onOpenActivity={() => openPopup('activity')}
               onInstructor={() => setApplyOpen(true)}
             />
-            <button
-              onClick={() => setOpen(true)}
-              className="p-2 rounded-lg border border-cs-line/10 text-cs-text-dim hover:text-cs-primary transition-colors"
-              aria-label="Open menu"
-            >
-              <FiMenu className="text-xl" />
-            </button>
           </div>
         </div>
       </header>
@@ -851,24 +879,59 @@ function AppLayout() {
 
       {/* Mobile drawer overlay */}
       {open && (
-        <div className="fixed inset-0 z-50 lg:hidden bg-black/60" onClick={close} aria-hidden="true"></div>
+        <div className="fixed inset-0 z-[60] lg:hidden bg-black/60" onClick={close} aria-hidden="true"></div>
       )}
 
-      {/* Mobile drawer */}
+      {/* Mobile menu: a sheet that slides up from the bottom bar */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 w-80 bg-cs-dark/80 backdrop-blur-2xl border-r border-cs-line/10 z-50 transition-transform duration-300 lg:hidden ${
-          open ? 'translate-x-0' : '-translate-x-full'
+        aria-hidden={!open}
+        className={`fixed left-0 right-0 bottom-0 z-[65] lg:hidden max-h-[85dvh] flex flex-col rounded-t-3xl overflow-hidden bg-cs-dark border-t border-cs-line/10 shadow-[0_-12px_40px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out pb-[env(safe-area-inset-bottom)] ${
+          open ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <button
-          onClick={close}
-          className="absolute top-4 right-4 p-2 rounded-lg text-cs-text-dim hover:text-cs-primary transition-colors"
-          aria-label="Close menu"
-        >
-          <FiX className="text-xl" />
-        </button>
-        {sidebarContent}
+        <div className="relative shrink-0 h-11 grid place-items-center border-b border-cs-line/10">
+          <span className="w-10 h-1.5 rounded-full bg-cs-overlay/25" aria-hidden />
+          <button
+            onClick={close}
+            className="absolute top-1/2 -translate-y-1/2 right-3 w-9 h-9 grid place-items-center rounded-full bg-cs-overlay/[0.06] text-cs-text-dim hover:text-cs-primary transition-colors"
+            aria-label="Close menu"
+          >
+            <FiX className="text-lg" />
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{sidebarContent}</div>
       </aside>
+
+      {/* Mobile bottom tab bar */}
+      <nav
+        aria-label="Main"
+        className="fixed left-0 right-0 bottom-0 z-[45] lg:hidden bg-cs-dark/95 backdrop-blur-xl border-t border-cs-line/10 pb-[env(safe-area-inset-bottom)]"
+      >
+        <div className="grid grid-cols-5 h-16">
+          {[
+            { to: '/dashboard', label: t('nav.learn'), icon: FiBook, match: ['/dashboard', '/learn', '/roadmap', '/library', '/classes'] },
+            { to: '/practice', label: t('nav.practice'), icon: FiZap, match: ['/practice', '/quizzes', '/tutor'] },
+            { to: '/projects', label: t('nav.projects'), icon: FiCode, match: ['/projects', '/portfolio', '/notes'] },
+            { to: '/community', label: t('nav.community'), icon: FiMessageSquare, match: ['/community', '/devs', '/messages', '/leaderboard', '/u/'] },
+          ].map((it) => {
+            const active = !open && it.match.some((m) => location.pathname.startsWith(m));
+            return (
+              <Link key={it.to} to={it.to}
+                className={`relative flex flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium transition-colors ${active ? 'text-cs-primary' : 'text-cs-text-muted'}`}>
+                {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-cs-primary" />}
+                <it.icon className="text-[1.3rem]" />
+                <span className="truncate max-w-full px-1">{it.label}</span>
+              </Link>
+            );
+          })}
+          <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label="Menu"
+            className={`relative flex flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium transition-colors ${open ? 'text-cs-primary' : 'text-cs-text-muted'}`}>
+            {open && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-cs-primary" />}
+            <FiMenu className="text-[1.3rem]" />
+            <span>Menu</span>
+          </button>
+        </div>
+      </nav>
 
       {/* Main content — cross-fades on tab / section change; the sidebar persists.
           Keyed by the first two path segments so navigating *within* a section

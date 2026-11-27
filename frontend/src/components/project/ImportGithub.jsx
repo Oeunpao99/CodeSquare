@@ -12,6 +12,23 @@ const errText = (e, fallback) => {
   return typeof d === 'string' ? d : d?.message || fallback;
 };
 
+// Small ring + percent shown on the Import button while a repo downloads.
+// The import is one request, so the number is an estimate that eases toward
+// 95% and jumps to 100% when the server answers.
+function ProgressRing({ pct }) {
+  const r = 7; const c = 2 * Math.PI * r;
+  return (
+    <span className="inline-flex items-center gap-1.5 tabular-nums">
+      <svg viewBox="0 0 18 18" className="w-4 h-4 -rotate-90" aria-hidden>
+        <circle cx="9" cy="9" r={r} fill="none" stroke="currentColor" strokeOpacity=".3" strokeWidth="2.5" />
+        <circle cx="9" cy="9" r={r} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} style={{ transition: 'stroke-dashoffset 200ms linear' }} />
+      </svg>
+      {pct}%
+    </span>
+  );
+}
+
 /** "Import from GitHub": connect and pick a repo, or paste a public repo link. */
 export default function ImportGithub({ onClose }) {
   const navigate = useNavigate();
@@ -20,6 +37,17 @@ export default function ImportGithub({ onClose }) {
   const [q, setQ] = useState('');
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(null); // full_name or 'url' being imported
+  const [pct, setPct] = useState(0);
+  useEffect(() => {
+    if (!busy) { setPct(0); return undefined; }
+    const started = Date.now();
+    setPct(1);
+    const t = setInterval(() => {
+      const secs = (Date.now() - started) / 1000;
+      setPct(Math.max(1, Math.min(95, Math.round(95 * (1 - Math.exp(-secs / 6))))));
+    }, 150);
+    return () => clearInterval(t);
+  }, [busy]);
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
@@ -52,15 +80,17 @@ export default function ImportGithub({ onClose }) {
     setBusy(key);
     try {
       const r = await githubService.importRepo(repo);
-      toast.success('Imported', r.data.entry ? `Opened ${r.data.entry} as the project's code.` : 'README and links added.');
+      setPct(100);
+      await new Promise((res) => setTimeout(res, 350)); // let the ring reach 100%
+      toast.success('Imported', `${r.data.files ?? 1} file${r.data.files === 1 ? '' : 's'} from GitHub${r.data.entry ? ` · main file ${r.data.entry}` : ''}`);
       onClose();
-      navigate(`/projects/${r.data.id}`);
+      navigate(`/projects/${r.data.id}?step=build`);
     } catch (e) {
       const d = e?.response?.data?.detail;
       if (e?.response?.status === 409 && d?.project_id) {
         toast.error('Already imported', 'Opening that project.');
         onClose();
-        navigate(`/projects/${d.project_id}`);
+        navigate(`/projects/${d.project_id}?step=build`);
       } else {
         toast.error(errText(e, 'Import failed.'));
       }
@@ -107,11 +137,11 @@ export default function ImportGithub({ onClose }) {
                   </p>
                 </div>
                 {r.imported_project_id ? (
-                  <button onClick={() => { onClose(); navigate(`/projects/${r.imported_project_id}`); }}
+                  <button onClick={() => { onClose(); navigate(`/projects/${r.imported_project_id}?step=build`); }}
                     className="btn btn-ghost btn-sm shrink-0 text-cs-green"><FiCheck /> Imported</button>
                 ) : (
                   <button onClick={() => doImport(r.full_name, r.full_name)} disabled={!!busy} className="btn btn-primary btn-sm shrink-0">
-                    {busy === r.full_name ? 'Importing…' : 'Import'}
+                    {busy === r.full_name ? <ProgressRing pct={pct} /> : 'Import'}
                   </button>
                 )}
               </li>
@@ -139,14 +169,14 @@ export default function ImportGithub({ onClose }) {
       {/* Paste a link (always available) */}
       <div className="mt-6 pt-5 border-t border-cs-line/10">
         <p className="text-sm font-semibold mb-2">{status?.connected ? 'Or import any public repo' : 'Import a public repo by link'}</p>
-        <form onSubmit={(e) => { e.preventDefault(); if (url.trim()) doImport(url.trim(), 'url'); }} className="flex gap-2">
-          <span className="flex-1 flex items-center gap-2 input">
+        <form onSubmit={(e) => { e.preventDefault(); if (url.trim()) doImport(url.trim(), 'url'); }} className="flex flex-col sm:flex-row gap-2">
+          <span className="flex-1 min-w-0 flex items-center gap-2 input">
             <FiGithub className="text-cs-text-muted shrink-0" />
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://github.com/owner/repo"
               className="flex-1 min-w-0 bg-transparent outline-none" />
           </span>
           <button type="submit" disabled={!url.trim() || !!busy} className="btn btn-primary btn-sm disabled:opacity-50">
-            {busy === 'url' ? 'Importing…' : <>Import <FiArrowRight /></>}
+            {busy === 'url' ? <ProgressRing pct={pct} /> : <>Import <FiArrowRight /></>}
           </button>
         </form>
       </div>

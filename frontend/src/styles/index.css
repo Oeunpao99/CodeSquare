@@ -897,3 +897,53 @@
     .road-pop { animation: none; opacity: 1; }
   }
 }
+
+/* Brand loader (components/BrandLoader.jsx + the splash in index.html):
+   grey track, then a gradient stroke that draws round the logo and un-draws. */
+.cs-brand-loader .track,
+.cs-brand-loader .draw {
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cs-brand-loader .track { stroke: rgb(var(--cs-overlay) / 0.14); }
+.cs-brand-loader .draw {
+  stroke: url(#cs-brand-grad);
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: cs-brand-draw 3s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.cs-brand-loader .mark {
+  fill: none;
+  stroke: #60a5fa;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: cs-brand-mark 3s ease-in-out infinite;
+}
+.cs-brand-word {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: cs-brand-word 3s ease-in-out infinite;
+}
+@keyframes cs-brand-word {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+@keyframes cs-brand-draw {
+  0% { stroke-dashoffset: 100; }
+  50% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -100; }
+}
+@keyframes cs-brand-mark {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-brand-loader .draw { animation: none; stroke-dashoffset: 0; }
+  .cs-brand-loader .mark { animation: none; opacity: 1; }
+  .cs-brand-word { animation: none; opacity: 1; }
+}

@@ -20,7 +20,7 @@ export default function Dialog({ title, onClose, children, footer, wide = false,
         initial={side && !reducedMotion ? { x: '100%' } : false}
         animate={side ? { x: 0 } : undefined}
         transition={{ duration: 0.22, ease: 'easeOut' }}
-        className={`flex w-full flex-col bg-cs-dark shadow-2xl ${side
+        className={`flex w-full min-w-0 flex-col bg-cs-dark shadow-2xl ${side
           ? 'h-dvh border-l border-cs-line/10 sm:w-80 lg:w-[30vw]'
           : `${wide ? 'max-w-3xl' : 'max-w-xl'} max-h-[90vh] rounded-2xl border border-cs-line/10`}`}
         onMouseDown={(e) => e.stopPropagation()}
@@ -29,7 +29,7 @@ export default function Dialog({ title, onClose, children, footer, wide = false,
           <h2 className="text-lg font-bold">{title}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-cs-text-dim hover:text-cs-text" aria-label="Close"><FiX /></button>
         </div>
-        <div className={`overflow-y-auto px-6 py-5 ${side ? 'min-h-0 flex-1' : ''}`}>{children}</div>
+        <div className={`overflow-y-auto overflow-x-hidden min-w-0 px-4 sm:px-6 py-5 ${side ? 'min-h-0 flex-1' : ''}`}>{children}</div>
         {footer && <div className="flex justify-end gap-2 px-6 py-4 border-t border-cs-line/10">{footer}</div>}
       </motion.div>
     </div>,

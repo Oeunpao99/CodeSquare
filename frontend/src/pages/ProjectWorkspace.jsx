@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck, FiX, FiArrowRight, FiCode, FiTerminal, FiZap,
+  FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck, FiX, FiArrowRight, FiCode, FiTerminal, FiZap, FiFolder,
 } from 'react-icons/fi';
 import SelectMenu from '../components/SelectMenu';
 import { toast } from '../utils/toast';
@@ -181,6 +181,7 @@ function ProjectWorkspace() {
   const [entry, setEntry] = useState('');
   const [active, setActive] = useState('');
   const [pendingFileDelete, setPendingFileDelete] = useState(null);
+  const [filesOpen, setFilesOpen] = useState(false);
   const code = files.find((f) => f.path === entry)?.content ?? '';
   const activeContent = files.find((f) => f.path === active)?.content ?? '';
   const setActiveContent = (v) => setFiles((fs) => fs.map((f) => (f.path === active ? { ...f, content: v } : f)));
@@ -218,7 +219,12 @@ function ProjectWorkspace() {
         setShip(p.ship || null);
         // open the first unfinished step
         const st = stageState({ brief: p.brief, code: p.code, tasks: p.tasks || [], review: p.ai_review, ship: p.ship, status: p.status });
-        setStep((STAGES.find((x) => !st[x.id]) || STAGES[1]).id);
+        // ?step=build (e.g. right after a GitHub import) or a multi-file project opens on its files;
+        // otherwise open the first unfinished step.
+        const wanted = new URLSearchParams(window.location.search).get('step');
+        if (STAGES.some((x) => x.id === wanted)) setStep(wanted);
+        else if ((p.files || []).length > 1) setStep('build');
+        else setStep((STAGES.find((x) => !st[x.id]) || STAGES[1]).id);
         setTimeout(() => { loadedRef.current = true; }, 0);
       })
       .catch((err) => {
@@ -469,12 +475,13 @@ function ProjectWorkspace() {
                   ))}
                 </span>
                 {active === entry && <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-cs-orange">main</span>}
-                {/* phones: file picker instead of the explorer */}
-                <select value={active} onChange={(e) => setActive(e.target.value)} className="lg:hidden ml-2 max-w-[10rem] bg-transparent text-xs border border-cs-line/15 rounded px-1">
-                  {files.map((f) => <option key={f.path} value={f.path}>{f.path}</option>)}
-                </select>
-                <button onClick={runReview} disabled={reviewing} className="btn btn-ghost btn-sm ml-auto" title="AI review of this file">
-                  <FiPlay /> {reviewing ? 'Reviewing…' : 'AI review'}
+                {/* phones: the explorer opens as a bottom sheet */}
+                <button type="button" onClick={() => setFilesOpen(true)}
+                  className="lg:hidden ml-1 shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-cs-line/15 text-xs text-cs-text-dim">
+                  <FiFolder /> Files <span className="text-cs-text-muted">{files.length}</span>
+                </button>
+                <button onClick={runReview} disabled={reviewing} className="btn btn-ghost btn-sm ml-auto shrink-0 whitespace-nowrap" title="AI review of this file" aria-label="AI review of this file">
+                  <FiPlay /> <span className="hidden sm:inline">{reviewing ? 'Reviewing…' : 'AI review'}</span>
                 </button>
               </div>
               <div className="flex-1 min-h-0">
@@ -547,6 +554,32 @@ function ProjectWorkspace() {
           />
         )}
       </div>
+
+      {/* Phone file explorer (bottom sheet) */}
+      {filesOpen && (
+        <div className="fixed inset-0 z-[70] lg:hidden" role="dialog" aria-label="Files">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setFilesOpen(false)} />
+          <div className="absolute left-0 right-0 bottom-0 max-h-[80dvh] flex flex-col rounded-t-3xl bg-cs-dark border-t border-cs-line/10 overflow-hidden pb-[env(safe-area-inset-bottom)] animate-tab-in">
+            <div className="relative h-10 shrink-0 grid place-items-center">
+              <span className="w-10 h-1.5 rounded-full bg-cs-overlay/25" />
+              <button type="button" onClick={() => setFilesOpen(false)} aria-label="Close files"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center rounded-full bg-cs-overlay/[0.06] text-cs-text-dim"><FiX /></button>
+            </div>
+            <div className="min-h-0 flex-1">
+              <FileExplorer
+                files={files}
+                active={active}
+                entry={entry}
+                onOpen={(p) => { setActive(p); setFilesOpen(false); }}
+                onCreate={(p) => { createFile(p); setFilesOpen(false); }}
+                onRename={renameFile}
+                onDelete={(p) => setPendingFileDelete(p)}
+                onSetEntry={(p) => { setEntry(p); toast.success('Main file set', p); }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {pendingFileDelete && (
         <ConfirmDialog

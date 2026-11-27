@@ -195,7 +195,7 @@ function Auth() {
     <div className="flex flex-col items-center justify-center px-6 py-5">
       <Link to="/" className="flex items-center gap-3 mb-6">
         <img src="/logo.png" alt="" className="h-12 w-auto object-contain" />
-        <span className="text-[1.75rem] leading-none font-bold tracking-tight">codesquare</span>
+        <span className="text-[1.75rem] leading-none font-bold tracking-tight text-cs-primary">CodeSquare</span>
       </Link>
 
       <div className="w-full max-w-[26rem] rounded-2xl border border-cs-line/10 bg-cs-dark overflow-hidden shadow-sm">

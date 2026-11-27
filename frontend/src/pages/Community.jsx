@@ -440,7 +440,12 @@ function Community() {
       });
       setHasMore(r.data.has_more);
       offsetRef.current += r.data.posts.length;
-      setPosts((prev) => (reset || !prev ? r.data.posts : [...prev, ...r.data.posts]));
+      // Merge pages without duplicates (a new post can shift the next page by one).
+      setPosts((prev) => {
+        if (reset || !prev) return r.data.posts;
+        const seen = new Set(prev.map((x) => x.id));
+        return [...prev, ...r.data.posts.filter((x) => !seen.has(x.id))];
+      });
     } catch {
       setPosts((prev) => prev || false);
       toast.error('Could not load the feed.');
@@ -476,7 +481,7 @@ function Community() {
     setLoadingMore(false);
   };
 
-  const prepend = (p) => setPosts((prev) => [p, ...(prev || [])]);
+  const prepend = (p) => setPosts((prev) => [p, ...(prev || []).filter((x) => x.id !== p.id)]);
   const drop = (id) => setPosts((prev) => (prev || []).filter((x) => x.id !== id));
 
   const onPost = (p) => {

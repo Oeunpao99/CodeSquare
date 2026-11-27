@@ -29,7 +29,7 @@ function Shell({ title, other, children }) {
         <div className="flex items-center justify-between gap-4 mb-8">
           <Link to="/" className="flex items-center gap-2">
             <img src="/logo.png" alt="" className="h-8 w-auto object-contain" />
-            <span className="text-lg font-bold">codesquare</span>
+            <span className="text-lg font-bold text-cs-primary">CodeSquare</span>
           </Link>
           <Link to="/auth" className="text-sm text-cs-text-dim hover:text-cs-text inline-flex items-center gap-1.5">
             <FiArrowLeft /> Back to sign in

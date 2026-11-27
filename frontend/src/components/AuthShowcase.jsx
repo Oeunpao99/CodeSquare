@@ -151,7 +151,7 @@ export default function AuthShowcase() {
         </div>
         <div className="mt-10 flex items-end justify-between">
           <div>
-            <p className="text-lg font-medium">codesquare</p>
+            <p className="text-lg font-semibold">CodeSquare</p>
             <p className="text-sm text-white/60">Learn to code, the practical way</p>
           </div>
           <div className="flex items-center gap-2" role="tablist" aria-label="Highlights">

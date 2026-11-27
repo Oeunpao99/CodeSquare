@@ -241,10 +241,10 @@ function ProjectsList() {
       <section className="text-center pt-2 pb-7">
         <h1 className="text-3xl md:text-4xl font-semibold">Your projects</h1>
         <p className="mt-2 text-cs-text-dim">Plan, build and ship projects you can show employers.</p>
-        <div className="mt-5 flex items-center justify-center gap-2">
-          <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm"><FiPlus /> New project</button>
-          <button onClick={() => setShowImport(true)} className="btn btn-ghost btn-sm"><FiGithub /> Import from GitHub</button>
-          <Link to="/projects/generate" className="btn btn-ghost btn-sm"><FiZap /> Generate with AI</Link>
+        <div className="mt-5 flex items-center justify-center gap-2 [&>*]:whitespace-nowrap">
+          <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm" aria-label="New project"><FiPlus /> New<span className="hidden sm:inline">&nbsp;project</span></button>
+          <button onClick={() => setShowImport(true)} className="btn btn-ghost btn-sm" aria-label="Import from GitHub"><FiGithub /> Import<span className="hidden sm:inline">&nbsp;from GitHub</span></button>
+          <Link to="/projects/generate" className="btn btn-ghost btn-sm" aria-label="Generate with AI"><FiZap /> <span className="sm:hidden">AI</span><span className="hidden sm:inline">Generate with AI</span></Link>
         </div>
       </section>
 
@@ -258,7 +258,7 @@ function ProjectsList() {
             : <FiSearch className="text-cs-text-muted text-lg" />}
         </label>
         <SelectMenu value={sort} onChange={setSort} align="right" ariaLabel="Sort projects"
-          buttonClassName="h-11 px-4 text-[0.9375rem] min-w-[11rem] bg-cs-overlay/[0.02]"
+          buttonClassName="h-11 px-3 sm:px-4 text-[0.9375rem] sm:min-w-[11rem] bg-cs-overlay/[0.02]"
           options={[
             { value: 'recent', label: 'Recently updated' },
             { value: 'progress', label: 'Most progress' },
@@ -267,7 +267,7 @@ function ProjectsList() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-5 flex flex-wrap gap-x-8 border-b border-cs-line/10">
+      <div className="mt-5 flex gap-x-6 sm:gap-x-8 border-b border-cs-line/10 overflow-x-auto [&>*]:whitespace-nowrap">
         {TABS.map(([k, label]) => (
           <button key={k} onClick={() => setFilter(k)}
             className={`relative h-11 px-0.5 text-[0.9375rem] transition-colors ${filter === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
