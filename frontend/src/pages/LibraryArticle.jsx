@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useCrumbNames } from '../utils/crumbs';
 import { Link, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiArrowRight, FiCheck, FiCheckCircle, FiClock, FiPlay, FiHelpCircle, FiBookmark } from 'react-icons/fi';
+import { FiArrowLeft, FiArrowRight, FiCheck, FiCheckCircle, FiClock, FiPlay, FiBookmark } from 'react-icons/fi';
 import { docService } from '../services/api';
 import { toast } from '../utils/toast';
 import { MAJORS } from '../majors';
@@ -97,6 +98,7 @@ function runMiniPython(src) {
 function LibraryArticle() {
   const { collection, topic } = useParams();
   const [data, setData] = useState(null);
+  useCrumbNames(data ? { [data.collection_slug]: data.collection_title, [data.slug]: data.title } : null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [toc, setToc] = useState([]);
@@ -277,29 +279,14 @@ function LibraryArticle() {
         style={{ width: `${progress}%` }}
       />
 
-      {/* locked breadcrumb header */}
-      <div className="hidden lg:block sticky top-[3.75rem] lg:top-14 z-30 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/10 px-6 lg:px-10">
-        <nav className="flex items-center gap-2 h-12 text-xs text-cs-text-muted whitespace-nowrap overflow-hidden">
-          <Link to="/library" className="hover:text-cs-text shrink-0">Library</Link>
-          <span className="text-cs-line/20 shrink-0">/</span>
-          <Link
-            to={`/library/${data.collection_slug}`}
-            className="hover:text-cs-text shrink-0"
-          >
-            {data.collection_title}
-          </Link>
-          <span className="text-cs-line/20 shrink-0">/</span>
-          <span className="text-cs-text-dim truncate">{data.title}</span>
-        </nav>
-      </div>
 
       <div
-        className={`px-6 lg:px-10 pt-8 grid lg:grid-cols-[14rem_minmax(0,52rem)_13rem] 2xl:grid-cols-[15rem_minmax(0,52rem)_14rem] gap-x-10 gap-y-8 items-start transition-opacity duration-150 ${
+        className={`px-6 lg:px-10 pt-8 grid lg:grid-cols-[14rem_minmax(0,56rem)] 2xl:grid-cols-[15rem_minmax(0,60rem)] gap-x-10 gap-y-8 items-start transition-opacity duration-150 ${
           loading ? 'opacity-50' : 'opacity-100'
         }`}
       >
         {/* ---------- chapter nav ---------- */}
-        <aside className="hidden lg:block sticky top-36 self-start max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 text-sm">
+        <aside className="hidden lg:block sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto pr-1 text-sm">
           <div className="flex items-center gap-2.5 px-2 mb-5">
             <span className="w-7 h-7 rounded-lg bg-cs-primary/10 flex items-center justify-center text-base shrink-0">
               <CollectionLogo slug={data.collection_slug} fallback={data.collection_title.slice(0, 2)} />
@@ -559,33 +546,6 @@ function LibraryArticle() {
           </div>
         </article>
 
-        {/* ---------- on this page ---------- */}
-        <aside className="hidden lg:block sticky top-36 self-start max-h-[calc(100vh-7rem)] overflow-y-auto">
-          <p className="text-[0.625rem] tracking-wider text-cs-text-muted mb-3">
-            ON THIS PAGE
-          </p>
-          <ul>
-            {toc.map((h) => (
-              <li key={h.id}>
-                <a
-                  href={`#${h.id}`}
-                  className={`block py-1.5 text-[0.8125rem] leading-snug border-l transition-colors ${
-                    h.level === 2 ? 'pl-6' : 'pl-3'
-                  } ${
-                    activeId === h.id
-                      ? 'border-cs-primary text-cs-primary'
-                      : 'border-cs-line/10 text-cs-text-dim hover:text-cs-text'
-                  }`}
-                >
-                  {h.text}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-6 text-[0.8125rem] text-cs-text-dim inline-flex items-center gap-2">
-            <FiHelpCircle /> Stuck? Open the <span className="text-cs-primary">AI Tutor</span> tab on the right.
-          </p>
-        </aside>
       </div>
 
       {/* Ask the CodeSquareAgent about this article without leaving the page. */}

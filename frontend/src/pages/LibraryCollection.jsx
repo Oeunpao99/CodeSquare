@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useCrumbNames } from '../utils/crumbs';
 import { Link, useParams } from 'react-router-dom';
 import { FiChevronRight, FiPlay, FiCheck, FiBookOpen, FiArrowRight, FiStar, FiUsers, FiCheckCircle } from 'react-icons/fi';
 import { docService } from '../services/api';
@@ -95,6 +96,7 @@ function Rung({ node, ring, last, id, children }) {
 function LibraryCollection() {
   const { collection: slug } = useParams();
   const [data, setData] = useState(null);
+  useCrumbNames(data ? { [data.slug]: data.title } : null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [rating, setRating] = useState(null); // { avg, count, mine }
@@ -299,13 +301,24 @@ function LibraryCollection() {
                         to={`/library/${data.slug}/${t.slug}`}
                         className="group flex flex-col rounded-xl border border-cs-line/10 bg-cs-darker/30 px-4 py-3.5 hover:border-cs-primary/40 transition-colors overflow-hidden text-cs-text"
                       >
-                        <LibraryThumb
-                          path={`${data.slug}/${t.slug}`}
-                          className="-mx-4 -mt-3.5 mb-3 w-[calc(100%+2rem)] max-w-none aspect-[16/9]"
-                        />
+                        <div className="relative -mx-4 -mt-3.5 mb-3">
+                          <LibraryThumb
+                            path={`${data.slug}/${t.slug}`}
+                            className="w-full max-w-none aspect-[3/2]"
+                          />
+                          {(t.completed || t.read) && (
+                            <span className={`absolute top-2.5 right-2.5 inline-flex items-center gap-1 h-6 px-2.5 rounded-full text-[0.6875rem] font-semibold text-white shadow-md ${
+                              t.completed ? 'bg-cs-green' : 'bg-cs-primary'
+                            }`}>
+                              <FiCheck strokeWidth={3} /> {t.completed ? 'Completed' : 'Read'}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="w-5 h-5 rounded-full border border-cs-line/20 grid place-items-center text-[0.625rem] text-cs-text-muted shrink-0">
-                            {t.group_level}
+                          <span className={`w-5 h-5 rounded-full grid place-items-center text-[0.625rem] shrink-0 ${
+                            t.completed || t.read ? 'bg-cs-green text-white' : 'border border-cs-line/20 text-cs-text-muted'
+                          }`}>
+                            {t.completed || t.read ? <FiCheck strokeWidth={3} /> : t.group_level}
                           </span>
                           <span className="font-semibold text-sm group-hover:text-cs-primary transition-colors truncate">
                             {t.title}

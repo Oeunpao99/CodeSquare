@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useCrumbNames } from '../utils/crumbs';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { lessonService } from '../services/api';
 import {
@@ -35,6 +36,7 @@ function LanguageView() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [language, setLanguage] = useState(null);
+  useCrumbNames(language ? { [language.slug]: language.name } : null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

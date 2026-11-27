@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { crumbName, onCrumbNames } from '../utils/crumbs';
 import { NavLink, Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -79,7 +80,7 @@ const SECTION_TABS = [
 ];
 
 // Breadcrumb for the top bar, e.g. "Practice › Coding challenges", "Learn › Power BI › Lesson".
-const pretty = (slug) => decodeURIComponent(slug || '').replace(/[-_]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
+const pretty = (slug) => crumbName(slug) || decodeURIComponent(slug || '').replace(/[-_]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
 const CRUMBS = {
   '/dashboard': [['Learn', '/dashboard'], ['My courses']],
   '/roadmap': [['Learn', '/dashboard'], ['Roadmap']],
@@ -108,7 +109,7 @@ function crumbsFor(pathname) {
   const seg = path.split('/').filter(Boolean);
   if (seg[0] === 'learn' && seg[1]) {
     return seg.length > 2
-      ? [['Learn', '/dashboard'], [pretty(seg[1]), `/learn/${seg[1]}`], ['Lesson']]
+      ? [['Learn', '/dashboard'], [pretty(seg[1]), `/learn/${seg[1]}`], [crumbName(seg[seg.length - 1]) || 'Lesson']]
       : [['Learn', '/dashboard'], [pretty(seg[1])]];
   }
   if (seg[0] === 'library') {
@@ -127,6 +128,8 @@ function crumbsFor(pathname) {
 }
 
 function Breadcrumb({ pathname }) {
+  const [, bump] = useState(0);
+  useEffect(() => onCrumbNames(() => bump((n) => n + 1)), []);
   const crumbs = crumbsFor(pathname);
   return (
     <nav aria-label="Breadcrumb" className="flex items-center gap-2 min-w-0 text-[0.9375rem]">
