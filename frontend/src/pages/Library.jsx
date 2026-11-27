@@ -162,7 +162,7 @@ function Library() {
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky header — the whole thing (title, description, search and category
           filters) stays locked while the collections scroll beneath it. */}
-      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
 
         {/* Search (left) + category tabs (right) on one row to save header height. */}
         <div className="flex flex-col lg:flex-row lg:items-center gap-3">

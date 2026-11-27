@@ -352,7 +352,7 @@ function ProjectWorkspace() {
   return (
     <main className="w-full pb-10">
       {/* Header: title + actions, then the four steps as the only navigation */}
-      <div className="sticky top-[3.75rem] lg:top-14 z-30 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/10 px-6 lg:px-10 pt-5">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-14 z-30 bg-cs-dark/90 backdrop-blur-xl border-b border-cs-line/10 px-6 lg:px-10 pt-5">
         <div className="flex items-center gap-3 flex-wrap">
           <LangLogo name={project.language} className="text-2xl shrink-0" />
           <input

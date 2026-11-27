@@ -514,7 +514,7 @@ function Community() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Pinned banner: title + type tabs, search and sort stay put while the feed scrolls */}
-      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 -mt-8 pt-6 pb-4 mb-2 bg-cs-dark">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 -mt-8 pt-6 pb-4 mb-2 bg-cs-dark">
         <CommunityBanner
           title="Community"
           subtitle="See what other learners are building, and share your own."

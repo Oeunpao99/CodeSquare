@@ -850,12 +850,11 @@ function AppLayout() {
       )}
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 shrink-0 lg:hidden bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10">
-        <div className="px-4 py-3 flex items-center justify-between">
+      {/* pt = iPhone status bar / notch when installed as an app (viewport-fit=cover) */}
+      <header className="sticky top-0 z-40 shrink-0 lg:hidden bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10 pt-[env(safe-area-inset-top)]">
+        <div className="px-4 py-2.5 flex items-center justify-between gap-3">
           <MobileTitle pathname={location.pathname} />
           <div className="flex items-center gap-2 shrink-0">
-            <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
-          <LangToggle lang={lang} setLang={setLang} languages={languages} />
             <NotificationBell />
             <AccountMenu
               user={user}
@@ -899,7 +898,17 @@ function AppLayout() {
             <FiX className="text-lg" />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{sidebarContent}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {/* theme + language live here on phones (the top bar keeps just bell + avatar) */}
+          <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-cs-line/10">
+            <span className="text-sm text-cs-text-dim">Appearance</span>
+            <div className="flex items-center gap-2">
+              <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
+              <LangToggle lang={lang} setLang={setLang} languages={languages} />
+            </div>
+          </div>
+          {sidebarContent}
+        </div>
       </aside>
 
       {/* Mobile bottom tab bar */}
@@ -959,7 +968,7 @@ function AppLayout() {
         <SectionTabs pathname={location.pathname} />
         <div
           key={contentKey}
-          className={`animate-route-fade ${isMessages ? 'flex min-h-0 flex-1' : 'min-h-[calc(100vh-3.75rem)] lg:min-h-[calc(100vh-3.5rem)]'}`}
+          className={`animate-route-fade ${isMessages ? 'flex min-h-0 flex-1' : 'min-h-[calc(100dvh-7.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] lg:min-h-[calc(100vh-3.5rem)]'}`}
         >
           <Outlet />
         </div>

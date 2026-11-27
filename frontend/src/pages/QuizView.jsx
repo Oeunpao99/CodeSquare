@@ -149,7 +149,7 @@ function QuizView() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Full-bleed sticky header */}
-      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
         {quiz.class_id && (
           <Link to={backTo} className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary mb-3">
             <FiArrowLeft /> {quiz.class_title}

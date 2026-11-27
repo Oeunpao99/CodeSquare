@@ -207,7 +207,7 @@ export default function UserProfile() {
   return (
     <main className="w-full px-6 lg:px-10 py-8">
       {/* Sticky profile header */}
-      <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
 
         {/* Hero */}
         <div className="flex flex-wrap items-start gap-5 sm:flex-nowrap">

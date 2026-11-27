@@ -236,7 +236,7 @@ function LessonView() {
   );
 
   return (
-    <div className="h-[calc(100vh-3.75rem)] lg:h-[calc(100vh-3.5rem)] bg-cs-dark flex flex-col overflow-hidden">
+    <div className="h-[calc(100dvh-7.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] lg:h-[calc(100vh-3.5rem)] bg-cs-dark flex flex-col overflow-hidden">
       {/* z-30 + right padding: keeps the global theme / language / bell controls visible */}
       <header className="shrink-0 z-30 bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10 px-6 lg:px-8 py-2.5">
         <div className="flex items-center justify-between gap-4">

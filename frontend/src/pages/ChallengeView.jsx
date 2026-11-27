@@ -108,7 +108,7 @@ function ChallengeView() {
       ) : (
         <>
           {/* Page header — locked while the problem + editor scroll beneath it. */}
-          <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
+          <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-4 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className={`badge ${DIFF_BADGE[challenge.difficulty] || 'badge-cyan'}`}>
                 {challenge.difficulty}
