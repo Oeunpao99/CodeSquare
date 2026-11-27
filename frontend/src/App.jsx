@@ -37,6 +37,7 @@ function LegacyPostRedirect() {
   return <Navigate to={`/community/post/${id}`} replace />;
 }
 import UserProfile from './pages/UserProfile';
+import PublicUserProfile from './pages/PublicUserProfile';
 import Usage from './pages/Usage';
 import Practice from './pages/Practice';
 import ChallengeView from './pages/ChallengeView';
@@ -77,6 +78,8 @@ function RequireOnboarded({ children }) {
 
 function AppRoutes() {
   const location = useLocation();
+  const { user, loading } = useAuth();
+  const guestProfile = !loading && !user && /^\/u\/[^/]+\/?$/.test(location.pathname);
 
   // Public pages animate per-path. Everything behind AppLayout shares one key so
   // the shell (sidebar, its active-pill animation, scroll position) is NOT torn
@@ -93,6 +96,7 @@ function AppRoutes() {
         {/* Separate admin console — its own login, outside the learner app shell. */}
         <Route path="/admin-portal/*" element={<AdminPortal />} />
         <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        {guestProfile && <Route path="/u/:username" element={<PublicUserProfile />} />}
         <Route element={<ProtectedRoute><RequireOnboarded><AppLayout /></RequireOnboarded></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/learn/:slug" element={<LanguageView />} />
@@ -103,7 +107,7 @@ function AppRoutes() {
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/usage" element={<Usage />} />
-          <Route path="/u/:username" element={<UserProfile />} />
+          {!guestProfile && <Route path="/u/:username" element={<UserProfile />} />}
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/career" element={<Career />} />

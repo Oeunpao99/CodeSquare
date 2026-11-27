@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiUsers, FiSend, FiX, FiLink, FiAward, FiImage, FiSearch, FiEye, FiMessageSquare, FiPlus, FiChevronDown, FiCheck, FiHash, FiThumbsUp } from 'react-icons/fi';
@@ -21,10 +21,9 @@ const PLACEHOLDER = {
   code: 'Paste a snippet between ``` fences — share something useful.',
 };
 
-function Preview({ kind, body, images, tagList, link }) {
-  const m = KIND_META[kind];
+function Preview({ kind, body, urls, tagList, link }) {
+  const m = KIND_META[kind] ?? KIND_META.idea;
   const Icon = m.icon;
-  const urls = useMemo(() => images.map((f) => URL.createObjectURL(f)), [images]);
   const [viewing, setViewing] = useState(-1);
   return (
     <div className="rounded-xl border border-cs-line/15 bg-cs-darkest/40 p-4">
@@ -107,18 +106,32 @@ async function imageToDataUrl(file) {
   }
 }
 
-export function Composer({ onPosted, sendRef, split = false }) {
-  const [kind, setKind] = useState('idea');
-  const [body, setBody] = useState('');
-  const [tags, setTags] = useState('');
-  const [images, setImages] = useState([]);
-  const [link, setLink] = useState('');
-  const [showLink, setShowLink] = useState(false);
+const EMPTY_IMAGES = [];
+
+export function Composer({ onPosted, sendRef, split = false, post, onCancel }) {
+  const initialImages = post?.images ?? EMPTY_IMAGES;
+  const [kind, setKind] = useState(post?.kind ?? 'idea');
+  const [body, setBody] = useState(post?.body ?? '');
+  const [tags, setTags] = useState(() => (post?.tags ?? []).join(', '));
+  const [images, setImages] = useState(initialImages);
+  const [link, setLink] = useState(post?.link_url ?? '');
+  const [showLink, setShowLink] = useState(Boolean(post?.link_url));
   const [showPreview, setShowPreview] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [posting, setPosting] = useState(false);
   const [viewing, setViewing] = useState(-1);
-  const urls = useMemo(() => images.map((f) => URL.createObjectURL(f)), [images]);
+  const [urls, setUrls] = useState(initialImages);
+  useEffect(() => {
+    const objectUrls = [];
+    const previews = images.map((image) => {
+      if (typeof image === 'string') return image;
+      const url = URL.createObjectURL(image);
+      objectUrls.push(url);
+      return url;
+    });
+    setUrls(previews);
+    return () => objectUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [images]);
   const dragDepth = useRef(0);
   const taRef = useRef(null);
 
@@ -151,19 +164,23 @@ export function Composer({ onPosted, sendRef, split = false }) {
     if (posting || body.trim().length < 2) return;
     setPosting(true);
     try {
-      const imageData = [];
-      for (const f of images) imageData.push(await imageToDataUrl(f));
-      const r = await communityService.createPost({
-        kind,
+      const data = {
         body: body.trim(),
         tags: tagList,
-        images: imageData,
         link_url: link.trim() || null,
-      });
+      };
+      if (!post || kind !== post.kind) data.kind = kind;
+      if (!post || images !== initialImages) {
+        data.images = [];
+        for (const image of images) data.images.push(typeof image === 'string' ? image : await imageToDataUrl(image));
+      }
+      const r = post ? await communityService.updatePost(post.id, data) : await communityService.createPost(data);
       onPosted(r.data);
+      if (post) return;
       setBody(''); setTags(''); setLink(''); setImages([]); setShowLink(false); setShowPreview(false); setKind('idea'); setViewing(-1);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Could not post.');
+      const detail = err.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : post ? 'Could not save the post.' : 'Could not post.');
     } finally {
       setPosting(false);
     }
@@ -171,9 +188,9 @@ export function Composer({ onPosted, sendRef, split = false }) {
 
   const { user } = useAuth();
   const [kindOpen, setKindOpen] = useState(false);
-  const [showTags, setShowTags] = useState(false);
+  const [showTags, setShowTags] = useState(Boolean(post?.tags?.length));
   const fileRef = useRef(null);
-  const km = KIND_META[kind];
+  const km = KIND_META[kind] ?? KIND_META.idea;
   const KindIcon = km.icon;
   const name = user?.display_name || user?.username || 'You';
   const tool = 'inline-flex items-center gap-2 h-9 px-3 rounded-lg text-sm text-cs-text-dim hover:bg-cs-overlay/[0.06] hover:text-cs-text transition-colors';
@@ -225,7 +242,7 @@ export function Composer({ onPosted, sendRef, split = false }) {
       {/* Body */}
       <div className="px-5 pt-3">
         {showPreview ? (
-          <div className="py-2"><Preview kind={kind} body={body} images={images} tagList={tagList} link={link.trim()} /></div>
+          <div className="py-2"><Preview kind={kind} body={body} urls={urls} tagList={tagList} link={link.trim()} /></div>
         ) : (
           <textarea
             ref={taRef}
@@ -318,9 +335,10 @@ export function Composer({ onPosted, sendRef, split = false }) {
 
         <div className="ml-auto flex items-center gap-3 pl-2">
           {body.length > 3500 && <span className="text-xs text-cs-text-muted tabular-nums">{body.length}/4000</span>}
+          {onCancel && <button type="button" onClick={onCancel} disabled={posting} className={tool}>Cancel</button>}
           <button ref={sendRef} type="submit" disabled={posting || body.trim().length < 2}
             className="h-9 px-5 rounded-full bg-cs-primary text-white text-sm font-semibold inline-flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed">
-            {posting ? 'Posting…' : 'Post'}
+            {post ? (posting ? 'Saving…' : 'Save changes') : (posting ? 'Posting…' : 'Post')}
           </button>
         </div>
       </div>

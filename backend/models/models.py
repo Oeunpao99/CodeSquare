@@ -1,6 +1,6 @@
 import secrets
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean, Index, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean, Index, Text, false
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -25,6 +25,7 @@ class User(Base):
     avatar_url = Column(String, nullable=True)          # OAuth-provided picture URL
     avatar_data = Column(String, nullable=True)         # user-uploaded image as a data: URI
     display_name = Column(String, nullable=True)        # shown instead of the login handle
+    follow_lists_private = Column(Boolean, nullable=False, server_default=false())
     headline = Column(String, nullable=True)            # one-line "what I'm about"
     bio = Column(String, nullable=True)
     github_url = Column(String, nullable=True)

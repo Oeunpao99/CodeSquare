@@ -13,6 +13,8 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import { toast } from '../utils/toast';
 import { formatDate } from '../utils/datetime';
 import PostCard from '../components/PostCard';
+import FollowListDialog from '../components/FollowListDialog';
+import ProfileShareButton from '../components/ProfileShareButton';
 
 import { buildYearGrid, MONTHS, LEVEL_STYLES } from '../utils/heatmap';
 
@@ -82,7 +84,8 @@ function FollowerChip({ icon, count, label, onClick }) {
   return (
     <Comp
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 ${onClick ? 'hover:text-cs-primary' : ''} transition-colors`}
+      type={onClick ? 'button' : undefined}
+      className={`group inline-flex items-center gap-1.5 ${onClick ? 'hover:underline focus-visible:underline' : ''}`}
     >
       <span className="text-sm font-bold text-cs-text">{count}</span>
       <span className="text-xs text-cs-text-muted inline-flex items-center gap-1">{icon} {label}</span>
@@ -99,6 +102,8 @@ export default function UserProfile() {
   const [notFound, setNotFound] = useState(false);
   const [tab, setTab] = useState('posts'); // posts | projects | activity
   const [busyFollow, setBusyFollow] = useState(false);
+  const [followList, setFollowList] = useState(null);
+  const closeFollowList = useCallback(() => setFollowList(null), []);
 
   const [posts, setPosts] = useState(null);     // null = loading, false = error, [] = none
   const [hasMore, setHasMore] = useState(false);
@@ -205,7 +210,7 @@ export default function UserProfile() {
       <div className="sticky top-[3.75rem] lg:top-14 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 pt-4 pb-0 -mt-8 mb-6 bg-cs-dark/85 backdrop-blur-xl border-b border-cs-line/[0.07]">
 
         {/* Hero */}
-        <div className="flex items-start gap-5">
+        <div className="flex flex-wrap items-start gap-5 sm:flex-nowrap">
           <div className="w-24 h-24 rounded-2xl bg-gradient-main flex items-center justify-center text-4xl font-bold overflow-hidden shrink-0 border-2 border-cs-primary/40">
             {data.avatar
               ? <img src={data.avatar} alt={name} className="w-full h-full object-cover" />
@@ -232,15 +237,18 @@ export default function UserProfile() {
             </p>
 
             {/* Full stats row */}
-            <div className="flex items-center gap-5 mt-4">
-              <FollowerChip icon={<FiUsers className="text-[0.6875rem]" />} count={data.follower_count} label="followers" />
-              <FollowerChip icon={<FiUserPlus className="text-[0.6875rem]" />} count={data.following_count} label="following" />
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <FollowerChip icon={<FiUsers className="text-[0.6875rem]" />} count={data.follower_count} label="followers"
+                onClick={data.can_view_follow_lists !== false ? () => setFollowList({ username, direction: 'followers' }) : undefined} />
+              <FollowerChip icon={<FiUserPlus className="text-[0.6875rem]" />} count={data.following_count} label="following"
+                onClick={data.can_view_follow_lists !== false ? () => setFollowList({ username, direction: 'following' }) : undefined} />
               <FollowerChip icon={<FiCode className="text-[0.6875rem]" />} count={data.recent_projects?.length ?? 0} label="projects" />
             </div>
           </div>
 
-          {!isMe && (
-            <div className="flex shrink-0 flex-wrap gap-2">
+          <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto">
+            <ProfileShareButton username={data.username} />
+            {!isMe && <>
               <Link to={'/messages/' + encodeURIComponent(data.username)} className="btn btn-sm btn-secondary">
                 <FiMessageSquare /> Message
               </Link>
@@ -251,8 +259,8 @@ export default function UserProfile() {
               >
                 {data.is_following ? <><FiUserCheck /> following</> : <><FiUserPlus /> follow</>}
               </button>
-            </div>
-          )}
+            </>}
+          </div>
         </div>
 
         {/* Tabs */}
@@ -517,6 +525,8 @@ export default function UserProfile() {
           </div>
         </div>
       )}
+      {followList?.username === username && <FollowListDialog
+        key={followList.direction} {...followList} onClose={closeFollowList} />}
     </main>
   );
 }

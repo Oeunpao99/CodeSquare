@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { progressService } from '../services/api';
+import { authService, progressService } from '../services/api';
 import { FiBook, FiZap, FiTrendingUp, FiHelpCircle, FiClock, FiTarget, FiStar, FiActivity, FiAward, FiUser, FiSettings, FiExternalLink } from 'react-icons/fi';
 import ThemePicker from '../components/ThemePicker';
 import AiIcon from '../components/AiIcon';
 import MajorPicker from '../components/MajorPicker';
 import ProfileForm from '../components/ProfileForm';
+import ProfileShareButton from '../components/ProfileShareButton';
 import { contactLabel } from '../utils/contact';
 import { buildYearGrid, MONTHS, LEVEL_STYLES } from '../utils/heatmap';
+import { toast } from '../utils/toast';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -26,7 +28,8 @@ function gradeFor(score) {
 
 function Profile() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const [savingVisibility, setSavingVisibility] = useState(false);
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('overview'); // overview | settings
@@ -54,6 +57,20 @@ function Profile() {
       console.error('Error fetching progress:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const changeFollowVisibility = async (event) => {
+    const isPrivate = event.target.value === 'private';
+    setSavingVisibility(true);
+    try {
+      const { data } = await authService.updateProfile({ follow_lists_private: isPrivate });
+      updateUser({ follow_lists_private: data.follow_lists_private });
+      toast.success('List visibility updated');
+    } catch {
+      toast.error('Could not update list visibility');
+    } finally {
+      setSavingVisibility(false);
     }
   };
 
@@ -86,14 +103,15 @@ function Profile() {
               {user?.headline || contactLabel(user)}
             </p>
           </div>
-          {user?.username && (
+          {user?.username && <div className="flex flex-wrap items-center gap-2">
+            <ProfileShareButton username={user.username} />
             <Link
               to={`/u/${user.username}`}
               className="btn btn-ghost btn-sm shrink-0 self-start"
             >
               <FiExternalLink /> public profile
             </Link>
-          )}
+          </div>}
         </div>
 
         {/* Tab switcher */}
@@ -123,6 +141,22 @@ function Profile() {
             <span className="mono-label mb-4 block"> {t('profile.profile_details')}</span>
             <div className="card p-6">
               <ProfileForm />
+            </div>
+          </div>
+
+          <div>
+            <span className="mono-label mb-4 block">Privacy</span>
+            <div className="card flex flex-wrap items-center justify-between gap-4 p-6">
+              <div>
+                <label htmlFor="follow-list-visibility" className="font-semibold">Followers and following lists</label>
+                <p id="follow-list-privacy-help" className="mt-1 text-sm text-cs-text-dim">Private lists are visible only to you. Counts stay visible.</p>
+              </div>
+              <select id="follow-list-visibility" aria-describedby="follow-list-privacy-help"
+                className="rounded-lg border border-cs-line/20 bg-cs-dark px-3 py-2 text-sm"
+                value={user?.follow_lists_private ? 'private' : 'public'} onChange={changeFollowVisibility} disabled={savingVisibility}>
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
             </div>
           </div>
 

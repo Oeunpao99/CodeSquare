@@ -67,6 +67,7 @@ class UserResponse(BaseModel):
     id: int
     email: str
     username: str
+    follow_lists_private: bool = False
     display_name: Optional[str] = None
     headline: Optional[str] = None
     bio: Optional[str] = None
@@ -115,6 +116,7 @@ class ProfileUpdate(BaseModel):
     avatar_data: Optional[str] = Field(default=None, max_length=400_000)
     avatar_style: Optional[str] = None   # woman | man | neutral
     complete_onboarding: bool = False
+    follow_lists_private: Optional[bool] = None
 
 class Token(BaseModel):
     access_token: str
@@ -349,6 +351,9 @@ async def update_profile(
 
     if "avatar_style" in data:
         current_user.avatar_style = data["avatar_style"] if data["avatar_style"] in AVATAR_STYLES else None
+
+    if body.follow_lists_private is not None:
+        current_user.follow_lists_private = body.follow_lists_private
 
     for field in ("display_name", "headline", "bio"):
         if field in data:

@@ -131,6 +131,10 @@ export const careerService = {
 export const communityService = {
   leaderboard: (limit = 50) => api.get('/community/leaderboard', { params: { limit } }),
   profile: (username) => api.get(`/community/users/${username}`),
+  publicProfile: (username, signal) =>
+    api.get(`/community/users/${encodeURIComponent(username)}/public-card`, { signal }),
+  followList: (username, direction, before, signal) =>
+    api.get(`/community/users/${encodeURIComponent(username)}/connections/${direction}`, { params: { before }, signal }),
   activity: (username, year) => api.get(`/community/users/${username}/activity`, { params: { year } }),
   devs: (params = {}) => api.get('/community/devs', { params }),
 

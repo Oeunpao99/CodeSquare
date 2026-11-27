@@ -70,7 +70,7 @@ export default function Classes() {
   const [form, setForm] = useState({ title: '', subject: '', description: '', color: CLASS_COLORS[0] });
   const [busy, setBusy] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
-  const [tab, setTab] = useState('all'); // all | teaching | enrolled
+  const [tab, setTab] = useState('all');
   const [search, setSearch] = useState('');
   const [codeStatus, setCodeStatus] = useState('idle'); // idle | verifying | error | success
 
@@ -123,12 +123,17 @@ export default function Classes() {
 
   const empty = data && !data.teaching.length && !data.enrolled.length;
   const q = search.trim().toLowerCase();
-  const pool = data ? (tab === 'teaching' ? data.teaching : tab === 'enrolled' ? data.enrolled : [...data.teaching, ...data.enrolled]) : [];
+  const teaching = data?.teaching.filter((c) => !c.archived) ?? [];
+  const archived = data?.teaching.filter((c) => c.archived) ?? [];
+  const enrolled = data?.enrolled ?? [];
+  const all = [...teaching, ...enrolled];
+  const pool = { all, teaching, enrolled, archived }[tab];
   const shown = pool.filter((c) => !q || `${c.title} ${c.subject || ''} ${c.teacher?.display_name || ''}`.toLowerCase().includes(q));
   const tabs = data ? [
-    ['all', 'All', data.teaching.length + data.enrolled.length],
-    ...(isTeacher || data.teaching.length ? [['teaching', 'Instructing', data.teaching.length]] : []),
-    ['enrolled', 'Enrolled', data.enrolled.length],
+    ['all', 'All', all.length],
+    ...(isTeacher || data.teaching.length ? [['teaching', 'Instructing', teaching.length]] : []),
+    ['enrolled', 'Enrolled', enrolled.length],
+    ...(archived.length ? [['archived', 'Archived', archived.length]] : []),
   ] : [];
 
   return (

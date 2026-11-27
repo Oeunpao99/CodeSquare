@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   FiArrowLeft, FiCopy, FiRefreshCw, FiFileText, FiLink, FiPaperclip, FiPlus, FiTrash2,
-  FiEye, FiEyeOff, FiDownload, FiExternalLink, FiChevronDown, FiUsers, FiUpload, FiLogOut, FiCalendar, FiEdit2,
+  FiEye, FiEyeOff, FiDownload, FiExternalLink, FiChevronDown, FiUsers, FiUpload, FiLogOut, FiCalendar, FiEdit2, FiArchive,
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { classService } from '../services/api';
@@ -224,6 +224,7 @@ export default function ClassView() {
   const [addingStudent, setAddingStudent] = useState(false);
   const [tgOpen, setTgOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(false);
+  const [changingArchive, setChangingArchive] = useState(false);
   const closeClassEditor = useCallback(() => setEditingClass(false), []);
 
   const load = useCallback(() => {
@@ -267,6 +268,25 @@ export default function ClassView() {
   const toggleJoining = async () => {
     const r = await classService.update(id, { code_enabled: !cls.code_enabled });
     setCls((current) => ({ ...current, code_enabled: r.data.code_enabled }));
+  };
+  const toggleArchive = async () => {
+    const archived = !cls.archived;
+    if (archived && !(await confirmDialog({
+      title: 'Archive this class?',
+      message: `Students will lose access to "${cls.title}" until you restore it. Class content and enrollments will be kept.`,
+      confirmLabel: 'Archive class',
+    }))) return;
+    setChangingArchive(true);
+    try {
+      const { data } = await classService.update(id, { archived });
+      setCls((current) => ({ ...current, archived: data.archived }));
+      toast.success(archived ? 'Class archived' : 'Class restored');
+      if (archived) navigate('/classes');
+    } catch {
+      toast.error(archived ? 'Could not archive the class.' : 'Could not restore the class.');
+    } finally {
+      setChangingArchive(false);
+    }
   };
   const leave = async () => {
     if (!(await confirmDialog({ title: 'Leave this class?', message: `You'll lose access to ${cls.title} until you join again with a code.`, confirmLabel: 'Leave class' }))) return;
@@ -333,6 +353,7 @@ export default function ClassView() {
 
           {isTeacher ? (
             <div className="shrink-0 md:text-right">
+              {cls.archived ? <p className="text-sm font-semibold">Archived class</p> : <>
               <p className="text-xs">{cls.code_enabled ? 'Class code' : 'Joining closed'}</p>
               <div className="flex items-center md:justify-end gap-1">
                 <span className={`text-2xl font-bold tracking-[0.2em] ${cls.code_enabled ? '' : 'line-through opacity-60'}`}>{cls.join_code}</span>
@@ -342,14 +363,19 @@ export default function ClassView() {
               <button onClick={toggleJoining} className="text-xs underline underline-offset-2 hover:decoration-2">
                 {cls.code_enabled ? 'Stop new students joining' : 'Let students join again'}
               </button>
+              </>}
               <div className="mt-2 flex flex-wrap gap-2 md:justify-end">
                 <button type="button" onClick={() => setEditingClass(true)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-current px-2.5 py-1 text-xs font-semibold hover:bg-white/20">
                   <FiEdit2 aria-hidden="true" /> Edit class
                 </button>
-                <button onClick={() => setTgOpen(true)}
+                {!cls.archived && <button onClick={() => setTgOpen(true)}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/15 hover:bg-white/25">
                   <TelegramIcon className="w-4 h-4" /> Telegram alerts
+                </button>}
+                <button type="button" onClick={toggleArchive} disabled={changingArchive}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-current px-2.5 py-1 text-xs font-semibold hover:bg-white/20 disabled:opacity-50">
+                  <FiArchive aria-hidden="true" /> {cls.archived ? 'Restore class' : 'Archive class'}
                 </button>
               </div>
             </div>
@@ -447,7 +473,7 @@ export default function ClassView() {
       {isTeacher && editingClass && <EditClassDialog classroom={cls} onClose={closeClassEditor} onSaved={(updated) => {
         setCls((current) => ({ ...current, title: updated.title, color: updated.color }));
         closeClassEditor();
-        toast.success('Class updated');
+        toast.success('Class updated', undefined, { position: 'bottom-right' });
       }} />}
 
       {addingStudent && (

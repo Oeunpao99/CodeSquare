@@ -11,9 +11,9 @@ import base64
 import binascii
 from common.avatars import effective_avatar
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import String, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -254,6 +254,7 @@ class PostCreate(BaseModel):
 
 
 class PostUpdate(BaseModel):
+    kind: Optional[str] = None
     body: Optional[str] = None
     tags: Optional[List[str]] = None
     images: Optional[List[str]] = None
@@ -1055,13 +1056,17 @@ async def update_post(
     p = await _load_post(db, public_id, current_user)
     if p.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="That's not your post.")
+    if body.kind is not None:
+        if body.kind not in KINDS:
+            raise HTTPException(status_code=400, detail="Unknown post type.")
+        p.kind = body.kind
     if body.body is not None:
         p.body = _clean_body(body.body, 2, BODY_MAX, "Post")
     if body.tags is not None:
         p.tags = _clean_tags(body.tags)
     if body.images is not None:
         p.images = _clean_images(body.images)
-    if body.link_url is not None:
+    if "link_url" in body.model_fields_set:
         p.link_url = _clean_link(body.link_url)
     p.updated_at = datetime.utcnow()
     p.quality_score = _heuristic_quality(p.kind, p.body or "", p.tags or [], p.images or [], p.link_url)
@@ -1355,6 +1360,7 @@ class PublicProfile(BaseModel):
     is_me: bool = False
     follower_count: int = 0
     following_count: int = 0
+    can_view_follow_lists: bool = True
     is_following: bool = False
 
 
@@ -1376,6 +1382,8 @@ class DevRow(BaseModel):
     challenges_solved: int = 0
     quizzes_passed: int = 0
     follower_count: int = 0
+    following_count: int = 0
+    can_view_follow_lists: bool = True
     post_count: int = 0
     credits: int = 0
     rank: Optional[int] = None
@@ -1513,6 +1521,7 @@ async def public_profile(
         is_me=is_me,
         follower_count=int(follower_count or 0),
         following_count=int(following_count or 0),
+        can_view_follow_lists=is_me or not u.follow_lists_private,
         is_following=is_following,
     )
 
@@ -1697,6 +1706,9 @@ async def dev_directory(
         )
     ).all()
     followers: Dict[int, int] = dict(follower_rows)
+    following = dict((await db.execute(
+        select(Follow.follower_id, func.count()).group_by(Follow.follower_id)
+    )).all())
 
     # Post counts (visible public posts only)
     post_rows = (
@@ -1747,6 +1759,8 @@ async def dev_directory(
                 challenges_solved=challenges_solved.get(u.id, 0),
                 quizzes_passed=quizzes_passed.get(u.id, 0),
                 follower_count=int(followers.get(u.id, 0)),
+                following_count=int(following.get(u.id, 0)),
+                can_view_follow_lists=u.id == current_user.id or not u.follow_lists_private,
                 post_count=int(post_counts.get(u.id, 0)),
                 credits=credits_map.get(u.id, 0),
                 rank=None,
@@ -1789,6 +1803,48 @@ async def _resolve_user(db: AsyncSession, username: str) -> User:
     if not u:
         raise HTTPException(status_code=404, detail="User not found.")
     return u
+
+
+@router.get("/users/{username}/public-card")
+async def public_profile_card(username: str, db: AsyncSession = Depends(get_db)):
+    user = await _resolve_user(db, username)
+    return {
+        "username": user.username,
+        "display_name": user.display_name,
+        "avatar": effective_avatar(user),
+        "headline": user.headline,
+        "bio": user.bio,
+        "major": user.major,
+        "verified": bool(user.verified),
+    }
+
+
+@router.get("/users/{username}/connections/{direction}")
+async def follow_list(
+    username: str,
+    direction: Literal["followers", "following"],
+    before: Optional[int] = Query(default=None, gt=0),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    target = await _resolve_user(db, username)
+    if target.follow_lists_private and target.id != current_user.id:
+        raise HTTPException(status_code=403, detail="These lists are private.")
+    target_column, person_column = (
+        (Follow.following_id, Follow.follower_id) if direction == "followers"
+        else (Follow.follower_id, Follow.following_id)
+    )
+    query = select(User, Follow.id).join(Follow, person_column == User.id).where(target_column == target.id)
+    if before is not None:
+        query = query.where(Follow.id < before)
+    rows = (await db.execute(query.order_by(Follow.id.desc()).limit(31))).all()
+    return {
+        "people": [
+            {"username": person.username, "display_name": person.display_name, "avatar": effective_avatar(person)}
+            for person, _ in rows[:30]
+        ],
+        "next_before": rows[29][1] if len(rows) > 30 else None,
+    }
 
 
 @router.post("/users/{username}/follow", response_model=FollowOut)

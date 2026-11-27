@@ -18,8 +18,8 @@ export const toast = {
   ...rht,
   // Plain rht() so react-hot-toast doesn't ALSO prepend its own status icon —
   // the icon in `render` is the only one.
-  success: (title, message) =>
-    rht(render(FiCheckCircle, 'text-cs-green', title, message)),
+  success: (title, message, options) =>
+    rht(render(FiCheckCircle, 'text-cs-green', title, message), options),
   error: (title, message) =>
     rht(render(FiXCircle, 'text-cs-red', title, message)),
 };

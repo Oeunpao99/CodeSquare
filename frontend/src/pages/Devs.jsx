@@ -6,6 +6,7 @@ import { communityService } from '../services/api';
 import { MAJORS, MAJOR_KEYS } from '../majors';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { Sk } from '../components/Skeletons';
+import FollowListDialog from '../components/FollowListDialog';
 
 const PAGE = 24;
 
@@ -16,13 +17,13 @@ const CrownIcon = ({ className = '' }) => (
   </svg>
 );
 
-function DevCard({ d }) {
+function DevCard({ d, onFollowList }) {
   const majorData = d.major ? MAJORS[d.major] : null;
   const name = d.display_name || d.username;
   return (
-    <Link to={`/u/${d.username}`}
-      className="group rounded-xl border border-cs-line/10 p-5 flex flex-col text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/25 transition-colors">
-      <div className="flex items-center gap-4">
+    <article className="group relative flex min-w-0 flex-col rounded-xl border border-cs-line/10 p-5 text-cs-text transition-colors hover:border-cs-line/25 hover:bg-cs-overlay/[0.03]">
+      <Link to={`/u/${d.username}`} aria-label={`View ${name}'s profile`}
+        className="flex items-center gap-4 after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-2 focus-visible:after:ring-cs-primary">
         <span className="relative shrink-0">
           <span className="block w-14 h-14 rounded-full overflow-hidden bg-cs-primary/10 text-cs-primary grid place-items-center text-lg font-bold">
             {d.avatar ? <img src={d.avatar} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
@@ -44,7 +45,7 @@ function DevCard({ d }) {
           <p className="text-sm text-cs-text-dim truncate mt-0.5">{d.headline || `@${d.username}`}</p>
         </div>
         <span className="self-start text-xs text-cs-text-muted tabular-nums shrink-0" title="Leaderboard rank">#{d.rank}</span>
-      </div>
+      </Link>
 
       <div className="mt-4 pt-3.5 border-t border-cs-line/10 flex items-center gap-3 text-sm text-cs-text-dim">
         {majorData ? (
@@ -53,16 +54,31 @@ function DevCard({ d }) {
             <span className="truncate">{majorData.label}</span>
           </span>
         ) : <span className="truncate text-cs-text-muted">@{d.username}</span>}
-        <span className="ml-auto inline-flex items-center gap-3.5 shrink-0">
+        <div className="ml-auto inline-flex shrink-0 items-center gap-2 sm:gap-3">
           <span className="inline-flex items-center gap-1" title="XP"><FiZap className="text-cs-orange" /> {d.xp.toLocaleString()}</span>
-          <span className="inline-flex items-center gap-1" title="Followers"><FiUserPlus /> {d.follower_count}</span>
-        </span>
+          {[['followers', d.follower_count, FiUsers], ['following', d.following_count ?? 0, FiUserPlus]].map(([direction, count, Icon]) => {
+            const label = `${count} ${direction}`;
+            const content = <><Icon aria-hidden="true" /> {count}</>;
+            return d.can_view_follow_lists === false
+              ? <span key={direction} className="inline-flex items-center gap-1" title={label + ' · private list'}>{content}</span>
+              : <button key={direction} type="button" className="relative z-10 inline-flex items-center gap-1 hover:text-cs-primary"
+                aria-label={label + ' for ' + name} title={label}
+                onClick={() => onFollowList({ username: d.username, direction })}>{content}</button>;
+          })}
+          {!d.is_me && <Link to={'/messages/' + encodeURIComponent(d.username)}
+            aria-label={`Message ${name}`} title={`Message ${name}`}
+            className="relative z-10 -my-1.5 -mr-1.5 grid size-8 shrink-0 place-items-center rounded-lg text-cs-primary transition-colors hover:bg-cs-primary/10 focus-visible:ring-2 focus-visible:ring-cs-primary">
+            <FiMessageSquare aria-hidden="true" />
+          </Link>}
+        </div>
       </div>
-    </Link>
+    </article>
   );
 }
 
 export default function Devs() {
+  const [followList, setFollowList] = useState(null);
+  const closeFollowList = useCallback(() => setFollowList(null), []);
   const [input, setInput] = useState('');
   const [q, setQ] = useState('');
   const [major, setMajor] = useState('');
@@ -169,12 +185,7 @@ export default function Devs() {
 
       {Array.isArray(devs) && devs.length > 0 && (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {devs.map((d) => <div key={d.username} className="flex flex-col gap-2">
-            <DevCard d={d} />
-            {!d.is_me && <Link to={'/messages/' + encodeURIComponent(d.username)}
-              aria-label={'Message ' + (d.display_name || d.username)}
-              className="btn btn-secondary btn-sm self-end"><FiMessageSquare /> Message</Link>}
-          </div>)}
+          {devs.map((d) => <DevCard key={d.username} d={d} onFollowList={setFollowList} />)}
         </div>
       )}
 
@@ -187,6 +198,7 @@ export default function Devs() {
           </button>
         </div>
       )}
+      {followList && <FollowListDialog key={followList.username + followList.direction} {...followList} onClose={closeFollowList} />}
     </main>
   );
 }

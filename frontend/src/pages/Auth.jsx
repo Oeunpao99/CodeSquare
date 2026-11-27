@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
@@ -85,10 +85,13 @@ function Auth() {
   const [tgBusy, setTgBusy] = useState(false);
   const { login, register, loginWithGoogle, loginWithTelegram, user } = useAuth();
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const returnTo = typeof state?.returnTo === 'string' && /^\/u\/[A-Za-z0-9._%-]+$/.test(state.returnTo)
+    ? state.returnTo : '/dashboard';
 
   useEffect(() => {
-    if (user) navigate('/dashboard');
-  }, [user, navigate]);
+    if (user) navigate(returnTo);
+  }, [user, navigate, returnTo]);
 
   // Google: fetch the client id from the backend, load Google's script and render
   // its official button (more reliable than One Tap, which browsers often suppress).
@@ -101,7 +104,7 @@ function Auth() {
         setLoading(true);
         await loginWithGoogle(response.credential);
         toast.success('Welcome to CodeSquare!');
-        navigate('/dashboard');
+        navigate(returnTo);
       } catch {
         toast.error('Google sign-in failed. Please try again.');
       } finally {
@@ -130,7 +133,7 @@ function Auth() {
       }
     })();
     return () => { cancelled = true; };
-  }, [loginWithGoogle, navigate]);
+  }, [loginWithGoogle, navigate, returnTo]);
 
   const continueWithTelegram = async () => {
     if (tgBusy) return;
@@ -149,7 +152,7 @@ function Auth() {
         try {
           await loginWithTelegram(tgUser);
           toast.success('Welcome to CodeSquare!');
-          navigate('/dashboard');
+          navigate(returnTo);
         } catch (err) {
           toast.error(err.response?.data?.detail || 'Telegram sign-in failed. Please try again.');
         } finally {
@@ -178,7 +181,7 @@ function Auth() {
         await register(accountEmail, handle, password);
         toast.success('Account created! Welcome to CodeSquare!');
       }
-      navigate('/dashboard');
+      navigate(returnTo);
     } catch (error) {
       setFormError(errorText(error));
     } finally {

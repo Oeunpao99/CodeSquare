@@ -56,6 +56,8 @@ def _released(s: ClassSection, now: datetime) -> bool:
 
 async def _notify_students(db: AsyncSession, c: "Classroom", actor_id: int, kind: str) -> None:
     """Drop a bell notification for every student in the class (caller commits)."""
+    if c.archived:
+        return
     ids = (await db.execute(
         select(ClassMember.user_id).where(ClassMember.class_id == c.id, ClassMember.role == "student")
     )).scalars().all()
@@ -73,6 +75,8 @@ async def _tg(db: AsyncSession, c: "Classroom", by: User, icon: str, label: str,
               title: str = "", quote: str = "", facts=(), button: str = "Open in CodeSquare",
               only_chat: Optional[str] = None) -> None:
     """Post a polished alert card to every Telegram group connected to the class."""
+    if c.archived:
+        return
     chat_ids = [only_chat] if only_chat else await _group_chat_ids(db, c)
     if not chat_ids or not tg.enabled():
         return
@@ -219,7 +223,7 @@ async def _membership(db: AsyncSession, c: Classroom, user: User) -> Optional[Cl
 async def _member_or_404(db: AsyncSession, public_id: str, user: User):
     c = await _load_class(db, public_id)
     m = await _membership(db, c, user)
-    if not m:
+    if not m or (c.archived and m.role != "teacher"):
         raise HTTPException(404, "Class not found")  # don't reveal private classes
     return c, m
 
@@ -373,7 +377,10 @@ async def my_classes(db: AsyncSession = Depends(get_db), user: User = Depends(ge
         await db.execute(
             select(Classroom, ClassMember.role)
             .join(ClassMember, ClassMember.class_id == Classroom.id)
-            .where(ClassMember.user_id == user.id)
+            .where(
+                ClassMember.user_id == user.id,
+                or_(Classroom.archived.is_not(True), ClassMember.role == "teacher"),
+            )
             .order_by(Classroom.created_at.desc())
         )
     ).all()

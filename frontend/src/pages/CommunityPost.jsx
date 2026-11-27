@@ -7,49 +7,7 @@ import PostCard, { Avatar, AuthorName, timeAgo } from '../components/PostCard';
 import ConfirmDialog from '../components/ConfirmDialog';
 import FlyIcon from '../components/FlyIcon';
 import PublishTerminal from '../components/PublishTerminal';
-
-function EditForm({ post, onSaved, onCancel }) {
-  const [body, setBody] = useState(post.body);
-  const [tags, setTags] = useState((post.tags || []).join(', '));
-  const [link, setLink] = useState(post.link_url || '');
-  const [saving, setSaving] = useState(false);
-
-  const save = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const r = await communityService.updatePost(post.id, {
-        body: body.trim(),
-        tags: tags.split(/[,\s]+/).map((t) => t.trim()).filter(Boolean).slice(0, 5),
-        link_url: link.trim() || null,
-      });
-      onSaved(r.data);
-      toast.success('Post updated');
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'Could not save.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <form onSubmit={save} className="card mb-4 border-cs-primary/30">
-      <textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        rows={5}
-        maxLength={4000}
-        className="w-full rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2.5 text-sm outline-none focus:border-cs-primary/50 resize-y leading-relaxed"
-      />
-      <div className="flex flex-wrap items-center gap-2 mt-2">
-        <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="tags" className="flex-1 min-w-[8.75rem] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50" />
-        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="link (optional)" className="flex-1 min-w-[10rem] rounded-lg bg-cs-darkest/70 border border-cs-line/15 px-3 py-2 text-xs outline-none focus:border-cs-primary/50" />
-        <button type="button" onClick={onCancel} className="btn btn-ghost btn-sm">Cancel</button>
-        <button type="submit" disabled={saving} className="btn btn-primary btn-sm disabled:opacity-40">{saving ? 'Saving…' : 'Save'}</button>
-      </div>
-    </form>
-  );
-}
+import { Composer } from './Community';
 
 // Insert an added reply under its parent (any depth).
 const insertReply = (comments, parentId, reply) =>
@@ -112,6 +70,7 @@ function CommunityPost() {
 
   useEffect(() => {
     setPost(null);
+    setEditing(false);
     communityService.post(id)
       .then((r) => setPost(r.data))
       .catch(() => setPost(false));
@@ -241,7 +200,7 @@ function CommunityPost() {
       ref={(el) => {
         commentEls.current[c.id] = el;
       }}
-      className={`py-3 ${depth > 0 ? 'pl-4 border-l-2 border-cs-line/10' : 'border-b border-cs-line/10 last:border-b-0'} ${landed === c.id ? 'animate-post-land' : ''}`}
+      className={`py-3 ${depth === 0 ? 'border-b border-cs-line/10 last:border-b-0' : ''} ${landed === c.id ? 'animate-post-land' : ''}`}
     >
       <div className="flex items-center gap-2.5 mb-1.5">
         <Avatar author={c.author} size="w-7 h-7" />
@@ -304,7 +263,7 @@ function CommunityPost() {
       )}
 
       {c.replies && c.replies.length > 0 && (
-        <div className="mt-3 space-y-3 border-l border-cs-line/[0.12] pl-3 ml-1">
+        <div className="ml-3.5 mt-3 border-l border-cs-line/[0.12] pl-4">
           {c.replies.map((r) => renderThread(r, depth + 1))}
         </div>
       )}
@@ -368,10 +327,17 @@ function CommunityPost() {
           {/* Left: the post */}
           <div className="min-w-0 lg:pr-8">
           {editing ? (
-            <EditForm
+            <Composer
+              key={post.id}
               post={post}
               onCancel={() => setEditing(false)}
-              onSaved={(next) => { setPost((p) => ({ ...p, ...next })); setEditing(false); }}
+              onPosted={({ kind, body, tags, images, link_url, updated_at, quality_score, quality_note, quality_ai }) => {
+                setPost((current) => current?.id !== post.id ? current : ({
+                  ...current, kind, body, tags, images, link_url, updated_at, quality_score, quality_note, quality_ai,
+                }));
+                setEditing(false);
+                toast.success('Post updated');
+              }}
             />
           ) : (
             <PostCard
