@@ -26,8 +26,8 @@
     <!-- First-paint splash (React replaces it on mount). Same drawing as BrandLoader.jsx. -->
     <div id="root">
       <div id="cs-splash" style="position:fixed;inset:0;display:grid;place-items:center;background:#0b0b0e">
-        <div style="display:flex;align-items:center;gap:16px">
-        <svg viewBox="0 0 120 120" width="104" height="104" aria-label="Loading CodeSquare" role="img">
+        <div style="display:flex;align-items:center;justify-content:center;gap:clamp(10px,3vw,16px);padding:0 20px;max-width:100%">
+        <svg viewBox="0 0 120 120" class="cs-splash-logo" aria-label="Loading CodeSquare" role="img">
           <defs>
             <linearGradient id="cs-splash-grad" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stop-color="#22d3ee" /><stop offset=".5" stop-color="#3b82f6" /><stop offset="1" stop-color="#8b5cf6" />
@@ -41,7 +41,8 @@
         </div>
       </div>
       <style>
-        .cs-splash-word { font: 700 48px/1 Inter, 'Segoe UI', system-ui, sans-serif; letter-spacing: -0.02em; background: linear-gradient(90deg,#3b82f6,#8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent; animation: cs-splash-word 3s ease-in-out infinite; }
+        .cs-splash-logo { width: clamp(64px, 18vw, 104px); height: auto; flex-shrink: 0 }
+        .cs-splash-word { white-space: nowrap; font: 700 clamp(28px, 9vw, 48px)/1 Inter, 'Segoe UI', system-ui, sans-serif; letter-spacing: -0.02em; background: linear-gradient(90deg,#3b82f6,#8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent; animation: cs-splash-word 3s ease-in-out infinite; }
         @keyframes cs-splash-word { 0%,100% { opacity: .75 } 50% { opacity: 1 } }
         .cs-splash-draw { stroke-dasharray: 100; stroke-dashoffset: 100; animation: cs-splash 3s cubic-bezier(.65,0,.35,1) infinite; filter: drop-shadow(0 0 6px rgba(99,102,241,.55)); }
         .cs-splash-mark { animation: cs-splash-mark 3s ease-in-out infinite; }

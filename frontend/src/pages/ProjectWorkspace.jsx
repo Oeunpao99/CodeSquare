@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { normalizeReview, InlineCode } from '../components/project/reviewFormat';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck, FiX, FiArrowRight, FiCode, FiTerminal, FiZap, FiFolder,
+  FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck, FiX, FiArrowRight, FiCode, FiTerminal, FiZap, FiFolder, FiCheckSquare,
 } from 'react-icons/fi';
 import SelectMenu from '../components/SelectMenu';
 import { toast } from '../utils/toast';
@@ -28,7 +29,7 @@ const download = (name, text) => {
 };
 
 /** Tasks + notes beside the editor, so building happens on one screen. */
-function BuildSide({ tasks, setTasks, notes, setNotes }) {
+function BuildSide({ tasks, setTasks, notes, setNotes, className = '' }) {
   const [panel, setPanel] = useState('tasks');
   const [text, setText] = useState('');
   const [previewNotes, setPreviewNotes] = useState(false);
@@ -40,7 +41,7 @@ function BuildSide({ tasks, setTasks, notes, setNotes }) {
     setText('');
   };
   return (
-    <aside className="flex flex-col min-h-0 rounded-xl border border-cs-line/10">
+    <aside className={`flex flex-col min-h-0 rounded-xl border border-cs-line/10 ${className}`}>
       <div className="flex gap-5 px-4 border-b border-cs-line/10">
         {[['tasks', `Tasks${tasks.length ? ` ${done}/${tasks.length}` : ''}`], ['notes', 'Notes']].map(([k, label]) => (
           <button key={k} onClick={() => setPanel(k)}
@@ -182,6 +183,7 @@ function ProjectWorkspace() {
   const [active, setActive] = useState('');
   const [pendingFileDelete, setPendingFileDelete] = useState(null);
   const [filesOpen, setFilesOpen] = useState(false);
+  const [tasksOpen, setTasksOpen] = useState(false);
   const code = files.find((f) => f.path === entry)?.content ?? '';
   const activeContent = files.find((f) => f.path === active)?.content ?? '';
   const setActiveContent = (v) => setFiles((fs) => fs.map((f) => (f.path === active ? { ...f, content: v } : f)));
@@ -308,7 +310,7 @@ function ProjectWorkspace() {
     toast.success(`${texts.length} task${texts.length === 1 ? '' : 's'} added`, 'You’ll find them next to the code in Build.');
   };
 
-  const review = project?.ai_review;
+  const review = normalizeReview(project?.ai_review);
   const stages = stageState({ brief, code, tasks, review, ship, status });
   const file = active || stackFile(project?.language);
   const stepIndex = STAGES.findIndex((s) => s.id === step);
@@ -480,6 +482,10 @@ function ProjectWorkspace() {
                   className="lg:hidden ml-1 shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-cs-line/15 text-xs text-cs-text-dim">
                   <FiFolder /> Files <span className="text-cs-text-muted">{files.length}</span>
                 </button>
+                <button type="button" onClick={() => setTasksOpen(true)}
+                  className="lg:hidden shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-cs-line/15 text-xs text-cs-text-dim">
+                  <FiCheckSquare /> Tasks <span className="text-cs-text-muted">{tasks.filter((x) => x.done).length}/{tasks.length}</span>
+                </button>
                 <button onClick={runReview} disabled={reviewing} className="btn btn-ghost btn-sm ml-auto shrink-0 whitespace-nowrap" title="AI review of this file" aria-label="AI review of this file">
                   <FiPlay /> <span className="hidden sm:inline">{reviewing ? 'Reviewing…' : 'AI review'}</span>
                 </button>
@@ -488,7 +494,7 @@ function ProjectWorkspace() {
                 <CodeEditor key={active} compact value={activeContent} onChange={setActiveContent} language={languageFor(active)} onSubmit={() => { if (!reviewing) runReview(); }} />
               </div>
             </div>
-            <BuildSide tasks={tasks} setTasks={setTasks} notes={notes} setNotes={setNotes} />
+            <BuildSide tasks={tasks} setTasks={setTasks} notes={notes} setNotes={setNotes} className="hidden lg:flex" />
           </div>
         )}
 
@@ -509,22 +515,41 @@ function ProjectWorkspace() {
                 <div className="h-1.5 bg-cs-overlay/[0.1] rounded-full overflow-hidden mt-3 mb-6">
                   <div className={`h-full rounded-full ${review.score >= 70 ? 'bg-cs-green' : 'bg-cs-orange'}`} style={{ width: `${review.score}%` }} />
                 </div>
-                <p className="text-[0.9375rem] leading-7 text-cs-text-dim whitespace-pre-wrap">{review.feedback}</p>
-                <div className="grid sm:grid-cols-2 gap-8 mt-7">
+                {review.feedback && (
+                  <section className="rounded-xl border border-cs-line/10 bg-cs-overlay/[0.03] px-5 py-4">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-cs-text-muted mb-1.5">Summary</h3>
+                    <p className="text-[0.9375rem] leading-7"><InlineCode text={review.feedback} /></p>
+                  </section>
+                )}
+                <div className="grid md:grid-cols-2 gap-4 mt-4">
                   {review.suggestions?.length > 0 && (
-                    <section>
-                      <h3 className="text-sm font-semibold mb-2">Improve</h3>
-                      <ul className="space-y-2 text-sm text-cs-text-dim">
-                        {review.suggestions.map((s, i) => <li key={i} className="flex gap-2"><span className="text-cs-orange">•</span>{s}</li>)}
-                      </ul>
-                      <button onClick={() => addTasks(review.suggestions)} className="mt-3 text-sm text-cs-primary hover:underline">Add these as tasks</button>
+                    <section className="rounded-xl border border-cs-line/10 p-5">
+                      <h3 className="flex items-center gap-2 text-sm font-semibold mb-3">
+                        <span className="w-2 h-2 rounded-full bg-cs-orange" /> Improve <span className="text-cs-text-muted font-normal">{review.suggestions.length}</span>
+                      </h3>
+                      <ol className="space-y-3">
+                        {review.suggestions.map((s, i) => (
+                          <li key={i} className="flex gap-3 text-sm leading-6">
+                            <span className="w-5 h-5 shrink-0 mt-0.5 rounded-full bg-cs-orange/15 text-cs-orange text-[0.6875rem] font-bold grid place-items-center">{i + 1}</span>
+                            <span className="min-w-0 text-cs-text-dim"><InlineCode text={s} /></span>
+                          </li>
+                        ))}
+                      </ol>
+                      <button onClick={() => addTasks(review.suggestions)} className="mt-4 text-sm font-medium text-cs-primary hover:underline">Add these as tasks</button>
                     </section>
                   )}
                   {review.improvements?.length > 0 && (
-                    <section>
-                      <h3 className="text-sm font-semibold mb-2">Done well</h3>
-                      <ul className="space-y-2 text-sm text-cs-text-dim">
-                        {review.improvements.map((s, i) => <li key={i} className="flex gap-2"><FiCheck className="text-cs-green mt-0.5 shrink-0" />{s}</li>)}
+                    <section className="rounded-xl border border-cs-line/10 p-5">
+                      <h3 className="flex items-center gap-2 text-sm font-semibold mb-3">
+                        <span className="w-2 h-2 rounded-full bg-cs-green" /> Done well <span className="text-cs-text-muted font-normal">{review.improvements.length}</span>
+                      </h3>
+                      <ul className="space-y-3">
+                        {review.improvements.map((s, i) => (
+                          <li key={i} className="flex gap-3 text-sm leading-6">
+                            <FiCheck className="text-cs-green mt-1 shrink-0" />
+                            <span className="min-w-0 text-cs-text-dim"><InlineCode text={s} /></span>
+                          </li>
+                        ))}
                       </ul>
                     </section>
                   )}
@@ -554,6 +579,21 @@ function ProjectWorkspace() {
           />
         )}
       </div>
+
+      {/* Phone tasks & notes (bottom sheet) */}
+      {tasksOpen && (
+        <div className="fixed inset-0 z-[70] lg:hidden" role="dialog" aria-label="Tasks and notes">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setTasksOpen(false)} />
+          <div className="absolute left-0 right-0 bottom-0 h-[70dvh] flex flex-col rounded-t-3xl bg-cs-dark border-t border-cs-line/10 overflow-hidden pb-[env(safe-area-inset-bottom)] animate-tab-in">
+            <div className="relative h-10 shrink-0 grid place-items-center">
+              <span className="w-10 h-1.5 rounded-full bg-cs-overlay/25" />
+              <button type="button" onClick={() => setTasksOpen(false)} aria-label="Close tasks"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center rounded-full bg-cs-overlay/[0.06] text-cs-text-dim"><FiX /></button>
+            </div>
+            <BuildSide tasks={tasks} setTasks={setTasks} notes={notes} setNotes={setNotes} className="flex-1 border-0 rounded-none" />
+          </div>
+        </div>
+      )}
 
       {/* Phone file explorer (bottom sheet) */}
       {filesOpen && (

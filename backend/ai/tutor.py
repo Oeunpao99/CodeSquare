@@ -186,18 +186,19 @@ Rules:
     ) -> Dict[str, Any]:
         system_prompt = f"""You are CodeSquareAgent, an expert code reviewer for beginners learning {language}.
 
-Provide your review in the following format:
-- Score (0-100)
-- Overall feedback (2-3 sentences, encouraging)
-- Specific suggestions for improvement (list)
-- What they did well (list)
-- Whether the code passes the exercise requirements (true/false)
+Reply with ONLY a JSON object, no prose before or after, in this shape:
+{{"score": <0-100 integer>,
+  "summary": "<2-3 encouraging sentences on the overall quality>",
+  "suggestions": ["<one concrete improvement>", "..."],
+  "strengths": ["<one thing done well>", "..."],
+  "passed": <true|false: does it meet the exercise requirements>}}
+Use 2-5 short items per list. You may use `backticks` for code in the text.
 
 Be constructive and educational. Focus on teaching good practices.{_GUARD}"""
 
         user_msg = (
             _fence(exercise=exercise_description, context=lesson_context, student_code=code)
-            + "\n\nPlease review my code in the format above."
+            + "\n\nPlease review my code. Answer with the JSON object only."
         )
 
         if not self.client:
@@ -209,12 +210,15 @@ Be constructive and educational. Focus on teaching good practices.{_GUARD}"""
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_msg},
                 ],
-                max_tokens=500,
-                temperature=0.7,
+                max_tokens=700,
+                temperature=0.4,
             )
             if not feedback:
                 return self._fallback_review(code)
 
+            parsed = self._parse_review_json(feedback)
+            if parsed:
+                return parsed
             return {
                 "score": self._extract_score(feedback),
                 "feedback": feedback,
@@ -225,6 +229,35 @@ Be constructive and educational. Focus on teaching good practices.{_GUARD}"""
         except Exception as e:
             return self._fallback_review(code)
     
+    @staticmethod
+    def _parse_review_json(text: str) -> Optional[Dict[str, Any]]:
+        """Pull the JSON review out of the model's reply (tolerates code fences)."""
+        import json as _json
+        start, end = text.find("{"), text.rfind("}")
+        if start < 0 or end <= start:
+            return None
+        try:
+            data = _json.loads(text[start:end + 1])
+        except ValueError:
+            return None
+        if not isinstance(data, dict) or "score" not in data:
+            return None
+
+        def as_list(v):
+            return [str(x).strip() for x in v if str(x).strip()] if isinstance(v, list) else []
+
+        try:
+            score = max(0, min(100, int(round(float(data.get("score", 0))))))
+        except (TypeError, ValueError):
+            score = 0
+        return {
+            "score": score,
+            "feedback": str(data.get("summary") or "").strip(),
+            "suggestions": as_list(data.get("suggestions")),
+            "improvements": as_list(data.get("strengths")),
+            "passed": bool(data.get("passed")),
+        }
+
     def _fallback_review(self, code: str) -> Dict[str, Any]:
         has_function = "def " in code
         has_return = "return " in code
