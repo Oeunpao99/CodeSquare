@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   FiArrowLeft, FiCopy, FiRefreshCw, FiFileText, FiLink, FiPaperclip, FiPlus, FiTrash2,
-  FiEye, FiEyeOff, FiDownload, FiExternalLink, FiChevronDown, FiUsers, FiUpload, FiLogOut, FiCalendar,
+  FiEye, FiEyeOff, FiDownload, FiExternalLink, FiChevronDown, FiUsers, FiUpload, FiLogOut, FiCalendar, FiEdit2,
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { classService } from '../services/api';
@@ -10,6 +10,8 @@ import Markdown from '../components/Markdown';
 import { Sk } from '../components/Skeletons';
 import NotFound from './NotFound';
 import Dialog from '../components/class/Dialog';
+import EditClassDialog from '../components/class/EditClassDialog';
+import { classBannerInk } from '../components/class/classColors';
 import FileDrop from '../components/class/FileDrop';
 import AddStudentDialog from '../components/class/AddStudentDialog';
 import TelegramDialog, { TelegramIcon } from '../components/class/TelegramDialog';
@@ -221,6 +223,8 @@ export default function ClassView() {
   const [addingSection, setAddingSection] = useState(false);
   const [addingStudent, setAddingStudent] = useState(false);
   const [tgOpen, setTgOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState(false);
+  const closeClassEditor = useCallback(() => setEditingClass(false), []);
 
   const load = useCallback(() => {
     classService.get(id)
@@ -249,6 +253,7 @@ export default function ClassView() {
   }
 
   const isTeacher = cls.role === 'teacher';
+  const bannerInk = classBannerInk(cls.color);
 
   const copyCode = async () => {
     await navigator.clipboard.writeText(cls.join_code);
@@ -257,11 +262,11 @@ export default function ClassView() {
   const rotate = async () => {
     if (!(await confirmDialog({ title: 'Make a new class code?', message: 'The current code will stop working. Students already in the class stay in it.', confirmLabel: 'Make new code', danger: false }))) return;
     const r = await classService.rotateCode(id);
-    setCls({ ...cls, join_code: r.data.join_code });
+    setCls((current) => ({ ...current, join_code: r.data.join_code }));
   };
   const toggleJoining = async () => {
     const r = await classService.update(id, { code_enabled: !cls.code_enabled });
-    setCls({ ...cls, code_enabled: r.data.code_enabled });
+    setCls((current) => ({ ...current, code_enabled: r.data.code_enabled }));
   };
   const leave = async () => {
     if (!(await confirmDialog({ title: 'Leave this class?', message: `You'll lose access to ${cls.title} until you join again with a code.`, confirmLabel: 'Leave class' }))) return;
@@ -293,18 +298,18 @@ export default function ClassView() {
     <main className="w-full px-6 lg:px-10 py-6">
 
       {/* Header: one coloured banner; class code inline (teacher) */}
-      <section className="relative rounded-2xl overflow-hidden mb-6 text-white" style={{ background: cls.color }}>
+      <section className="relative rounded-2xl overflow-hidden mb-6" style={{ background: cls.color, color: bannerInk }}>
         {/* Big faded subject mark in the background */}
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <span className="absolute -bottom-10 right-[22%] class-sway">
-            <LangLogo name={cls.subject || cls.title} brand={false} className="text-[11rem] text-white/[0.12]" />
+            <LangLogo name={cls.subject || cls.title} brand={false} className="text-[11rem] opacity-[0.12]" />
           </span>
           {/* small icons drifting up */}
           {[
             ['left-[30%]', 'text-2xl', '0s'], ['left-[42%]', 'text-xl', '2.3s'], ['left-[54%]', 'text-3xl', '4.1s'],
             ['left-[63%]', 'text-lg', '1.2s'], ['left-[48%]', 'text-base', '5.6s'],
           ].map(([pos, size, delay]) => (
-            <span key={delay} className={`absolute bottom-0 ${pos} ${size} text-white/25 class-drift`} style={{ animationDelay: delay }}>
+            <span key={delay} className={`absolute bottom-0 ${pos} ${size} opacity-25 class-drift`} style={{ animationDelay: delay }}>
               <LangLogo name={cls.subject || cls.title} brand={false} />
             </span>
           ))}
@@ -316,31 +321,37 @@ export default function ClassView() {
             </span>
             <div className="min-w-0">
             {cls.subject && cls.subject.trim().toLowerCase() !== cls.title.trim().toLowerCase() && (
-              <p className="text-white/85 text-sm font-semibold">{cls.subject}</p>
+              <p className="text-sm font-semibold">{cls.subject}</p>
             )}
             <h1 className="text-3xl font-bold mt-1 truncate">{cls.title}</h1>
-            <p className="text-sm text-white/85 mt-2">
+            <p className="text-sm mt-2">
               {cls.teacher.display_name} · {cls.student_count} student{cls.student_count === 1 ? '' : 's'}
             </p>
-            {cls.description && <p className="mt-2 text-sm text-white/90 whitespace-pre-line max-w-2xl">{cls.description}</p>}
+            {cls.description && <p className="mt-2 text-sm whitespace-pre-line max-w-2xl">{cls.description}</p>}
             </div>
           </div>
 
           {isTeacher ? (
             <div className="shrink-0 md:text-right">
-              <p className="text-xs text-white/80">{cls.code_enabled ? 'Class code' : 'Joining closed'}</p>
+              <p className="text-xs">{cls.code_enabled ? 'Class code' : 'Joining closed'}</p>
               <div className="flex items-center md:justify-end gap-1">
                 <span className={`text-2xl font-bold tracking-[0.2em] ${cls.code_enabled ? '' : 'line-through opacity-60'}`}>{cls.join_code}</span>
                 <button onClick={copyCode} className="p-1.5 rounded-md hover:bg-white/15" title="Copy code" aria-label="Copy code"><FiCopy /></button>
                 <button onClick={rotate} className="p-1.5 rounded-md hover:bg-white/15" title="New code" aria-label="New code"><FiRefreshCw /></button>
               </div>
-              <button onClick={toggleJoining} className="text-xs text-white/85 hover:text-white underline underline-offset-2">
+              <button onClick={toggleJoining} className="text-xs underline underline-offset-2 hover:decoration-2">
                 {cls.code_enabled ? 'Stop new students joining' : 'Let students join again'}
               </button>
-              <button onClick={() => setTgOpen(true)}
-                className="mt-2 flex md:ml-auto items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/15 hover:bg-white/25">
-                <TelegramIcon className="w-4 h-4" /> Telegram alerts
-              </button>
+              <div className="mt-2 flex flex-wrap gap-2 md:justify-end">
+                <button type="button" onClick={() => setEditingClass(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-current px-2.5 py-1 text-xs font-semibold hover:bg-white/20">
+                  <FiEdit2 aria-hidden="true" /> Edit class
+                </button>
+                <button onClick={() => setTgOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/15 hover:bg-white/25">
+                  <TelegramIcon className="w-4 h-4" /> Telegram alerts
+                </button>
+              </div>
             </div>
           ) : (
             <button onClick={leave} className="shrink-0 self-start md:self-end inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-white/15 hover:bg-white/25">
@@ -433,6 +444,11 @@ export default function ClassView() {
       )}
 
       {tgOpen && <TelegramDialog cid={id} onClose={() => setTgOpen(false)} />}
+      {isTeacher && editingClass && <EditClassDialog classroom={cls} onClose={closeClassEditor} onSaved={(updated) => {
+        setCls((current) => ({ ...current, title: updated.title, color: updated.color }));
+        closeClassEditor();
+        toast.success('Class updated');
+      }} />}
 
       {addingStudent && (
         <AddStudentDialog
@@ -501,7 +517,7 @@ export default function ClassView() {
                       if (!(await confirmDialog({ title: `Remove ${p.display_name}?`, message: 'They’ll lose access to this class. They can rejoin with the class code.', confirmLabel: 'Remove' }))) return;
                       await classService.removeMember(id, p.user_id);
                       setMembers(members.filter((x) => x.user_id !== p.user_id));
-                      setCls({ ...cls, student_count: cls.student_count - 1 });
+                      setCls((current) => ({ ...current, student_count: current.student_count - 1 }));
                     }}
                     className="btn btn-ghost btn-sm"
                   >

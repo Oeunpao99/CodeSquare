@@ -5,9 +5,8 @@ import { classService, teacherService } from '../services/api';
 import { Sk } from '../components/Skeletons';
 import LangLogo from '../components/LangLogo';
 import CodeInput from '../components/class/CodeInput';
+import { CLASS_COLORS, classBannerInk } from '../components/class/classColors';
 import { toast } from '../utils/toast';
-
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#0EA5E9', '#F2C811', '#EC4899'];
 
 function Modal({ title, onClose, children }) {
   useEffect(() => {
@@ -37,12 +36,12 @@ function ClassCard({ c }) {
       className="group rounded-xl overflow-hidden border border-cs-line/10 bg-cs-dark text-cs-text flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
     >
       {/* Coloured header like the class banner: big faded mark sways, tile overlaps the edge */}
-      <div className="relative h-24 px-5 pt-4 text-white overflow-hidden" style={{ background: c.color }}>
+      <div className="relative h-24 px-5 pt-4 overflow-hidden" style={{ background: c.color, color: classBannerInk(c.color) }}>
         <span className="pointer-events-none absolute -right-3 -bottom-8 class-sway" aria-hidden>
-          <LangLogo name={c.subject || c.title} brand={false} className="text-[7rem] text-white/[0.16]" />
+          <LangLogo name={c.subject || c.title} brand={false} className="text-[7rem] opacity-[0.16]" />
         </span>
         <p className="relative text-lg font-bold truncate pr-20">{c.title}</p>
-        {showSubject && <p className="relative text-sm text-white/85 truncate">{c.subject}</p>}
+        {showSubject && <p className="relative text-sm truncate">{c.subject}</p>}
         {mine && (
           <span className="absolute top-4 right-4 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/20">Instructor</span>
         )}
@@ -68,7 +67,7 @@ export default function Classes() {
   const [teacher, setTeacher] = useState(undefined); // undefined = loading, null = never applied
   const [modal, setModal] = useState(null); // 'join' | 'create'
   const [code, setCode] = useState('');
-  const [form, setForm] = useState({ title: '', subject: '', description: '', color: COLORS[0] });
+  const [form, setForm] = useState({ title: '', subject: '', description: '', color: CLASS_COLORS[0] });
   const [busy, setBusy] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
   const [tab, setTab] = useState('all'); // all | teaching | enrolled
@@ -255,7 +254,7 @@ export default function Classes() {
             <div className="text-sm">
               <span className="font-medium">Colour</span>
               <div className="flex gap-2 mt-1.5">
-                {COLORS.map((col) => (
+                {CLASS_COLORS.map((col) => (
                   <button type="button" key={col} onClick={() => setForm({ ...form, color: col })}
                     className={`w-7 h-7 rounded-full ${form.color === col ? 'ring-2 ring-offset-2 ring-cs-primary ring-offset-cs-darker' : ''}`}
                     style={{ background: col }} aria-label={`Colour ${col}`} />

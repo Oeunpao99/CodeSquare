@@ -16,12 +16,12 @@ from common.avatars import effective_avatar
 
 import secrets
 from datetime import datetime
-from typing import List, Optional
+from typing import Annotated, List, Optional
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -124,18 +124,24 @@ class ReviewIn(BaseModel):
     note: Optional[str] = Field(default=None, max_length=500)
 
 
+ClassTitle = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=120)]
+ClassColor = Annotated[str, StringConstraints(
+    strip_whitespace=True, pattern=r"^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+)]
+
+
 class ClassCreate(BaseModel):
-    title: str = Field(min_length=2, max_length=120)
+    title: ClassTitle
     description: str = Field(default="", max_length=2000)
     subject: str = Field(default="", max_length=120)
-    color: str = Field(default="#3B82F6", max_length=9)
+    color: ClassColor = "#3B82F6"
 
 
 class ClassUpdate(BaseModel):
-    title: Optional[str] = Field(default=None, min_length=2, max_length=120)
+    title: Optional[ClassTitle] = None
     description: Optional[str] = Field(default=None, max_length=2000)
     subject: Optional[str] = Field(default=None, max_length=120)
-    color: Optional[str] = Field(default=None, max_length=9)
+    color: Optional[ClassColor] = None
     code_enabled: Optional[bool] = None
     archived: Optional[bool] = None
 
