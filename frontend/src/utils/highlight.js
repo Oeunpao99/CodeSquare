@@ -35,8 +35,33 @@ const DEFAULT_KEYWORDS =
 // only `format` on its own is a builtin. The \b boundaries handle that.
 const KEYWORD = WORDS(PY_KEYWORDS, PY_BUILTIN);
 
-function patternsFor(lang) {
+// DAX and Power Query M (Power BI lessons): functions, Table[Column], [Measure].
+const DAX = {
+  comment: /(--[^\n]*|\/\/[^\n]*|\/\*[\s\S]*?\*\/)/,
+  string: /("(?:[^"]|"")*")/,
+  builtin: /(\[[^\]\n]*\])/,
+  tag: /('[^'\n]*'(?=\[)|\b[A-Za-z_]\w*(?=\[))/,
+  fn: /(\b[A-Za-z_][\w.]*(?=\s*\())/,
+  keyword: /\b(?:VAR|RETURN|TRUE|FALSE|ASC|DESC|IN)\b/,
+  number: NUMBER,
+};
+const M = {
+  comment: /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/,
+  var: /(#"(?:[^"]|"")*")/,
+  string: /("(?:[^"]|"")*")/,
+  builtin: /(\[[^\]\n]*\])/,
+  fn: /(#?\b[A-Za-z_]\w*\.[\w.]*(?=\s*\())/,
+  keyword: /\b(?:let|in|each|if|then|else|and|or|not|true|false|null|try|otherwise|type)\b/,
+  tag: /\b(?:number|text|date|datetime|logical|any|Int64\.Type)\b/,
+  number: NUMBER,
+};
+const isM = (code) => /\blet\b[\s\S]*\bin\b|\bTable\.|\bCsv\.|\beach\b|#"/.test(code || '');
+
+function patternsFor(lang, code) {
   const l = (lang || '').toLowerCase();
+  if (l === 'dax') return DAX;
+  if (l === 'powerquery' || l === 'm') return M;
+  if (l === 'power-bi') return isM(code) ? M : DAX;
   if (/py|python/.test(l)) {
     return { comment: COMMENT, string: STRING, keyword: WORDS(PY_KEYWORDS, PY_BUILTIN), number: NUMBER };
   }
@@ -53,16 +78,19 @@ function patternsFor(lang) {
 }
 
 export function highlightCode(code, lang) {
-  const rules = Object.entries(patternsFor(lang)).map(([type, re]) => ({ type, re }));
+  const rules = Object.entries(patternsFor(lang, code)).map(([type, re]) => ({ type, re }));
+  // Each rule is wrapped in one outer group; rules may contain their own groups,
+  // so record where each rule's outer group sits in the match array.
+  let at = 1;
+  rules.forEach((r) => { r.group = at; at += 1 + (new RegExp(`${r.re.source}|`).exec('').length - 1); });
   const master = new RegExp(rules.map((r) => `(${r.re.source})`).join('|'), 'g');
   const out = [];
   let last = 0;
   let m;
   while ((m = master.exec(code || '')) !== null) {
     if (m.index > last) out.push(escapeHtml(code.slice(last, m.index)));
-    const g = m.slice(1);
-    const hit = g.findIndex((x) => x !== undefined);
-    const type = rules[hit] ? rules[hit].type : 'plain';
+    const rule = rules.find((r) => m[r.group] !== undefined);
+    const type = rule ? rule.type : 'plain';
     out.push(`<span class="tok-${type}">${escapeHtml(m[0])}</span>`);
     last = m.index + m[0].length;
   }

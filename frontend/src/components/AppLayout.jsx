@@ -111,7 +111,12 @@ function crumbsFor(pathname) {
   const seg = path.split('/').filter(Boolean);
   if (seg[0] === 'learn' && seg[1]) {
     return seg.length > 2
-      ? [['Learn', '/dashboard'], [pretty(seg[1]), `/learn/${seg[1]}`], [crumbName(seg[seg.length - 1]) || 'Lesson']]
+      ? [
+        ['Learn', '/dashboard'],
+        [pretty(seg[1]), `/learn/${seg[1]}`],
+        ...(seg[2] === 'module' && crumbName(`module-${seg[3]}`) ? [[crumbName(`module-${seg[3]}`), `/learn/${seg[1]}`]] : []),
+        [crumbName(seg[seg.length - 1]) || 'Lesson'],
+      ]
       : [['Learn', '/dashboard'], [pretty(seg[1])]];
   }
   if (seg[0] === 'library') {
@@ -685,7 +690,7 @@ function AppLayout() {
             />
             {/* Neutral wordmark: calm grey, follows light/dark theme */}
             <span className="text-2xl font-bold tracking-tight leading-none text-cs-text-dim whitespace-nowrap">
-              CodeSquare
+              codesquare
             </span>
           </div>
           <button
@@ -811,7 +816,7 @@ function AppLayout() {
         <div className="px-4 py-3 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
             <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
-            <span className="text-lg font-bold text-cs-text">CodeSquare</span>
+            <span className="text-lg font-bold text-cs-text">codesquare</span>
           </Link>
           <div className="flex items-center gap-2">
             <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />

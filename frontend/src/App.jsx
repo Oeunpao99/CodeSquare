@@ -150,7 +150,7 @@ function App() {
         <Toaster
           position="top-right"
           gutter={10}
-          containerStyle={{ zIndex: 200 }}  /* above dialogs (z 100-120) so errors are never hidden */
+          containerStyle={{ zIndex: 200, top: 56, right: 20 }}  /* below the top bar (avatar, bell); above dialogs (z 100-120) */
           toastOptions={{
             duration: 3500,
             style: {

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { playSound, soundsEnabled, setSoundsEnabled } from '../utils/sounds';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { FiBell, FiHeart, FiMessageCircle, FiCheckCircle, FiGrid, FiVolume2, FiClipboard } from 'react-icons/fi';
+import { FiBell, FiHeart, FiMessageCircle, FiCheckCircle, FiGrid, FiVolume2, FiClipboard, FiVolumeX } from 'react-icons/fi';
 import { notificationService } from '../services/api';
 import { timeAgo } from './PostCard';
 
@@ -31,11 +32,16 @@ export default function NotificationBell() {
   const btnRef = useRef(null);
   const panelRef = useRef(null);
 
+  const lastCount = useRef(null);
+  const [soundOn, setSoundOn] = useState(soundsEnabled());
   const refresh = () => {
     notificationService
       .list()
       .then((r) => {
-        setCount(r.data.unread_count || 0);
+        const n = r.data.unread_count || 0;
+        if (lastCount.current !== null && n > lastCount.current) playSound('notify');
+        lastCount.current = n;
+        setCount(n);
         setItems((r.data.items || []).slice(0, 12));
       })
       .catch(() => {
@@ -122,6 +128,15 @@ export default function NotificationBell() {
           >
           <div className="px-4 py-3 border-b border-cs-line/10 flex items-center justify-between">
             <span className="mono-label text-cs-text-dim"> notifications</span>
+            <button
+              type="button"
+              onClick={() => { const on = !soundOn; setSoundsEnabled(on); setSoundOn(on); if (on) playSound('notify'); }}
+              title={soundOn ? 'Mute sounds' : 'Turn sounds on'}
+              aria-label={soundOn ? 'Mute sounds' : 'Turn sounds on'}
+              className="ml-auto mr-3 text-cs-text-muted hover:text-cs-text"
+            >
+              {soundOn ? <FiVolume2 /> : <FiVolumeX />}
+            </button>
             {items.some((n) => !n.read) && (
               <button
                 onClick={() => {

@@ -173,10 +173,18 @@ function LibraryArticle() {
       btn.type = 'button';
       btn.textContent = 'copy';
       btn.className = 'doc-copy';
-      const onClick = () => {
-        navigator.clipboard?.writeText(pre.innerText.replace(/\n?copy$/, '').trim());
-        btn.textContent = 'copied';
-        setTimeout(() => { btn.textContent = 'copy'; }, 1400);
+      const onClick = async () => {
+        const text = (pre.querySelector('code') || pre).innerText.trim();
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = 'copied ✓';
+          btn.classList.add('is-copied');
+          const lines = text.split('\n').length;
+          toast.success('Copied to clipboard', `${lines} line${lines === 1 ? '' : 's'} of code`);
+        } catch {
+          toast.error('Couldn’t copy', 'Select the code and press Ctrl+C.');
+        }
+        setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('is-copied'); }, 1800);
       };
       btn.addEventListener('click', onClick);
       pre.appendChild(btn);
@@ -223,7 +231,7 @@ function LibraryArticle() {
   }, [progress, data, read]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const majorLabels = useMemo(
-    () => (data?.major_slugs || []).map((m) => MAJORS[m]?.label).filter(Boolean),
+    () => (data?.major_slugs || []).map((m) => MAJORS[m]).filter(Boolean),
     [data]
   );
 
@@ -281,7 +289,7 @@ function LibraryArticle() {
 
 
       <div
-        className={`px-6 lg:px-10 pt-8 grid lg:grid-cols-[14rem_minmax(0,56rem)] 2xl:grid-cols-[15rem_minmax(0,60rem)] gap-x-10 gap-y-8 items-start transition-opacity duration-150 ${
+        className={`px-6 lg:px-10 pt-8 grid lg:grid-cols-[14rem_minmax(0,1fr)] 2xl:grid-cols-[15rem_minmax(0,1fr)] gap-x-10 gap-y-8 items-start transition-opacity duration-150 ${
           loading ? 'opacity-50' : 'opacity-100'
         }`}
       >
@@ -351,9 +359,9 @@ function LibraryArticle() {
               onClick={toggleBookmark}
               aria-pressed={bookmarked}
               title={bookmarked ? 'Remove bookmark' : 'Bookmark this article'}
-              className={`inline-flex items-center gap-1.5 text-[0.6875rem] px-2.5 py-1 rounded-full border transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
                 bookmarked
-                  ? 'border-cs-primary/40 bg-cs-primary/10 text-cs-primary'
+                  ? 'border-cs-primary bg-cs-primary text-white'
                   : 'border-cs-line/15 text-cs-text-dim hover:text-cs-text hover:border-cs-line/30'
               }`}
             >
@@ -363,9 +371,9 @@ function LibraryArticle() {
             <button
               onClick={() => toggleRead()}
               aria-pressed={read}
-              className={`inline-flex items-center gap-1.5 text-[0.6875rem] px-2.5 py-1 rounded-full border transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
                 read
-                  ? 'border-cs-green/40 bg-cs-green/10 text-cs-green'
+                  ? 'border-cs-green bg-cs-green text-white'
                   : 'border-cs-line/15 text-cs-text-dim hover:text-cs-text hover:border-cs-line/30'
               }`}
             >
@@ -379,7 +387,7 @@ function LibraryArticle() {
           </h1>
 
           {data.summary && (
-            <p className="mt-3.5 text-[1.0625rem] leading-relaxed text-cs-text-dim max-w-[62ch]">
+            <p className="mt-3.5 text-[1.0625rem] leading-relaxed text-cs-text-dim">
               {data.summary}
             </p>
           )}
@@ -389,12 +397,14 @@ function LibraryArticle() {
               <span className="text-[0.625rem] tracking-[0.1em] text-cs-text-muted mr-1">
                 SHOWS UP IN
               </span>
-              {majorLabels.map((l) => (
+              {majorLabels.map((m) => (
                 <span
-                  key={l}
-                  className="text-xs px-2 py-0.5 rounded-md bg-cs-overlay/[0.04] border border-cs-line/10 text-cs-text-dim"
+                  key={m.label}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border"
+                  style={{ color: m.color, background: `${m.color}1a`, borderColor: `${m.color}40` }}
                 >
-                  {l}
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: m.color }} />
+                  {m.label}
                 </span>
               ))}
             </div>

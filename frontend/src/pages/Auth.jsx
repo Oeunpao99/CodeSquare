@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import AuthShowcase from '../components/AuthShowcase';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -190,10 +191,11 @@ function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-5 bg-cs-darkest">
-      <Link to="/" className="flex items-center gap-2 mb-5">
-        <img src="/logo.png" alt="" className="h-8 w-auto object-contain" />
-        <span className="text-xl font-bold">CodeSquare</span>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-cs-darkest">
+    <div className="flex flex-col items-center justify-center px-6 py-5">
+      <Link to="/" className="flex items-center gap-3 mb-6">
+        <img src="/logo.png" alt="" className="h-12 w-auto object-contain" />
+        <span className="text-[1.75rem] leading-none font-bold tracking-tight">codesquare</span>
       </Link>
 
       <div className="w-full max-w-[26rem] rounded-2xl border border-cs-line/10 bg-cs-dark overflow-hidden shadow-sm">
@@ -289,6 +291,8 @@ function Auth() {
         <Link to="/terms" className="text-cs-text-dim underline underline-offset-2 hover:text-cs-primary">Terms</Link> and{' '}
         <Link to="/privacy" className="text-cs-text-dim underline underline-offset-2 hover:text-cs-primary">Privacy Policy</Link>.
       </p>
+    </div>
+    <AuthShowcase />
     </div>
   );
 }

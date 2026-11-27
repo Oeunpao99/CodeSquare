@@ -8,6 +8,7 @@ import { python } from '@codemirror/lang-python';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
+import { daxLanguage, mLanguage, isPowerQuery } from '../powerbi/lang';
 
 // Colors are `var(--cs-*)` references, so the editor re-paints automatically
 // when the app theme changes — no need to rebuild the extension.
@@ -95,8 +96,14 @@ function CodeEditor({ value, onChange, language = 'python', readOnly = false, on
   const submitRef = useRef(onSubmit);
   submitRef.current = onSubmit;
 
+  // Power BI lessons mix DAX and Power Query M; pick by what's in the editor.
+  const lowerLang = (language || '').toLowerCase();
+  const pbiMode = lowerLang === 'power-bi' ? (isPowerQuery(value) ? 'm' : 'dax') : null;
+
   const extensions = useMemo(() => {
     const lang = {
+      dax: () => daxLanguage, powerquery: () => mLanguage, m: () => mLanguage,
+      'power-bi': () => (pbiMode === 'm' ? mLanguage : daxLanguage),
       python: python, py: python, 'python-intermediate': python, 'ai-llm': python, dsa: python,
       'backend-foundations': python,
       javascript: javascript, js: javascript, typescript: javascript, 'react-typescript': javascript,
@@ -111,9 +118,10 @@ function CodeEditor({ value, onChange, language = 'python', readOnly = false, on
       ...(minimal ? [csMinimalTheme, EditorView.lineWrapping] : []),
       // compact: a denser editor for big workspaces (Projects)
       ...(compact ? [Prec.high(EditorView.theme({
-        '&': { fontSize: '13px' },
-        '.cm-content': { lineHeight: '1.6' },
-        '.cm-gutters': { fontSize: '12px' },
+        // rem, so code matches the surrounding text size (the app scales its root font)
+        '&': { fontSize: '0.875rem' },
+        '.cm-content': { lineHeight: '1.65' },
+        '.cm-gutters': { fontSize: '0.8125rem' },
       }))] : []),
       csHighlight,
       // Ctrl/Cmd+Enter runs the code. Highest precedence so it wins over the
@@ -134,7 +142,7 @@ function CodeEditor({ value, onChange, language = 'python', readOnly = false, on
         ])
       ),
     ];
-  }, [language, minimal, compact]);
+  }, [language, minimal, compact, pbiMode]);
 
   // `minimal` = a read-only, chrome-free view for rendering code inside prose
   // (chat replies, AI reviews). Same theme-following syntax colors, no gutters.

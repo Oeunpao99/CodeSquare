@@ -5,6 +5,9 @@
 const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
 
 export default {
+  // utils/highlight.js builds these class names at runtime (`tok-${type}`), so
+  // Tailwind can't see them in the source: keep them in the CSS.
+  safelist: ['tok-comment', 'tok-string', 'tok-keyword', 'tok-number', 'tok-builtin', 'tok-decorator', 'tok-var', 'tok-tag', 'tok-fn', 'tok-plain', 'is-copied'],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",

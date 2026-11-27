@@ -92,7 +92,32 @@ async def inbox(db: AsyncSession = Depends(get_db), me: User = Depends(get_curre
         .join(message, message.id == latest.c.message_id)
         .order_by(message.id.desc())
     )
-    return [{"peer": person(peer), "last_message": serialize(last, me.id)} for peer, last in rows]
+    rows = rows.all()
+
+    # Unread: messages they sent me after my read cursor for that conversation.
+    reads = DirectMessageRead
+    mine = (
+        select(reads.peer_id, reads.through_id).where(reads.reader_id == me.id).subquery()
+    )
+    unread_rows = await db.execute(
+        select(message.sender_id, func.count())
+        .outerjoin(mine, mine.c.peer_id == message.sender_id)
+        .where(message.recipient_id == me.id, message.id > func.coalesce(mine.c.through_id, 0))
+        .group_by(message.sender_id)
+    )
+    unread = dict(unread_rows.all())
+    # Seen: how far each peer has read what I sent them.
+    seen = dict((await db.execute(
+        select(reads.reader_id, reads.through_id).where(reads.peer_id == me.id)
+    )).all())
+
+    out = []
+    for peer, last in rows:
+        item = serialize(last, me.id)
+        if item["mine"]:
+            item["status"] = "seen" if seen.get(peer.id, 0) >= last.id else "sent"
+        out.append({"peer": person(peer), "last_message": item, "unread": int(unread.get(peer.id, 0))})
+    return out
 
 
 @router.get("/with/{username}")

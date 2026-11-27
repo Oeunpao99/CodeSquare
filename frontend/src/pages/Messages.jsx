@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { playSound } from '../utils/sounds';
 import { Link, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiMessageSquare, FiMic, FiPaperclip, FiSend, FiSquare, FiX } from 'react-icons/fi';
 import { IoCheckmark, IoCheckmarkDone } from 'react-icons/io5';
@@ -209,6 +210,7 @@ function Composer({ username, onSent }) {
     if (file) body.append('attachment', file);
     try {
       const { data } = await messageService.send(username, body);
+      playSound('send');
       if (active.current) {
         setDraft('');
         setFile(null);
@@ -343,6 +345,7 @@ function Conversation({ username, refreshInbox }) {
         if (controller.signal.aborted) return;
         const panel = scroll.current;
         const newestId = data.messages.at(-1)?.id ?? 0;
+        if (initialized && incoming.some((m) => m.id > latestId && !m.mine)) playSound('receive');
         if (!initialized || (newestId > latestId && panel && panel.scrollHeight - panel.scrollTop - panel.clientHeight < 80)) {
           scrollAction.current ??= { bottom: true };
         }
@@ -458,9 +461,16 @@ export default function Messages() {
   const [inbox, setInbox] = useState(null);
   const [query, setQuery] = useState('');
   const [error, setError] = useState(false);
+  const openRef = React.useRef(username);
+  openRef.current = username;
+  const unreadRef = React.useRef(null);
   const refreshInbox = React.useCallback(async (signal) => {
     try {
       const { data } = await messageService.inbox(signal);
+      // Chime when another conversation gets a new unread message.
+      const others = data.filter((c) => c.peer.username !== openRef.current).reduce((a, c) => a + (c.unread || 0), 0);
+      if (unreadRef.current !== null && others > unreadRef.current) playSound('receive');
+      unreadRef.current = others;
       if (!signal?.aborted) { setInbox(data); setError(false); }
     } catch {
       if (!signal?.aborted) setError(true);
@@ -497,18 +507,37 @@ export default function Messages() {
           {error && <p className="p-3 text-sm text-cs-orange" role="alert">Could not refresh your inbox.</p>}
           {!inbox && !error && <p className="p-3 text-sm text-cs-text-muted">Loading inbox…</p>}
           {filtered?.length === 0 && <p className="p-3 text-sm text-cs-text-muted">{search ? 'No matching conversations.' : 'Your conversations will show here.'}</p>}
-          {filtered?.map(({ peer, last_message: last }) => <Link key={peer.username} to={threadUrl(peer)}
-            aria-current={username === peer.username ? 'page' : undefined}
-            className={'flex items-center gap-3 rounded-xl px-3 py-2.5 ' + (username === peer.username ? 'bg-cs-primary/15' : 'hover:bg-cs-overlay/[0.05]')}>
-            <Avatar peer={peer} />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <p className="truncate text-sm font-semibold">{name(peer)}</p>
-                <time dateTime={last.created_at} className="shrink-0 text-xs text-cs-text-muted">{time(last.created_at)}</time>
-              </div>
-              <p className="truncate text-xs text-cs-text-dim">{last.mine ? 'You: ' : ''}{last.text || mediaLabel(last.media_type)}</p>
-            </div>
-          </Link>)}
+          {filtered?.map(({ peer, last_message: last, unread = 0 }) => {
+            const open = username === peer.username;
+            const badge = !open && unread > 0;
+            return (
+              <Link key={peer.username} to={threadUrl(peer)}
+                aria-current={open ? 'page' : undefined}
+                aria-label={badge ? `${name(peer)}, ${unread} unread` : undefined}
+                className={'flex items-center gap-3 rounded-xl px-3 py-2.5 ' + (open ? 'bg-cs-primary/15' : 'hover:bg-cs-overlay/[0.05]')}>
+                <Avatar peer={peer} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`truncate text-sm ${badge ? 'font-bold' : 'font-semibold'}`}>{name(peer)}</p>
+                    <span className="shrink-0 inline-flex items-center gap-1 text-xs text-cs-text-muted">
+                      {last.mine && (last.status === 'seen'
+                        ? <IoCheckmarkDone className="text-cs-primary text-sm" title="Seen" />
+                        : <IoCheckmark className="text-sm" title="Sent" />)}
+                      <time dateTime={last.created_at} className={badge ? 'text-cs-primary font-semibold' : ''}>{time(last.created_at)}</time>
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`truncate text-xs ${badge ? 'text-cs-text font-medium' : 'text-cs-text-dim'}`}>{last.mine ? 'You: ' : ''}{last.text || mediaLabel(last.media_type)}</p>
+                    {badge && (
+                      <span className="shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full bg-cs-primary text-white text-[0.6875rem] font-bold grid place-items-center tabular-nums">
+                        {unread > 99 ? '99+' : unread}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </nav>
       </aside>
       {username ? <Conversation key={username} username={username} refreshInbox={refreshInbox} />

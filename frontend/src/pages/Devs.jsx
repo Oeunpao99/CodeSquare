@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FiUsers, FiSearch, FiX, FiUserPlus, FiZap, FiChevronDown, FiMessageSquare } from 'react-icons/fi';
 import SelectMenu from '../components/SelectMenu';
 import { communityService } from '../services/api';
@@ -87,6 +88,7 @@ export default function Devs() {
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const offsetRef = useRef(0);
 
   // search as you type
@@ -96,7 +98,8 @@ export default function Devs() {
   }, [input]);
 
   const load = useCallback(async (reset) => {
-    if (reset) { offsetRef.current = 0; setDevs(null); }
+    // Keep the current cards on screen (faded) while a new tab/search loads.
+    if (reset) { offsetRef.current = 0; setFetching(true); }
     try {
       const r = await communityService.devs({
         q: q || undefined, major: major || undefined, sort,
@@ -108,6 +111,8 @@ export default function Devs() {
       setDevs((prev) => (reset || !prev ? r.data.devs : [...prev, ...r.data.devs]));
     } catch {
       setDevs((prev) => prev || false);
+    } finally {
+      if (reset) setFetching(false);
     }
   }, [q, major, sort]);
 
@@ -152,8 +157,11 @@ export default function Devs() {
           <button key={k || 'all'} onClick={() => setMajor(k)}
             className={`relative h-11 px-0.5 text-[0.9375rem] whitespace-nowrap transition-colors ${major === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
             {label}
-            {major === k && devs && <span className="ml-1.5 text-xs text-cs-text-muted">{total}</span>}
-            {major === k && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+            {major === k && devs && !fetching && <span className="ml-1.5 text-xs text-cs-text-muted">{total}</span>}
+            {major === k && (
+              <motion.span layoutId="people-tab-underline" className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary"
+                transition={{ type: 'spring', stiffness: 500, damping: 40 }} />
+            )}
           </button>
         ))}
       </div>
@@ -184,7 +192,7 @@ export default function Devs() {
       )}
 
       {Array.isArray(devs) && devs.length > 0 && (
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className={`mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 transition-opacity duration-300 ${fetching ? 'opacity-40' : 'opacity-100'}`}>
           {devs.map((d) => <DevCard key={d.username} d={d} onFollowList={setFollowList} />)}
         </div>
       )}

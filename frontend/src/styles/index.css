@@ -438,7 +438,7 @@
   .lesson-article--wide > h2,
   .lesson-article--wide > h3,
   .lesson-article--wide > h4 {
-    max-width: 72ch;
+    max-width: none;
   }
 
   .lesson-article a {
@@ -473,6 +473,9 @@
   .lesson-article pre .doc-copy:hover {
     @apply text-cs-text border-cs-line/25;
   }
+  .lesson-article pre .doc-copy.is-copied {
+    @apply text-white bg-cs-green border-cs-green;
+  }
 
   /* syntax highlighting tokens — follow the active theme via cs- vars */
   .tok-comment {
@@ -498,6 +501,9 @@
   }
   .tok-tag {
     @apply text-cs-cyan;
+  }
+  .tok-fn {
+    @apply text-cs-blue;
   }
 
   .lesson-article ul {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useCrumbNames, crumbName } from '../utils/crumbs';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { lessonService, aiService } from '../services/api';
 import CodeEditor from '../components/CodeEditor';
@@ -13,10 +14,15 @@ import { toast } from '../utils/toast';
 import { highlightAllCode } from '../utils/highlight';
 import { LessonSkeleton } from '../components/Skeletons';
 
+// Loaded only for Power BI lessons.
+const PowerBIDesktop = React.lazy(() => import('../components/powerbi/PowerBIDesktop'));
+
 function LessonView() {
   const { slug, moduleId, lessonId } = useParams();
   const navigate = useNavigate();
   const [lesson, setLesson] = useState(null);
+  // Real names for the top-bar breadcrumb: Learn › Course › Module › Lesson
+  useCrumbNames(lesson ? { [`module-${moduleId}`]: lesson.module_title, [String(lessonId)]: lesson.title } : null);
   const [loading, setLoading] = useState(true);
   const [activeExercise, setActiveExercise] = useState(0);
   const [code, setCode] = useState('');
@@ -232,20 +238,26 @@ function LessonView() {
   return (
     <div className="h-[calc(100vh-3.75rem)] lg:h-[calc(100vh-3.5rem)] bg-cs-dark flex flex-col overflow-hidden">
       {/* z-30 + right padding: keeps the global theme / language / bell controls visible */}
-      <header className="shrink-0 z-30 bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10 px-6 lg:px-8 py-4">
+      <header className="shrink-0 z-30 bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10 px-6 lg:px-8 py-2.5">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6 min-w-0">
-            <Link to={`/learn/${slug}`} className="inline-flex items-center gap-2 text-sm text-cs-text-dim hover:text-cs-primary shrink-0">
-              <FiArrowLeft /> <span className="hidden sm:inline">Back to Course</span>
+          {/* One-line path: Course / Module / Lesson */}
+          <nav className="flex items-center gap-2 min-w-0 text-[0.9375rem]" aria-label="Lesson path">
+            <Link to={`/learn/${slug}`} title="Back to course"
+              className="w-8 h-8 shrink-0 grid place-items-center rounded-lg text-cs-text-dim hover:text-cs-primary hover:bg-cs-overlay/[0.05]">
+              <FiArrowLeft />
             </Link>
-            <div className="min-w-0">
-              <h1 className="text-xl font-bold truncate">{lesson.title}</h1>
-              <p className="text-sm text-cs-text-muted">
-                {lesson.module_level ? `Module ${lesson.module_level}` : 'Module'}
-                {lesson.module_title ? ` · ${lesson.module_title}` : ''} • Lesson {lesson.order}
-              </p>
-            </div>
-          </div>
+            <Link to={`/learn/${slug}`} className="shrink-0 text-cs-text-dim hover:text-cs-primary">
+              {crumbName(slug) || slug.replace(/[-_]+/g, ' ').replace(/^./, (c) => c.toUpperCase())}
+            </Link>
+            <span className="text-cs-text-muted">/</span>
+            <Link to={`/learn/${slug}`} className="hidden sm:inline truncate max-w-[16rem] text-cs-text-dim hover:text-cs-primary"
+              title={`Module ${lesson.module_level || ''}`.trim()}>
+              {lesson.module_title || `Module ${lesson.module_level || ''}`}
+            </Link>
+            <span className="hidden sm:inline text-cs-text-muted">/</span>
+            <h1 className="font-semibold truncate">{lesson.title}</h1>
+            <span className="hidden md:inline shrink-0 text-xs text-cs-text-muted ml-1">Lesson {lesson.order}</span>
+          </nav>
 
           <div className="flex items-center gap-3 shrink-0">
             <button
@@ -314,6 +326,7 @@ function LessonView() {
                 </div>
                 <div className="p-4">
                   <CodeEditor
+                    compact
                     value={lesson.code_example}
                     onChange={() => {}}
                     language={slug}
@@ -352,12 +365,13 @@ function LessonView() {
 
             <p className="text-sm text-cs-text-dim mb-4">{currentExercise?.description}</p>
 
-            <div className="h-[18.75rem] rounded-2xl bg-cs-darker border border-white border-opacity-10 overflow-hidden mb-4">
+            <div id="lesson-editor" className="h-[18.75rem] rounded-2xl bg-cs-darker border border-white border-opacity-10 overflow-hidden mb-4">
               <div className="flex items-center gap-2 px-4 py-3 bg-white bg-opacity-5">
                 <span className="font-mono text-sm text-cs-cyan">{fileName('exercise')}</span>
               </div>
               <div className="h-[calc(100%-3.0625rem)]">
                 <CodeEditor
+                  compact
                   value={code}
                   onChange={handleCodeChange}
                   language={slug}
@@ -365,6 +379,26 @@ function LessonView() {
                 />
               </div>
             </div>
+
+            {slug === 'power-bi' && (
+              <div className="mb-5">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+                  <p className="text-sm font-semibold">Try it in Power BI</p>
+                  <p className="text-xs text-cs-text-muted">
+                    {fileName('exercise') === 'query.pq'
+                      ? 'Your query runs in the Power Query Editor below. Click a step to see the table at that point.'
+                      : 'Your measure runs on the Lotus Bean Coffee dataset. Click slicers and columns to change the filter context.'}
+                  </p>
+                </div>
+                <React.Suspense fallback={<div className="h-[42rem] rounded-lg skeleton" />}>
+                <PowerBIDesktop
+                  code={code}
+                  kind={fileName('exercise') === 'query.pq' ? 'm' : 'dax'}
+                  onNewMeasure={() => document.getElementById('lesson-editor')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                />
+                </React.Suspense>
+              </div>
+            )}
 
             {error && (
               <div className="mb-4 p-4 rounded-xl bg-cs-red bg-opacity-10 border border-cs-red border-opacity-30 flex items-start gap-3">

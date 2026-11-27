@@ -203,7 +203,7 @@ function Landing() {
         <div className="max-w-6xl mx-auto flex justify-between items-center gap-3">
           <Link to="/" className="flex items-center gap-2 text-base sm:text-lg font-bold text-cs-text group min-w-0 shrink">
             <img src="/logo.png" alt="CodeSquare" className="h-7 sm:h-8 w-auto object-contain shrink-0" />
-            <span className="truncate">CodeSquare</span>
+            <span className="truncate">codesquare</span>
           </Link>
           <div className="flex gap-2 sm:gap-3 items-center shrink-0">
             {/* Language switcher */}
@@ -609,7 +609,7 @@ function Landing() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 font-bold">
             <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
-            CodeSquare
+            codesquare
           </div>
           <p className="text-xs text-cs-text-muted">
             {t('landing.footer_desc')} · © {new Date().getFullYear()}

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import LangLogo from '../components/LangLogo';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMajor } from '../context/MajorContext';
@@ -155,26 +156,53 @@ function Practice() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8 space-y-6">
-      {/* Daily challenge: slim bar */}
-      {mode === 'browse' && daily === undefined && <div className="skeleton h-16 rounded-xl" />}
-      {mode === 'browse' && daily && (
-        <div className="rounded-xl border border-cs-line/10 bg-cs-overlay/[0.03] px-5 py-4 flex flex-wrap items-center gap-4">
-          <FiCalendar className="text-cs-primary shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[0.9375rem] truncate">
-              <span className="font-semibold">Today’s challenge</span>
-              <span className="text-cs-text-dim"> · {daily.title}</span>
-            </p>
-          </div>
-          <span className="text-sm text-cs-text-dim inline-flex items-center gap-3">
-            <Difficulty level={daily.difficulty} />
-            <span className="inline-flex items-center gap-1"><FiZap className="text-xs" /> {daily.xp_reward} XP</span>
-          </span>
-          <Link to={`/practice/c/${daily.slug}`} className={`btn btn-sm shrink-0 ${daily.solved ? 'btn-secondary' : 'btn-primary'}`}>
-            {daily.solved ? <><FiCheckCircle className="text-cs-green" /> {t('practice.solved')}</> : <>Solve now <FiArrowRight /></>}
-          </Link>
+      {/* Banner: solved count, streak and today's challenge */}
+      <section className="relative overflow-hidden rounded-2xl bg-cs-primary text-white">
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          {['python', 'javascript', 'sql', 'html', 'python', 'javascript'].map((l, i) => (
+            <span key={i} className="absolute bottom-0 class-drift text-white/20"
+              style={{ left: `${8 + i * 9}%`, animationDelay: `${(i * 1.3) % 7}s`, fontSize: `${1.2 + (i % 3) * 0.4}rem` }}>
+              <LangLogo name={l} brand={false} />
+            </span>
+          ))}
+          <span className="absolute -left-16 -bottom-24 w-64 h-64 rounded-full bg-white/[0.06]" />
         </div>
-      )}
+        <div className="relative px-7 py-7 flex flex-col lg:flex-row lg:items-center gap-6">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white/75">Practice</p>
+            <h1 className="mt-1 text-3xl font-bold">Sharpen your skills</h1>
+            <p className="mt-2 text-white/85">Short coding challenges, graded instantly. One new pick every day.</p>
+            {stats && (
+              <div className="mt-5 flex flex-wrap items-center gap-2.5 text-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5"><FiCheckCircle /> <span><b>{stats.solved}</b>/{stats.total} solved</span></span>
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5"><FiAward /> <span><b>{stats.daily_streak}</b> day streak</span></span>
+              </div>
+            )}
+          </div>
+
+          {/* today's challenge card */}
+          {daily === undefined && <div className="w-full lg:w-[26rem] h-32 rounded-xl bg-white/10 animate-pulse" />}
+          {daily && (
+            <div className="w-full lg:w-[26rem] shrink-0 rounded-xl bg-white text-[#1f2328] p-5 shadow-xl shadow-black/10">
+              <p className="text-xs font-semibold text-cs-primary inline-flex items-center gap-1.5"><FiCalendar /> Today’s challenge</p>
+              <div className="mt-2 flex items-center gap-3">
+                <span className="w-10 h-10 rounded-xl grid place-items-center text-xl bg-slate-100 shrink-0">
+                  <LangLogo name={daily.language} />
+                </span>
+                <p className="flex-1 min-w-0 text-lg font-bold truncate">{daily.title}</p>
+              </div>
+              <div className="mt-3 flex items-center gap-3 text-sm text-slate-600">
+                <Difficulty level={daily.difficulty} />
+                <span className="inline-flex items-center gap-1"><FiZap className="text-xs" /> {daily.xp_reward} XP</span>
+                <Link to={`/practice/c/${daily.slug}`}
+                  className={`ml-auto inline-flex items-center gap-1.5 h-9 px-4 rounded-lg text-sm font-semibold ${daily.solved ? 'bg-emerald-50 text-emerald-700' : 'bg-cs-primary text-white hover:opacity-90'}`}>
+                  {daily.solved ? <><FiCheckCircle /> {t('practice.solved')}</> : <>Solve now <FiArrowRight /></>}
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
       <section className="rounded-xl border border-cs-line/10 px-5 pt-2 pb-6">
         {/* Mode tabs */}
@@ -186,12 +214,6 @@ function Practice() {
               {mode === m && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
             </button>
           ))}
-          {stats && (
-            <span className="text-sm text-cs-text-dim ml-auto hidden sm:inline-flex items-center gap-4">
-              <span className="inline-flex items-center gap-1.5"><FiCheckCircle className="text-cs-green" /> {stats.solved}/{stats.total} solved</span>
-              <span className="inline-flex items-center gap-1.5"><FiAward className="text-cs-primary" /> {stats.daily_streak} day streak</span>
-            </span>
-          )}
         </div>
 
         {mode === 'browse' && (
@@ -248,8 +270,11 @@ function Practice() {
                   return (
                     <Link key={c.slug} to={`/practice/c/${c.slug}`}
                       className="group rounded-lg border border-cs-line/10 p-5 text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/20 transition-colors">
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-base font-bold leading-snug line-clamp-1">{c.title}</p>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="w-9 h-9 rounded-lg grid place-items-center text-lg bg-cs-overlay/[0.05] shrink-0">
+                          <LangLogo name={c.language} />
+                        </span>
+                        <p className="flex-1 min-w-0 text-base font-bold leading-snug line-clamp-1">{c.title}</p>
                         {c.solved
                           ? <span className="text-sm text-cs-green inline-flex items-center gap-1 shrink-0"><FiCheckCircle /> Solved</span>
                           : <span className="text-[0.9375rem] shrink-0">{c.xp_reward} XP</span>}
