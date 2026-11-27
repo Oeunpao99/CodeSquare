@@ -15,7 +15,7 @@ import {
   FiSun, FiMoon, FiGrid, FiSearch, FiMenu, FiX, FiBook, FiBookOpen, FiTarget, FiCode, FiCheck, FiLogOut,
   FiUser, FiSettings, FiLayers, FiCircle, FiActivity, FiChevronRight, FiChevronUp,
   FiChevronsLeft, FiChevronsRight, FiChevronDown, FiZap, FiCpu, FiTrendingUp, FiGlobe,
-  FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers, FiMessageSquare,
+  FiAward, FiFileText, FiBarChart2, FiArrowRight, FiHelpCircle, FiUsers, FiMessageSquare, FiMail,
 } from 'react-icons/fi';
 import MajorIcon from './MajorIcon';
 import NotificationBell from './NotificationBell';
@@ -61,6 +61,7 @@ function getNavGroups(t) {
       items: [
         { to: '/community', label: t('nav.community'), icon: FiMessageSquare },
         { to: '/devs', label: t('nav.people'), icon: FiUsers, match: ['/leaderboard'] },
+        { to: '/messages', label: 'Messages', icon: FiMail, match: ['/messages/'] },
       ],
     },
   ];
@@ -98,6 +99,7 @@ const CRUMBS = {
   '/community': [['Community']],
   '/community/new': [['Community', '/community'], ['New post']],
   '/devs': [['Community', '/community'], ['People']],
+  '/messages': [['Community', '/community'], ['Messages']],
   '/leaderboard': [['Community', '/community'], ['Leaderboard']],
   '/profile': [['Account'], ['Profile & settings']],
   '/usage': [['Account'], ['Usage']],
@@ -120,6 +122,7 @@ function crumbsFor(pathname) {
   }
   if (seg[0] === 'classes' && seg[1]) return [['My Classes', '/classes'], [crumbName(seg[1]) || 'Class']];
   if (seg[0] === 'community' && seg[1] === 'post') return [['Community', '/community'], ['Post']];
+  if (seg[0] === 'messages' && seg[1]) return [['Community', '/community'], ['Messages', '/messages'], [`@${seg[1]}`]];
   if (seg[0] === 'u' && seg[1]) return [['Community', '/community'], ['People', '/devs'], [`@${seg[1]}`]];
   if (seg[0] === 'projects' && seg[1]) return [['Build', '/projects'], ['Projects', '/projects'], [crumbName(seg[1]) || 'Project']];
   if (seg[0] === 'practice' && seg[1] === 'c') return [['Practice', '/practice'], ['Coding challenges', '/practice'], ['Challenge']];
@@ -478,7 +481,9 @@ function AppLayout() {
   // First two path segments — keys the content wrapper so navigating *within*
   // a section (lesson ↔ lesson) swaps instantly while section/detail changes
   // (e.g. clicking "read more" on a post card) get a smooth fade-in.
-  const contentKey = location.pathname.split('/').slice(0, 3).join('/') || '/';
+  const contentKey = location.pathname.startsWith('/messages/')
+    ? '/messages' : location.pathname.split('/').slice(0, 3).join('/') || '/';
+  const isMessages = contentKey === '/messages';
 
   // Reset scroll smoothly whenever the visible section actually changes.
   useEffect(() => {
@@ -786,7 +791,7 @@ function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-cs-dark">
+    <div className={`bg-cs-dark ${isMessages ? 'flex h-dvh flex-col' : 'min-h-screen'}`}>
       {/* Desktop notification bell — pinned top-right, vertically centered in an
           h-14 strip anchored at top-0 so it sits within the top band that pages'
           sticky headers keep clear on the right (the few pages with a top-right
@@ -802,7 +807,7 @@ function AppLayout() {
       )}
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 lg:hidden bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10">
+      <header className="sticky top-0 z-40 shrink-0 lg:hidden bg-cs-dark bg-opacity-90 backdrop-blur-2xl border-b border-cs-line/10">
         <div className="px-4 py-3 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
             <img src="/logo.png" alt="CodeSquare" className="h-7 w-auto object-contain" />
@@ -863,12 +868,12 @@ function AppLayout() {
       {/* Main content — cross-fades on tab / section change; the sidebar persists.
           Keyed by the first two path segments so navigating *within* a section
           (article ↔ article, lesson ↔ lesson) swaps instantly without a fade. */}
-      <main className={`${collapsed ? 'lg:pl-20' : 'lg:pl-80'} transition-[padding] duration-300`}>
+      <main className={`${collapsed ? 'lg:pl-20' : 'lg:pl-80'} ${isMessages ? 'flex min-h-0 flex-1 flex-col' : ''} transition-[padding] duration-300`}>
         {/* Fade-only (opacity, no transform) so position:sticky stays attached to
             the window scroll. Keyed by the first two path segments so
             within-section navigations swap without a remount. */}
         {/* App top bar (desktop): breadcrumb left, controls right */}
-        <header className="hidden lg:flex sticky top-0 z-40 h-14 items-center justify-between gap-4 px-6 lg:px-10 bg-cs-dark/95 backdrop-blur-xl border-b border-cs-line/10">
+        <header className="hidden lg:flex sticky top-0 z-40 h-14 shrink-0 items-center justify-between gap-4 px-6 lg:px-10 bg-cs-dark/95 backdrop-blur-xl border-b border-cs-line/10">
           <Breadcrumb pathname={location.pathname} />
           <div className="flex items-center gap-2 shrink-0">
           <ModeToggle mode={mode} toggleMode={toggleMode} theme={theme} setTheme={setTheme} themes={themes} themeKeys={themeKeys} />
@@ -886,7 +891,7 @@ function AppLayout() {
         <SectionTabs pathname={location.pathname} />
         <div
           key={contentKey}
-          className="min-h-[calc(100vh-3.75rem)] lg:min-h-[calc(100vh-3.5rem)] animate-route-fade"
+          className={`animate-route-fade ${isMessages ? 'flex min-h-0 flex-1' : 'min-h-[calc(100vh-3.75rem)] lg:min-h-[calc(100vh-3.5rem)]'}`}
         >
           <Outlet />
         </div>

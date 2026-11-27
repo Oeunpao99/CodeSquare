@@ -4,6 +4,8 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -11,7 +13,7 @@ from fastapi.responses import JSONResponse
 from routers import (
     auth, lessons, ai, progress, roadmap, docs, projects, challenges,
     quizzes, career, community, notes, notifications, admin, billing,
-    classes, github, avatars,
+    classes, github, avatars, messages,
 )
 
 # --------------------------------------------------------------------------- #
@@ -50,6 +52,16 @@ app = FastAPI(
     redoc_url="/redoc" if IS_DEV else None,
     openapi_url="/openapi.json" if IS_DEV else None,
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request: Request, error: RequestValidationError):
+    if request.url.path.rstrip("/") != "/api/auth/register":
+        return await request_validation_exception_handler(request, error)
+    # Registration validation can contain the submitted password in the raw input.
+    return JSONResponse(status_code=422, content={"detail": [
+        {key: issue[key] for key in ("loc", "msg", "type")} for issue in error.errors()
+    ]})
 
 if _allowed_hosts != ["*"]:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=_allowed_hosts)
@@ -108,7 +120,9 @@ def _rule_for(path: str):
 async def guard(request: Request, call_next):
     # 1) body-size backstop (Content-Length is enough for the common case)
     cl = request.headers.get("content-length")
-    if cl and cl.isdigit() and int(cl) > MAX_BODY_BYTES:
+    message_upload = request.method == "POST" and request.url.path.startswith("/api/messages/with/")
+    body_limit = messages.MAX_REQUEST_BYTES if message_upload else MAX_BODY_BYTES
+    if cl and cl.isdigit() and int(cl) > body_limit:
         return JSONResponse({"detail": "Request body too large."}, status_code=413)
 
     # 2) rate limit
@@ -162,6 +176,7 @@ app.include_router(career.router, prefix="/api/career", tags=["Career"])
 app.include_router(github.router, prefix="/api/github", tags=["GitHub"])
 app.include_router(avatars.router, prefix="/api/avatars", tags=["Avatars"])
 app.include_router(community.router, prefix="/api/community", tags=["Community"])
+app.include_router(messages.router, prefix="/api/messages", tags=["Direct messages"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 app.include_router(notes.router, prefix="/api/notes", tags=["CodeSquareNote"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])

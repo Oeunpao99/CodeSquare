@@ -1,6 +1,6 @@
 import secrets
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean, Index, Text
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -46,6 +46,30 @@ class User(Base):
     challenge_attempts = relationship("ChallengeAttempt", back_populates="user")
     quiz_attempts = relationship("QuizAttempt", back_populates="user")
     doc_progress = relationship("UserDocProgress", back_populates="user")
+
+class DirectMessage(Base):
+    __tablename__ = "direct_messages"
+    __table_args__ = (
+        Index("ix_dm_sender_recipient_id", "sender_id", "recipient_id", "id"),
+        Index("ix_dm_recipient_sender_id", "recipient_id", "sender_id", "id"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    recipient_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    text = Column(Text, nullable=False)
+    media_key = Column(String, nullable=True)
+    media_type = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class DirectMessageRead(Base):
+    __tablename__ = "direct_message_reads"
+
+    reader_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    peer_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    through_id = Column(Integer, nullable=False)
+
 
 class Language(Base):
     __tablename__ = "languages"

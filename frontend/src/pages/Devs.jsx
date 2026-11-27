@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiUsers, FiSearch, FiX, FiUserPlus, FiZap, FiChevronDown } from 'react-icons/fi';
+import { FiUsers, FiSearch, FiX, FiUserPlus, FiZap, FiChevronDown, FiMessageSquare } from 'react-icons/fi';
 import SelectMenu from '../components/SelectMenu';
 import { communityService } from '../services/api';
 import { MAJORS, MAJOR_KEYS } from '../majors';
@@ -107,6 +107,7 @@ export default function Devs() {
       <section className="text-center pt-2 pb-7">
         <h1 className="text-3xl md:text-4xl font-semibold">People</h1>
         <p className="mt-2 text-cs-text-dim">Find developers learning alongside you, and follow their progress.</p>
+        <Link to="/messages" className="btn btn-secondary btn-sm mt-4 inline-flex"><FiMessageSquare /> Messages</Link>
       </section>
 
       {/* Search + sort */}
@@ -168,7 +169,12 @@ export default function Devs() {
 
       {Array.isArray(devs) && devs.length > 0 && (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {devs.map((d) => <DevCard key={d.username} d={d} />)}
+          {devs.map((d) => <div key={d.username} className="flex flex-col gap-2">
+            <DevCard d={d} />
+            {!d.is_me && <Link to={'/messages/' + encodeURIComponent(d.username)}
+              aria-label={'Message ' + (d.display_name || d.username)}
+              className="btn btn-secondary btn-sm self-end"><FiMessageSquare /> Message</Link>}
+          </div>)}
         </div>
       )}
 

@@ -26,6 +26,18 @@ api.interceptors.response.use(
   }
 );
 
+export const messageService = {
+  inbox: (signal) => api.get('/messages', { signal }),
+  thread: (username, params, signal) =>
+    api.get('/messages/with/' + encodeURIComponent(username), { params, signal }),
+  markRead: (username, throughId) =>
+    api.post('/messages/with/' + encodeURIComponent(username) + '/read', { through_id: throughId }),
+  send: (username, body) => api.post('/messages/with/' + encodeURIComponent(username), body, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  media: (id, signal) => api.get('/messages/' + id + '/media', { responseType: 'blob', signal }),
+};
+
 export const authService = {
   login: (email, password) => {
     const formData = new URLSearchParams();

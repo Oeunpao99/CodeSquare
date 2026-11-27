@@ -12,10 +12,18 @@ const TG_SCRIPT = 'https://telegram.org/js/telegram-widget.js?22';
 // Turn an API error into one plain sentence. FastAPI's 422 sends a list of
 // field errors; map those to what the person needs to change.
 const FIELD_HELP = {
-  username: 'Username: 3–32 characters, letters, numbers, dots, dashes or underscores (no spaces).',
-  password: 'Password must be at least 10 characters.',
+  username: 'Use 3–32 letters, numbers, dots, dashes or underscores.',
+  password: 'Use at least 10 characters and at most 72 bytes. Some characters count as multiple bytes.',
   email: 'Please enter a valid email address.',
 };
+
+function signupError(email, username, password) {
+  if (email.length < 5 || email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return FIELD_HELP.email;
+  if (!/^[A-Za-z0-9_.-]{3,32}$/.test(username)) return FIELD_HELP.username;
+  if ([...password].length < 10 || new TextEncoder().encode(password).length > 72) return FIELD_HELP.password;
+  return '';
+}
+
 function errorText(error) {
   const detail = error?.response?.data?.detail;
   if (typeof detail === 'string') return detail;
@@ -72,6 +80,7 @@ function Auth() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState('');
   const [loading, setLoading] = useState(false);
   const [tgBusy, setTgBusy] = useState(false);
   const { login, register, loginWithGoogle, loginWithTelegram, user } = useAuth();
@@ -155,26 +164,23 @@ function Auth() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const accountEmail = email.trim();
+    const handle = username.trim();
+    const problem = isLogin ? '' : signupError(accountEmail, handle, password);
+    setFormError(problem);
+    if (problem) return;
     setLoading(true);
     try {
       if (isLogin) {
         await login(email, password);
         toast.success('Welcome back!');
       } else {
-        const problem = !username.trim() ? 'Please choose a username.'
-          : !/^[A-Za-z0-9_.-]{3,32}$/.test(username.trim()) ? FIELD_HELP.username
-            : password.length < 10 ? FIELD_HELP.password : null;
-        if (problem) {
-          toast.error(problem);
-          setLoading(false);
-          return;
-        }
-        await register(email, username.trim(), password);
+        await register(accountEmail, handle, password);
         toast.success('Account created! Welcome to CodeSquare!');
       }
       navigate('/dashboard');
     } catch (error) {
-      toast.error(errorText(error));
+      setFormError(errorText(error));
     } finally {
       setLoading(false);
     }
@@ -228,18 +234,19 @@ function Auth() {
             <span className="flex-1 h-px bg-cs-line/10" />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} noValidate={!isLogin} className="space-y-3">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">{t('auth.email')}</label>
               <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com" required className={INPUT} />
+                placeholder="you@example.com" autoComplete="email" required className={INPUT} />
             </div>
 
             {!isLogin && (
               <div>
                 <label htmlFor="username" className="block text-sm font-medium mb-1">{t('auth.username')}</label>
                 <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)}
-                  placeholder="coolcoder123" className={INPUT} />
+                  placeholder="coolcoder123" autoComplete="username" required aria-describedby="username-help" className={INPUT} />
+                <p id="username-help" className="mt-1 text-xs text-cs-text-muted">{FIELD_HELP.username}</p>
               </div>
             )}
 
@@ -248,7 +255,7 @@ function Auth() {
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} id="password" value={password}
                   onChange={(e) => setPassword(e.target.value)} placeholder={isLogin ? '••••••••' : 'At least 10 characters'} required minLength={isLogin ? 1 : 10}
-                  className={`${INPUT} pr-11`} />
+                  autoComplete={isLogin ? 'current-password' : 'new-password'} className={`${INPUT} pr-11`} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-cs-text-muted hover:text-cs-text p-1">
@@ -257,6 +264,7 @@ function Auth() {
               </div>
             </div>
 
+            {formError && <p role="alert" className="text-sm text-cs-orange">{formError}</p>}
             <button type="submit" className="btn btn-primary w-full h-11" disabled={loading}>
               {loading
                 ? <span className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
@@ -267,7 +275,7 @@ function Auth() {
 
         <div className="px-7 py-3.5 border-t border-cs-line/10 bg-cs-overlay/[0.03] text-sm text-cs-text-dim">
           {isLogin ? 'Need an account? ' : 'Already have an account? '}
-          <button onClick={() => setIsLogin(!isLogin)} className="text-cs-text font-medium underline underline-offset-4 hover:text-cs-primary">
+          <button onClick={() => { setIsLogin(!isLogin); setFormError(''); }} disabled={loading} className="text-cs-text font-medium underline underline-offset-4 hover:text-cs-primary">
             {isLogin ? 'Sign up' : 'Log in'}
           </button>
         </div>

@@ -239,17 +239,19 @@ export default function UserProfile() {
             </div>
           </div>
 
-          {/* Follow button (hidden on own profile) */}
           {!isMe && (
-            <button
-              onClick={toggleFollow}
-              disabled={busyFollow}
-              className={`btn btn-sm shrink-0 ${
-                data.is_following ? 'btn-secondary' : 'btn-primary'
-              }`}
-            >
-              {data.is_following ? <><FiUserCheck /> following</> : <><FiUserPlus /> follow</>}
-            </button>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Link to={'/messages/' + encodeURIComponent(data.username)} className="btn btn-sm btn-secondary">
+                <FiMessageSquare /> Message
+              </Link>
+              <button
+                onClick={toggleFollow}
+                disabled={busyFollow}
+                className={`btn btn-sm shrink-0 ${data.is_following ? 'btn-secondary' : 'btn-primary'}`}
+              >
+                {data.is_following ? <><FiUserCheck /> following</> : <><FiUserPlus /> follow</>}
+              </button>
+            </div>
           )}
         </div>
 
