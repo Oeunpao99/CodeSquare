@@ -173,6 +173,10 @@ class UserProject(Base):
     track_slug = Column(String, nullable=True)    # linked Language.slug
     # {repo_url, demo_url, readme, reflection, shipped_at}; filled on the Ship step
     ship = Column(JSON, nullable=True)
+    # Multi-file projects: [{path, content}] and the main file's path.
+    # `code` mirrors the main file so older views keep working.
+    files = Column(JSON, nullable=True)
+    entry = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 

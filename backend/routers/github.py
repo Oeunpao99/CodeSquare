@@ -10,8 +10,10 @@ Two ways in:
 Importing creates a UserProject: description, language, README (Ship step),
 repo + homepage links, and the repo's main source file as the project's code.
 """
+import io
 import os
 import re
+import zipfile
 import secrets
 from datetime import datetime, timedelta
 from typing import List, Optional
@@ -253,6 +255,71 @@ def _pick_entry(paths: List[str], lang: str) -> Optional[str]:
     return src[0] if src else None
 
 
+# Which files to bring in from a repo: source + config text, nothing generated.
+_TEXT_EXT = {
+    "py", "ipynb", "js", "jsx", "mjs", "cjs", "ts", "tsx", "vue", "svelte", "html", "htm", "css", "scss",
+    "sass", "less", "json", "md", "txt", "yml", "yaml", "toml", "ini", "cfg", "env.example", "sql", "sh",
+    "bat", "ps1", "java", "kt", "go", "rs", "rb", "php", "c", "h", "cpp", "hpp", "cs", "swift", "xml",
+    "svg", "csv", "dax", "pq", "m", "r", "dockerfile", "gitignore", "editorconfig", "prettierrc",
+    "eslintrc", "babelrc", "npmrc", "lock",
+}
+_TEXT_NAMES = {"dockerfile", "makefile", "procfile", "license", ".gitignore", ".env.example", ".dockerignore",
+               "requirements.txt", "pipfile", "gemfile"}
+_SKIP_DIRS = {"node_modules", ".git", "dist", "build", ".next", ".nuxt", "out", "coverage", "__pycache__",
+              ".venv", "venv", "env", ".idea", ".vscode", "vendor", "target", ".pytest_cache", ".mypy_cache"}
+_SKIP_NAMES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock"}
+MAX_ZIP = 40 * 1024 * 1024
+MAX_FILES = 300
+MAX_ONE = 200_000
+MAX_TOTAL = 3_500_000
+
+
+def _wanted(path: str) -> bool:
+    parts = path.split("/")
+    if any(x in _SKIP_DIRS for x in parts[:-1]):
+        return False
+    name = parts[-1].lower()
+    if name in _SKIP_NAMES or name.endswith((".min.js", ".min.css", ".map")):
+        return False
+    if name in _TEXT_NAMES:
+        return True
+    ext = name.rsplit(".", 1)[-1] if "." in name else ""
+    return ext in _TEXT_EXT or name.startswith(".") and name.lstrip(".") in _TEXT_EXT
+
+
+async def _repo_files(client: httpx.AsyncClient, full: str, branch: str, token: Optional[str]):
+    """Download the repo as one zip (a single API request) and keep its text files."""
+    r = await client.get(f"{API}/repos/{full}/zipball/{branch}", headers=_headers(token), follow_redirects=True)
+    if r.status_code >= 400:
+        raise HTTPException(502, "GitHub didn't send the repository files. Try again.")
+    if len(r.content) > MAX_ZIP:
+        raise HTTPException(413, "This repository is too large to import (40 MB limit).")
+    files, skipped, total = [], 0, 0
+    with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
+        for info in sorted(zf.infolist(), key=lambda i: (i.filename.count("/"), i.filename)):
+            if info.is_dir():
+                continue
+            path = info.filename.split("/", 1)[1] if "/" in info.filename else info.filename  # drop "owner-repo-sha/"
+            if not path or not _wanted(path):
+                skipped += 1
+                continue
+            if info.file_size > MAX_ONE or len(files) >= MAX_FILES or total + info.file_size > MAX_TOTAL:
+                skipped += 1
+                continue
+            try:
+                text = zf.read(info).decode("utf-8")
+            except (UnicodeDecodeError, KeyError):
+                skipped += 1
+                continue
+            if "\x00" in text:
+                skipped += 1
+                continue
+            total += len(text)
+            files.append({"path": path, "content": text})
+    files.sort(key=lambda f: f["path"].lower())
+    return files, skipped
+
+
 @router.post("/import", status_code=201)
 async def import_repo(body: ImportBody, db: AsyncSession = Depends(get_db),
                       current_user: User = Depends(get_current_user)):
@@ -274,27 +341,24 @@ async def import_repo(body: ImportBody, db: AsyncSession = Depends(get_db),
         except HTTPException:
             readme = ""
 
-        code, entry = "", None
-        try:
-            tree = await _gh(client, f"/repos/{full}/git/trees/{meta.get('default_branch') or 'main'}?recursive=1", token)
-            blobs = [t for t in tree.get("tree", []) if t.get("type") == "blob" and (t.get("size") or 0) <= MAX_CODE]
-            entry = _pick_entry([t["path"] for t in blobs], lang)
-            if entry:
-                code = (await _gh(client, f"/repos/{full}/contents/{entry}", token, raw=True))[:MAX_CODE]
-                if entry.endswith((".jsx", ".tsx")) and lang == "javascript":
-                    lang = "react"
-        except HTTPException:
-            pass
+        files, skipped = await _repo_files(client, full, meta.get("default_branch") or "main", token)
+        entry = _pick_entry([f["path"] for f in files], lang) or (files[0]["path"] if files else None)
+        code = next((f["content"] for f in files if f["path"] == entry), "")
+        if entry and entry.endswith((".jsx", ".tsx")) and lang == "javascript":
+            lang = "react"
 
     title = re.sub(r"[-_]+", " ", meta["name"]).strip()
     title = title[:1].upper() + title[1:]
-    notes = f"Imported from [{full}]({url})" + (f" · main file `{entry}`" if entry else "") + ".\n"
+    notes = (f"Imported from [{full}]({url}): {len(files)} files"
+             + (f", main file `{entry}`" if entry else "") + ".\n")
     project = UserProject(
         user_id=current_user.id,
         title=title,
         description=(meta.get("description") or "")[:500] or None,
         language=lang,
         code=code,
+        files=files,
+        entry=entry,
         notes=notes,
         tasks=[],
         status="active",
@@ -306,4 +370,4 @@ async def import_repo(body: ImportBody, db: AsyncSession = Depends(get_db),
     db.add(project)
     await db.commit()
     await db.refresh(project)
-    return {"id": project.id, "title": project.title, "entry": entry}
+    return {"id": project.id, "title": project.title, "entry": entry, "files": len(files), "skipped": skipped}

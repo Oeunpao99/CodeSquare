@@ -201,7 +201,7 @@ export const projectService = {
   get: (id) => api.get(`/projects/${id}`),
   update: (id, patch) => api.patch(`/projects/${id}`, patch),
   remove: (id) => api.delete(`/projects/${id}`),
-  review: (id) => api.post(`/projects/${id}/review`),
+  review: (id, body) => api.post(`/projects/${id}/review`, body || {}),
 };
 
 export const docService = {

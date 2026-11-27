@@ -13,6 +13,7 @@ import LangLogo from '../components/LangLogo';
 import { editorMode, stackFile } from '../projectStacks';
 import { useCrumbNames } from '../utils/crumbs';
 import { STAGES, stageState, BriefTab, ShipTab } from '../components/project/ProjectFlow';
+import FileExplorer, { languageFor } from '../components/project/FileExplorer';
 
 const download = (name, text) => {
   const blob = new Blob([text ?? ''], { type: 'text/plain;charset=utf-8' });
@@ -175,7 +176,14 @@ function ProjectWorkspace() {
 
   // editable state
   const [title, setTitle] = useState('');
-  const [code, setCode] = useState('');
+  // Files: [{path, content}]. `entry` is the main file; `active` is the one open.
+  const [files, setFiles] = useState([]);
+  const [entry, setEntry] = useState('');
+  const [active, setActive] = useState('');
+  const [pendingFileDelete, setPendingFileDelete] = useState(null);
+  const code = files.find((f) => f.path === entry)?.content ?? '';
+  const activeContent = files.find((f) => f.path === active)?.content ?? '';
+  const setActiveContent = (v) => setFiles((fs) => fs.map((f) => (f.path === active ? { ...f, content: v } : f)));
   const [notes, setNotes] = useState('');
   const [tasks, setTasks] = useState([]);
   const [status, setStatus] = useState('active');
@@ -197,7 +205,11 @@ function ProjectWorkspace() {
         const p = res.data;
         setProject(p);
         setTitle(p.title);
-        setCode(p.code || '');
+        const fs = p.files?.length ? p.files : [{ path: stackFile(p.language), content: p.code || '' }];
+        const main = p.entry && fs.some((f) => f.path === p.entry) ? p.entry : fs[0].path;
+        setFiles(fs);
+        setEntry(main);
+        setActive(main);
         setNotes(p.notes || '');
         setTasks(p.tasks || []);
         setStatus(p.status || 'active');
@@ -235,10 +247,30 @@ function ProjectWorkspace() {
     setSaveState('dirty');
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      patch({ title, code, notes, tasks, status, pinned, brief, ship });
+      patch({ title, files, entry, code, notes, tasks, status, pinned, brief, ship });
     }, 800);
     return () => clearTimeout(saveTimer.current);
-  }, [title, code, notes, tasks, status, pinned, brief, ship, patch]);
+  }, [title, files, entry, notes, tasks, status, pinned, brief, ship, patch]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---- file operations
+  const createFile = (path) => {
+    if (files.some((f) => f.path === path)) { setActive(path); return; }
+    setFiles((fs) => [...fs, { path, content: '' }]);
+    setActive(path);
+  };
+  const renameFile = (from, to) => {
+    if (files.some((f) => f.path === to)) { toast.error('A file with that name already exists'); return; }
+    setFiles((fs) => fs.map((f) => (f.path === from ? { ...f, path: to } : f)));
+    if (entry === from) setEntry(to);
+    if (active === from) setActive(to);
+  };
+  const deleteFile = (path) => {
+    const rest = files.filter((f) => f.path !== path);
+    if (!rest.length) return;
+    setFiles(rest);
+    if (entry === path) setEntry(rest[0].path);
+    if (active === path) setActive(entry !== path ? entry : rest[0].path);
+  };
 
   const removeProject = async () => {
     try {
@@ -250,12 +282,12 @@ function ProjectWorkspace() {
   };
 
   const runReview = async () => {
-    if (!code.trim()) return toast.error('Write some code first.');
+    if (!activeContent.trim()) return toast.error('This file is empty. Write some code first.');
     setReviewing(true);
     setStep('review');
     try {
-      await patch({ code });
-      const res = await projectService.review(id);
+      await patch({ files, entry, code });
+      const res = await projectService.review(id, { path: active });
       setProject(res.data);
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Review failed.');
@@ -272,7 +304,7 @@ function ProjectWorkspace() {
 
   const review = project?.ai_review;
   const stages = stageState({ brief, code, tasks, review, ship, status });
-  const file = useMemo(() => stackFile(project?.language), [project]);
+  const file = active || stackFile(project?.language);
   const stepIndex = STAGES.findIndex((s) => s.id === step);
   const nextStep = STAGES[stepIndex + 1];
 
@@ -348,8 +380,8 @@ function ProjectWorkspace() {
             {exportOpen && (
               <div className="absolute right-0 mt-1 w-44 rounded-lg border border-cs-line/15 bg-cs-darkest shadow-xl z-40 py-1 text-sm"
                 onMouseLeave={() => setExportOpen(false)}>
-                <button className="w-full text-left px-3 py-2 hover:bg-cs-overlay/5" onClick={() => { download(file, code); setExportOpen(false); }}>
-                  Download {file}
+                <button className="w-full text-left px-3 py-2 hover:bg-cs-overlay/5" onClick={() => { download(file.split('/').pop(), activeContent); setExportOpen(false); }}>
+                  Download {file.split('/').pop()}
                 </button>
                 <button className="w-full text-left px-3 py-2 hover:bg-cs-overlay/5" onClick={() => { download('notes.md', notes); setExportOpen(false); }}>
                   Download notes.md
@@ -416,16 +448,37 @@ function ProjectWorkspace() {
         )}
 
         {step === 'build' && (
-          <div className="grid lg:grid-cols-[minmax(0,1fr)_20rem] gap-4 h-[calc(100vh-17rem)] min-h-[28rem]">
+          <div className="grid lg:grid-cols-[15rem_minmax(0,1fr)_18rem] gap-4 h-[calc(100vh-17rem)] min-h-[28rem]">
+            <div className="hidden lg:flex flex-col min-h-0 rounded-xl border border-cs-line/10 bg-cs-overlay/[0.02]">
+              <FileExplorer
+                files={files}
+                active={active}
+                entry={entry}
+                onOpen={setActive}
+                onCreate={createFile}
+                onRename={renameFile}
+                onDelete={(p) => setPendingFileDelete(p)}
+                onSetEntry={(p) => { setEntry(p); toast.success('Main file set', p); }}
+              />
+            </div>
             <div className="rounded-xl border border-cs-line/10 bg-cs-darkest overflow-hidden flex flex-col min-h-0">
-              <div className="flex items-center justify-between px-4 h-11 border-b border-cs-line/10">
-                <span className="font-mono text-xs text-cs-text-muted">{file}</span>
-                <button onClick={runReview} disabled={reviewing} className="btn btn-ghost btn-sm">
+              <div className="flex items-center gap-2 px-4 h-11 border-b border-cs-line/10">
+                <span className="font-mono text-xs text-cs-text-muted truncate">
+                  {active.split('/').map((part, i, arr) => (
+                    <span key={i} className={i === arr.length - 1 ? 'text-cs-text' : ''}>{part}{i < arr.length - 1 ? ' / ' : ''}</span>
+                  ))}
+                </span>
+                {active === entry && <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-cs-orange">main</span>}
+                {/* phones: file picker instead of the explorer */}
+                <select value={active} onChange={(e) => setActive(e.target.value)} className="lg:hidden ml-2 max-w-[10rem] bg-transparent text-xs border border-cs-line/15 rounded px-1">
+                  {files.map((f) => <option key={f.path} value={f.path}>{f.path}</option>)}
+                </select>
+                <button onClick={runReview} disabled={reviewing} className="btn btn-ghost btn-sm ml-auto" title="AI review of this file">
                   <FiPlay /> {reviewing ? 'Reviewing…' : 'AI review'}
                 </button>
               </div>
               <div className="flex-1 min-h-0">
-                <CodeEditor compact value={code} onChange={setCode} language={editorMode(project.language)} onSubmit={() => { if (!reviewing) runReview(); }} />
+                <CodeEditor key={active} compact value={activeContent} onChange={setActiveContent} language={languageFor(active)} onSubmit={() => { if (!reviewing) runReview(); }} />
               </div>
             </div>
             <BuildSide tasks={tasks} setTasks={setTasks} notes={notes} setNotes={setNotes} />
@@ -494,6 +547,15 @@ function ProjectWorkspace() {
           />
         )}
       </div>
+
+      {pendingFileDelete && (
+        <ConfirmDialog
+          title="Delete file"
+          message={`Delete ${pendingFileDelete}? You can't undo this.`}
+          onConfirm={() => deleteFile(pendingFileDelete)}
+          onClose={() => setPendingFileDelete(null)}
+        />
+      )}
 
       {pendingDelete && (
         <ConfirmDialog

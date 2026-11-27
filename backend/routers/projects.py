@@ -42,6 +42,12 @@ class ProjectUpdate(BaseModel):
     pinned: Optional[bool] = None
     track_slug: Optional[str] = None
     ship: Optional[Dict[str, Any]] = None
+    files: Optional[List[Dict[str, Any]]] = None
+    entry: Optional[str] = None
+
+
+class ReviewBody(BaseModel):
+    path: Optional[str] = None   # review this file; default = the main file
 
 
 class ProjectCard(BaseModel):
@@ -76,6 +82,8 @@ class ProjectDetail(BaseModel):
     track_slug: Optional[str] = None
     ai_review: Optional[Dict[str, Any]] = None
     ship: Optional[Dict[str, Any]] = None
+    files: Optional[List[Dict[str, Any]]] = None
+    entry: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -124,9 +132,53 @@ def _detail(p: UserProject) -> ProjectDetail:
         track_slug=p.track_slug,
         ai_review=p.ai_review,
         ship=p.ship,
+        files=p.files,
+        entry=p.entry,
         created_at=p.created_at,
         updated_at=p.updated_at,
     )
+
+
+MAX_FILES = 400
+MAX_FILE_CHARS = 300_000
+MAX_TOTAL_CHARS = 4_000_000
+
+
+def clean_path(path: str) -> str:
+    p = str(path or "").replace("\\", "/").strip().lstrip("/")
+    parts = [x for x in p.split("/") if x not in ("", ".")]
+    if not parts or any(x == ".." for x in parts) or len(p) > 240:
+        raise HTTPException(status_code=400, detail=f"Invalid file path: {path!r}")
+    return "/".join(parts)
+
+
+def clean_files(files: Optional[List[Dict[str, Any]]]) -> Optional[List[Dict[str, str]]]:
+    if files is None:
+        return None
+    if len(files) > MAX_FILES:
+        raise HTTPException(status_code=400, detail=f"A project can hold up to {MAX_FILES} files.")
+    out, seen, total = [], set(), 0
+    for f in files:
+        path = clean_path(f.get("path"))
+        content = f.get("content") or ""
+        if not isinstance(content, str):
+            raise HTTPException(status_code=400, detail=f"{path}: content must be text")
+        if len(content) > MAX_FILE_CHARS:
+            raise HTTPException(status_code=400, detail=f"{path} is too large (max {MAX_FILE_CHARS // 1000}k characters).")
+        total += len(content)
+        if path in seen:
+            continue
+        seen.add(path)
+        out.append({"path": path, "content": content})
+    if total > MAX_TOTAL_CHARS:
+        raise HTTPException(status_code=400, detail="The project is too large to save (4 MB of text max).")
+    return out
+
+
+LANG_BY_EXT = {
+    "py": "python", "js": "javascript", "mjs": "javascript", "cjs": "javascript", "jsx": "javascript",
+    "ts": "typescript", "tsx": "typescript", "html": "html", "css": "css", "sql": "sql", "sh": "bash",
+}
 
 
 _SHIP_KEYS = {"repo_url", "demo_url", "readme", "reflection", "shipped_at"}
@@ -287,6 +339,17 @@ async def update_project(
 ):
     project = await _own(db, project_id, current_user.id)
     data = body.model_dump(exclude_unset=True)
+    if "files" in data:
+        data["files"] = clean_files(data["files"])
+    if "entry" in data and data["entry"]:
+        data["entry"] = clean_path(data["entry"])
+    # Keep `code` in step with the main file.
+    files_now = data.get("files", project.files) or []
+    entry_now = data.get("entry", project.entry)
+    if files_now and entry_now:
+        main = next((f for f in files_now if f["path"] == entry_now), None)
+        if main is not None:
+            data["code"] = main["content"]
     if "ship" in data:
         data["ship"] = _clean_ship(data["ship"])
     # "Done" means shipped: it needs a repository link.
@@ -319,16 +382,24 @@ async def delete_project(
 @router.post("/{project_id}/review", response_model=ProjectDetail)
 async def review_project(
     project_id: int,
+    body: Optional[ReviewBody] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     project = await _own(db, project_id, current_user.id)
-    if not (project.code or "").strip():
+    source, language = project.code or "", project.language or "python"
+    if body and body.path and project.files:
+        f = next((x for x in project.files if x.get("path") == body.path), None)
+        if f is None:
+            raise HTTPException(status_code=404, detail="That file isn't in this project.")
+        source = f.get("content") or ""
+        language = LANG_BY_EXT.get(body.path.rsplit(".", 1)[-1].lower(), language)
+    if not source.strip():
         raise HTTPException(status_code=400, detail="Nothing to review yet")
 
     review = await ai_tutor.review_code(
-        project.code,
-        project.language or "python",
+        source,
+        language,
         project.title,
         project.description or "",
     )
