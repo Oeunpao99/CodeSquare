@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiUsers, FiPlus, FiLogIn, FiX, FiBookOpen, FiClock, FiGrid, FiSearch } from 'react-icons/fi';
 import { classService, teacherService } from '../services/api';
 import { Sk } from '../components/Skeletons';
+import LangLogo from '../components/LangLogo';
 import CodeInput from '../components/class/CodeInput';
 import { toast } from '../utils/toast';
 
@@ -29,25 +30,33 @@ function Modal({ title, onClose, children }) {
 
 function ClassCard({ c }) {
   const mine = c.role === 'teacher';
+  const showSubject = c.subject && c.subject.trim().toLowerCase() !== (c.title || '').trim().toLowerCase();
   return (
     <Link
       to={`/classes/${c.id}`}
-      className="group rounded-lg border border-cs-line/10 p-5 text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/20 transition-colors flex flex-col"
+      className="group rounded-xl overflow-hidden border border-cs-line/10 bg-cs-dark text-cs-text flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
     >
-      <div className="flex items-center gap-3">
-        <span className="w-10 h-10 rounded-lg grid place-items-center text-white font-bold shrink-0" style={{ background: c.color }}>
-          {(c.title || '?').charAt(0).toUpperCase()}
+      {/* Coloured header like the class banner: big faded mark sways, tile overlaps the edge */}
+      <div className="relative h-24 px-5 pt-4 text-white overflow-hidden" style={{ background: c.color }}>
+        <span className="pointer-events-none absolute -right-3 -bottom-8 class-sway" aria-hidden>
+          <LangLogo name={c.subject || c.title} brand={false} className="text-[7rem] text-white/[0.16]" />
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-base font-bold truncate">{c.title}</p>
-          <p className="text-sm text-cs-text-dim truncate">{c.subject || 'Class'}</p>
-        </div>
-        {mine && <span className="text-xs font-medium text-cs-primary shrink-0">Instructor</span>}
+        <p className="relative text-lg font-bold truncate pr-20">{c.title}</p>
+        {showSubject && <p className="relative text-sm text-white/85 truncate">{c.subject}</p>}
+        {mine && (
+          <span className="absolute top-4 right-4 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/20">Instructor</span>
+        )}
       </div>
-      {c.description && <p className="text-sm text-cs-text-dim line-clamp-2 mt-3">{c.description}</p>}
-      <div className="mt-auto pt-4 flex items-center justify-between gap-3 text-sm text-cs-text-dim">
-        <span className="truncate">{mine ? 'You’re the instructor' : c.teacher.display_name}</span>
-        <span className="inline-flex items-center gap-1.5 shrink-0"><FiUsers /> {c.student_count} student{c.student_count === 1 ? '' : 's'}</span>
+      <div className="relative px-5 pb-4 flex-1 flex flex-col">
+        <span className="-mt-7 mb-3 w-14 h-14 rounded-xl bg-white grid place-items-center text-[1.75rem] shadow-md ring-4 ring-[rgb(var(--cs-dark))] group-hover:class-bob"
+          style={{ color: c.color }}>
+          <LangLogo name={c.subject || c.title} />
+        </span>
+        {c.description && <p className="text-sm text-cs-text-dim line-clamp-2 mb-3">{c.description}</p>}
+        <div className="mt-auto flex items-center justify-between gap-3 text-sm text-cs-text-dim">
+          <span className="truncate">{mine ? 'You’re the instructor' : c.teacher.display_name}</span>
+          <span className="inline-flex items-center gap-1.5 shrink-0"><FiUsers /> {c.student_count} student{c.student_count === 1 ? '' : 's'}</span>
+        </div>
       </div>
     </Link>
   );
@@ -125,7 +134,7 @@ export default function Classes() {
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <section className="rounded-xl border border-cs-line/10 px-5 pt-2 pb-6">
+      <section>
         {/* Tabs + actions */}
         <div className="flex flex-wrap items-center gap-x-7 border-b border-cs-line/10">
           {tabs.map(([k, label, n]) => (
@@ -136,21 +145,21 @@ export default function Classes() {
             </button>
           ))}
           {data === null && <span className="h-12" />}
-        </div>
-
-        {!empty && (
-          <label className="mt-5 mb-5 h-10 flex items-center gap-2 px-3 rounded-lg border border-cs-line/15 focus-within:border-cs-primary/50 transition-colors">
+          {data && !empty && (
+          <label className="ml-auto my-2 h-9 w-full sm:w-72 flex items-center gap-2 px-3 rounded-lg border border-cs-line/15 focus-within:border-cs-primary/50 transition-colors">
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search classes"
               className="flex-1 min-w-0 bg-transparent outline-none text-[0.9375rem] placeholder:text-cs-text-muted" />
             {search
               ? <button type="button" onClick={() => setSearch('')} className="text-cs-text-muted hover:text-cs-text"><FiX /></button>
               : <FiSearch className="text-cs-text-muted" />}
           </label>
-        )}
+          )}
+        </div>
+        <div className="h-6" />
 
         {data === null && (
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {Array.from({ length: 3 }).map((_, i) => <Sk key={i} className="h-[8.5rem] w-full rounded-lg" />)}
+            {Array.from({ length: 3 }).map((_, i) => <Sk key={i} className="h-44 w-full rounded-xl" />)}
           </div>
         )}
 

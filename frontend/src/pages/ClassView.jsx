@@ -20,6 +20,8 @@ import GradesTab from '../components/class/GradesTab';
 import { toast } from '../utils/toast';
 import { confirmDialog } from '../utils/confirm';
 import { contactLabel } from '../utils/contact';
+import LangLogo from '../components/LangLogo';
+import { useCrumbNames } from '../utils/crumbs';
 
 const fmtSize = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
@@ -208,6 +210,7 @@ export default function ClassView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [cls, setCls] = useState(null);
+  useCrumbNames(cls ? { [id]: cls.title } : null);
   const [missing, setMissing] = useState(false);
   const [searchParams] = useSearchParams();
   // Links from Telegram / notifications can open a specific tab: ?tab=assignments
@@ -290,15 +293,37 @@ export default function ClassView() {
     <main className="w-full px-6 lg:px-10 py-6">
 
       {/* Header: one coloured banner; class code inline (teacher) */}
-      <section className="rounded-2xl overflow-hidden mb-6 text-white" style={{ background: cls.color }}>
-        <div className="px-6 py-6 flex flex-col md:flex-row md:items-end gap-4">
-          <div className="flex-1 min-w-0">
-            <p className="text-white/85 text-sm font-semibold">{cls.subject || 'Class'}</p>
-            <h1 className="text-3xl font-bold mt-1">{cls.title}</h1>
+      <section className="relative rounded-2xl overflow-hidden mb-6 text-white" style={{ background: cls.color }}>
+        {/* Big faded subject mark in the background */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <span className="absolute -bottom-10 right-[22%] class-sway">
+            <LangLogo name={cls.subject || cls.title} brand={false} className="text-[11rem] text-white/[0.12]" />
+          </span>
+          {/* small icons drifting up */}
+          {[
+            ['left-[30%]', 'text-2xl', '0s'], ['left-[42%]', 'text-xl', '2.3s'], ['left-[54%]', 'text-3xl', '4.1s'],
+            ['left-[63%]', 'text-lg', '1.2s'], ['left-[48%]', 'text-base', '5.6s'],
+          ].map(([pos, size, delay]) => (
+            <span key={delay} className={`absolute bottom-0 ${pos} ${size} text-white/25 class-drift`} style={{ animationDelay: delay }}>
+              <LangLogo name={cls.subject || cls.title} brand={false} />
+            </span>
+          ))}
+        </div>
+        <div className="relative px-6 py-6 flex flex-col md:flex-row md:items-end gap-4">
+          <div className="flex-1 min-w-0 flex items-center gap-5">
+            <span className="shrink-0 w-20 h-20 rounded-2xl bg-white grid place-items-center text-[2.6rem] shadow-lg shadow-black/10 class-bob" style={{ color: cls.color }}>
+              <LangLogo name={cls.subject || cls.title} />
+            </span>
+            <div className="min-w-0">
+            {cls.subject && cls.subject.trim().toLowerCase() !== cls.title.trim().toLowerCase() && (
+              <p className="text-white/85 text-sm font-semibold">{cls.subject}</p>
+            )}
+            <h1 className="text-3xl font-bold mt-1 truncate">{cls.title}</h1>
             <p className="text-sm text-white/85 mt-2">
               {cls.teacher.display_name} · {cls.student_count} student{cls.student_count === 1 ? '' : 's'}
             </p>
             {cls.description && <p className="mt-2 text-sm text-white/90 whitespace-pre-line max-w-2xl">{cls.description}</p>}
+            </div>
           </div>
 
           {isTeacher ? (

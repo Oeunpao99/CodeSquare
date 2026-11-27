@@ -5,8 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import LangLogo from '../components/LangLogo';
 import {
   FiGlobe, FiArrowRight, FiCheckSquare, FiStar, FiArrowUpRight,
-  FiFolder, FiGithub, FiLinkedin, FiEdit3,
-} from 'react-icons/fi';
+  FiFolder, FiGithub, FiLinkedin, FiEdit3, FiCamera } from 'react-icons/fi';
 
 const PROFILE_LINKS = [
   { key: 'github_url', label: 'GitHub', icon: <FiGithub /> },
@@ -35,11 +34,19 @@ function Portfolio() {
 
       {/* identity card — pulled from your profile */}
       <div className="card border-cs-primary/15 mb-6 flex flex-col sm:flex-row gap-5">
-        <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-main border-2 border-cs-primary/40 flex items-center justify-center text-3xl font-bold text-cs-dark shrink-0">
+        {/* Profile photo; without one, the same plain initial as the top bar, linking to add a photo */}
+        <Link
+          to="/profile"
+          title={user?.avatar ? 'Change photo' : 'Add a profile photo'}
+          className="group relative w-20 h-20 rounded-full overflow-hidden grid place-items-center text-3xl font-bold bg-cs-primary/10 text-cs-primary ring-1 ring-cs-line/10 shrink-0"
+        >
           {user?.avatar
             ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
             : <span>{(user?.display_name || user?.username)?.charAt(0).toUpperCase()}</span>}
-        </div>
+          <span className="absolute inset-0 grid place-items-center bg-black/45 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+            <FiCamera className="text-xl" />
+          </span>
+        </Link>
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-bold">{user?.display_name || user?.username}</h2>
           {user?.headline && <p className="text-sm text-cs-primary mt-0.5">{user.headline}</p>}
@@ -117,6 +124,13 @@ function Portfolio() {
                     <FiCheckSquare /> {p.task_done}/{p.task_total}
                   </span>
                 )}
+                {[[p.repo_url, FiGithub, 'Code'], [p.demo_url, FiGlobe, 'Demo']].filter(([u]) => u).map(([u, Icon, label]) => (
+                  <button key={label} type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(u, '_blank', 'noopener'); }}
+                    className="inline-flex items-center gap-1 text-cs-text-dim hover:text-cs-primary">
+                    <Icon /> {label}
+                  </button>
+                ))}
                 {typeof p.review_score === 'number' && (
                   <span className={`inline-flex items-center gap-1 ${scoreCls(p.review_score)} ml-auto`}>
                     <FiStar /> {Math.round(p.review_score)}

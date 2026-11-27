@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import SelectMenu from '../components/SelectMenu';
 import {
   FiAlertTriangle,
   FiArrowLeft,
@@ -1322,14 +1323,14 @@ function Notes() {
                 <FiSearch className="text-cs-text-muted" />
               </label>
               {monthOptions.length > 0 && (
-                <label className="h-10 inline-flex items-center gap-1.5 pl-3 pr-2 rounded-lg border border-cs-line/15 text-[0.9375rem]">
-                  <span className="text-cs-text-muted">Date:</span>
-                  <select value={activeMonth} onChange={(e) => setMonth(e.target.value)}
-                    className="bg-transparent outline-none font-medium cursor-pointer">
-                    <option value="all">All</option>
-                    {monthMeta.map((m) => <option key={m.key} value={m.key}>{monthLabel(m.key)} ({m.count})</option>)}
-                  </select>
-                </label>
+                <SelectMenu
+                  value={activeMonth}
+                  onChange={setMonth}
+                  prefix="Date:"
+                  ariaLabel="Filter by month"
+                  buttonClassName="h-10 px-3 text-[0.9375rem]"
+                  options={[{ value: 'all', label: 'All' }, ...monthMeta.map((m) => ({ value: m.key, label: monthLabel(m.key), hint: String(m.count) }))]}
+                />
               )}
               <div className="h-10 inline-flex items-center gap-0.5 p-0.5 rounded-lg border border-cs-line/15 text-[0.9375rem]">
                 {[{ id: "recent", label: "Newest" }, { id: "oldest", label: "Oldest" }].map((so) => (

@@ -848,6 +848,32 @@
   }
 }
 
+/* Class banner (pages/ClassView.jsx): the subject tile bobs, the big mark sways,
+   small subject icons drift up across the banner. */
+@layer utilities {
+  .class-bob { animation: class-bob 3.6s ease-in-out infinite; }
+  .class-sway { animation: class-sway 9s ease-in-out infinite; }
+  .class-drift { animation: class-drift 7s linear infinite; opacity: 0; }
+  @keyframes class-bob {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-6px) rotate(-3deg); }
+  }
+  @keyframes class-sway {
+    0%, 100% { transform: rotate(-12deg) translateY(0); }
+    50%      { transform: rotate(-4deg) translateY(-10px); }
+  }
+  @keyframes class-drift {
+    0%   { transform: translate(0, 1.5rem) rotate(0deg) scale(0.8); opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translate(1.5rem, -9rem) rotate(25deg) scale(1.05); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .class-bob, .class-sway, .class-drift { animation: none; }
+    .class-drift { opacity: 1; }
+  }
+}
+
 /* Roadmap "Visual" tab (components/RoadmapRoad.jsx): the road draws itself,
    stops pop in as it reaches them, the current stop pulses. */
 @layer utilities {

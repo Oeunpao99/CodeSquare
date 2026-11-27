@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import SelectMenu from '../components/SelectMenu';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   FiStar, FiTrash2, FiDownload, FiPlay, FiPlus, FiCheck,
-  FiX, FiCode, FiFileText, FiClipboard, FiCheckSquare, FiZap,
+  FiX, FiCode, FiFileText, FiClipboard, FiCheckSquare, FiZap, FiSend,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 import { projectService } from '../services/api';
@@ -11,13 +12,17 @@ import CodeEditor from '../components/CodeEditor';
 import Markdown from '../components/Markdown';
 import LangLogo from '../components/LangLogo';
 import { editorMode, stackFile } from '../projectStacks';
+import { useCrumbNames } from '../utils/crumbs';
+import { STAGES, stageState, Stepper, BriefTab, ShipTab } from '../components/project/ProjectFlow';
 
+// Tabs follow the order of the work: plan, build, review, ship.
 const TABS = [
-  { id: 'code', label: 'Code', icon: FiCode },
-  { id: 'notes', label: 'Notes', icon: FiFileText },
   { id: 'brief', label: 'Brief', icon: FiClipboard },
   { id: 'tasks', label: 'Tasks', icon: FiCheckSquare },
+  { id: 'code', label: 'Code', icon: FiCode },
+  { id: 'notes', label: 'Notes', icon: FiFileText },
   { id: 'review', label: 'Review', icon: FiZap },
+  { id: 'ship', label: 'Ship', icon: FiSend },
 ];
 
 const download = (name, text) => {
@@ -51,7 +56,10 @@ function ProjectWorkspace() {
   const [tasks, setTasks] = useState([]);
   const [status, setStatus] = useState('active');
   const [pinned, setPinned] = useState(false);
+  const [brief, setBrief] = useState(null);
+  const [ship, setShip] = useState(null);
   const [newTask, setNewTask] = useState('');
+  useCrumbNames(project ? { [String(id)]: title || project.title } : null);
   const [pendingDelete, setPendingDelete] = useState(false);
 
   const loadedRef = useRef(false);
@@ -71,6 +79,12 @@ function ProjectWorkspace() {
         setTasks(p.tasks || []);
         setStatus(p.status || 'active');
         setPinned(!!p.pinned);
+        setBrief(p.brief || null);
+        setShip(p.ship || null);
+        // open the first unfinished step
+        const st = stageState({ brief: p.brief, code: p.code, tasks: p.tasks || [], review: p.ai_review, ship: p.ship, status: p.status });
+        const next = STAGES.find((x) => !st[x.id]);
+        setTab(!next ? 'code' : next.id === 'build' ? ((p.tasks || []).length ? 'code' : 'tasks') : next.tab);
         setTimeout(() => { loadedRef.current = true; }, 0);
       })
       .catch((err) => {
@@ -85,9 +99,9 @@ function ProjectWorkspace() {
       try {
         await projectService.update(id, body);
         setSaveState('saved');
-      } catch {
+      } catch (e) {
         setSaveState('dirty');
-        toast.error('Autosave failed');
+        toast.error(e.response?.data?.detail || 'Autosave failed');
       }
     },
     [id]
@@ -99,10 +113,10 @@ function ProjectWorkspace() {
     setSaveState('dirty');
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      patch({ title, code, notes, tasks, status, pinned });
+      patch({ title, code, notes, tasks, status, pinned, brief, ship });
     }, 800);
     return () => clearTimeout(saveTimer.current);
-  }, [title, code, notes, tasks, status, pinned, patch]);
+  }, [title, code, notes, tasks, status, pinned, brief, ship, patch]);
 
   const removeProject = async () => {
     try {
@@ -134,8 +148,31 @@ function ProjectWorkspace() {
     setNewTask('');
   };
 
-  const brief = project?.brief;
+  const addTasks = (texts) => {
+    if (!texts.length) return;
+    setTasks((t) => [...t, ...texts.map((text, i) => ({ id: Date.now() + i, text, done: false }))]);
+    toast.success(`${texts.length} task${texts.length === 1 ? '' : 's'} added`);
+    setTab('tasks');
+  };
+
   const review = project?.ai_review;
+  const stages = stageState({ brief, code, tasks, review, ship, status });
+  const shipped = stages.ship;
+
+  // "Done" means shipped, so it goes through the Ship step.
+  const changeStatus = (v) => {
+    if (v === 'done' && !ship?.repo_url) {
+      setTab('ship');
+      toast.error('Add your repository link first', 'Then press Ship it.');
+      return;
+    }
+    setStatus(v);
+  };
+  const shipIt = () => {
+    setShip((x) => ({ ...(x || {}), shipped_at: x?.shipped_at || new Date().toISOString() }));
+    setStatus('done');
+    toast.success('Shipped!', 'Added to your portfolio.');
+  };
   const file = useMemo(() => stackFile(project?.language), [project]);
 
   if (loading) {
@@ -166,15 +203,17 @@ function ProjectWorkspace() {
             onChange={(e) => setTitle(e.target.value)}
             className="bg-transparent text-3xl font-bold outline-none border-b border-transparent focus:border-cs-line/20 min-w-0 flex-grow"
           />
-          <select
+          <SelectMenu
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="text-xs bg-cs-overlay/5 border border-cs-line/15 rounded-lg px-2 py-1"
-          >
-            <option value="active">active</option>
-            <option value="done">done</option>
-            <option value="archived">archived</option>
-          </select>
+            onChange={changeStatus}
+            ariaLabel="Project status"
+            buttonClassName="h-8 px-2.5 text-sm min-w-[7.5rem]"
+            options={[
+              { value: 'active', label: 'Active', dot: 'rgb(var(--cs-primary))' },
+              { value: 'done', label: 'Done (shipped)', dot: 'rgb(var(--cs-green))' },
+              { value: 'archived', label: 'Archived', dot: 'rgb(var(--cs-overlay) / 0.35)' },
+            ]}
+          />
           <button
             onClick={() => setPinned((v) => !v)}
             className={pinned ? 'text-cs-orange' : 'text-cs-text-muted hover:text-cs-text-muted'}
@@ -215,26 +254,29 @@ function ProjectWorkspace() {
         </div>
 
         {project.track_slug && (
-          <Link to={`/learn/${project.track_slug}`} className="inline-block mt-1.5 text-[0.6875rem] text-cs-primary hover:text-cs-cyan">
-            ↳ part of the {project.track_slug} track
+          <Link to={`/learn/${project.track_slug}`} className="inline-block mt-1 text-xs text-cs-primary hover:underline">
+            Part of the {project.track_slug} track
           </Link>
         )}
 
-        <div className="flex gap-1 mt-3">
+        <Stepper state={stages} onOpen={setTab} />
+
+        <div className="flex gap-6 mt-3 -mb-3 overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === t.id ? 'bg-cs-overlay/[0.09] text-cs-text font-medium' : 'text-cs-text-dim hover:text-cs-text'
+              className={`relative h-11 inline-flex items-center gap-1.5 px-0.5 text-[0.9375rem] whitespace-nowrap transition-colors ${
+                tab === t.id ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'
               }`}
             >
-              <t.icon className="text-xs" /> {t.label}
+              <t.icon className="text-sm" /> {t.label}
               {t.id === 'tasks' && tasks.length > 0 && (
-                <span className="text-[0.625rem] text-cs-text-muted">
+                <span className="text-xs text-cs-text-muted">
                   {tasks.filter((x) => x.done).length}/{tasks.length}
                 </span>
               )}
+              {tab === t.id && <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-cs-primary" />}
             </button>
           ))}
         </div>
@@ -277,40 +319,19 @@ function ProjectWorkspace() {
         )}
 
         {tab === 'brief' && (
-          <div className="max-w-3xl">
-            {brief && (brief.requirements?.length || brief.hints?.length) ? (
-              <div className="card-dev">
-                {project.description && <p className="text-cs-text-dim mb-5">{project.description}</p>}
-                {brief.estimated_time && (
-                  <span className="badge badge-cyan mb-4 inline-block">{brief.estimated_time}</span>
-                )}
-                {brief.requirements?.length > 0 && (
-                  <>
-                    <h3 className="mono-label mb-2"> requirements</h3>
-                    <ul className="space-y-1.5 mb-5">
-                      {brief.requirements.map((r, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-cs-text-dim">
-                          <FiCheck className="text-cs-green mt-0.5 shrink-0" /> {r}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-                {brief.hints?.length > 0 && (
-                  <>
-                    <h3 className="mono-label text-cs-orange mb-2"> hints</h3>
-                    <ul className="space-y-1 text-sm text-cs-text-dim">
-                      {brief.hints.map((h, i) => <li key={i}>• {h}</li>)}
-                    </ul>
-                  </>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-cs-text-muted italic">
-                No brief — this is a blank project. Create one from an AI brief to get requirements and hints.
-              </p>
-            )}
-          </div>
+          <BriefTab brief={brief} setBrief={setBrief} description={project.description} tasks={tasks} addTasks={addTasks} />
+        )}
+
+        {tab === 'ship' && (
+          <ShipTab
+            ship={ship}
+            setShip={setShip}
+            shipped={shipped}
+            stages={stages}
+            onShip={shipIt}
+            onUnship={() => setStatus('active')}
+            readmeInput={{ title, description: project.description, language: project.language, brief, tasks }}
+          />
         )}
 
         {tab === 'tasks' && (
@@ -326,7 +347,10 @@ function ProjectWorkspace() {
               <button onClick={addTask} className="btn btn-primary btn-sm"><FiPlus /></button>
             </div>
             {tasks.length === 0 ? (
-              <p className="text-sm text-cs-text-muted italic">No tasks yet.</p>
+              <p className="text-sm text-cs-text-muted">
+                No tasks yet. Add them here, or write your "done when" checks on the{' '}
+                <button onClick={() => setTab('brief')} className="text-cs-primary hover:underline">Brief</button> and turn them into tasks.
+              </p>
             ) : (
               <ul className="rounded-xl border border-cs-line/10 divide-y divide-cs-line/10 overflow-hidden">
                 {tasks.map((t) => (

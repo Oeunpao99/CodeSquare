@@ -143,6 +143,8 @@ class UserProject(Base):
     status = Column(String, default="active")     # active | done | archived
     pinned = Column(Boolean, default=False)
     track_slug = Column(String, nullable=True)    # linked Language.slug
+    # {repo_url, demo_url, readme, reflection, shipped_at}; filled on the Ship step
+    ship = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 

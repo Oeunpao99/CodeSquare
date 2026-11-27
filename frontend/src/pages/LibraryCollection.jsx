@@ -210,7 +210,7 @@ function LibraryCollection() {
                 <StarRow value={(rating || {}).mine || 0} onRate={rate} />
                 <span className="text-cs-text-dim">
                   {rating && rating.count
-                    ? `${rating.avg.toFixed(1)} · ${rating.count} rating${rating.count === 1 ? '' : 's'}`
+                    ? rating.avg.toFixed(1)
                     : 'be the first to rate'}
                 </span>
               </span>

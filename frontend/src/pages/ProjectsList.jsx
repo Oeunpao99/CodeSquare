@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import SelectMenu from '../components/SelectMenu';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  FiPlus, FiStar, FiTrash2, FiCode, FiZap, FiCheckSquare, FiClipboard, FiX, FiSearch,
+  FiPlus, FiStar, FiTrash2, FiCode, FiZap, FiCheckSquare, FiClipboard, FiX, FiSearch, FiGithub,
 } from 'react-icons/fi';
 import { toast } from '../utils/toast';
 import { projectService, lessonService } from '../services/api';
@@ -16,6 +17,69 @@ const STATUS = {
   done: { label: 'Done', cls: 'text-cs-green bg-cs-green/10', text: 'text-cs-green' },
   archived: { label: 'Archived', cls: 'text-cs-text-muted bg-cs-overlay/10', text: 'text-cs-text-muted' },
 };
+
+const STAGE_LABEL = {
+  plan: ['Planning', 'text-cs-text-muted'],
+  build: ['Building', 'text-cs-primary'],
+  review: ['In review', 'text-cs-orange'],
+  ship: ['Ready to ship', 'text-cs-violet'],
+  shipped: ['Shipped', 'text-cs-green'],
+};
+
+// "github.com/owner/repo" from a repository URL.
+const repoName = (url) => {
+  try {
+    const u = new URL(url);
+    return (u.hostname.replace(/^www\./, '') === 'github.com' ? '' : `${u.hostname}/`) + u.pathname.replace(/^\/|\.git$|\/$/g, '');
+  } catch { return url; }
+};
+
+function ProjectCard({ p, onPin, onDelete }) {
+  const [label, cls] = p.status === 'archived' ? ['Archived', 'text-cs-text-muted'] : (STAGE_LABEL[p.stage] || STAGE_LABEL.plan);
+  const blurb = p.description || (p.snippet ? 'Code in progress.' : 'No description yet. Add the problem it solves on the Brief.');
+  return (
+    <Link to={`/projects/${p.id}`}
+      className="group rounded-lg border border-cs-line/10 p-5 flex flex-col min-h-[15rem] text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/25 transition-colors">
+      <div className="flex items-start justify-between gap-3">
+        <span className="w-9 h-9 rounded-lg grid place-items-center bg-cs-overlay/[0.05] text-2xl">
+          <LangLogo name={p.language} />
+        </span>
+        <span className={`text-[0.8125rem] ${cls}`}>{label}</span>
+      </div>
+      <h3 className="mt-4 text-[1.0625rem] font-semibold truncate">{p.title}</h3>
+      <p className="mt-2.5 text-sm text-cs-text-dim leading-relaxed line-clamp-3">{blurb}</p>
+
+      <div className="mt-auto pt-5">
+        <div className="pt-4 border-t border-cs-line/10 flex items-center gap-3 text-sm text-cs-text-dim">
+          {p.repo_url ? (
+            <button type="button" title={p.repo_url}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(p.repo_url, '_blank', 'noopener'); }}
+              className="min-w-0 inline-flex items-center gap-2 hover:text-cs-primary">
+              <FiGithub className="shrink-0" /> <span className="truncate">{repoName(p.repo_url)}</span>
+            </button>
+          ) : (
+            <span className="min-w-0 inline-flex items-center gap-2 text-cs-text-muted">
+              <FiGithub className="shrink-0" /> <span className="truncate">Not on GitHub yet</span>
+            </span>
+          )}
+          <span className="ml-auto flex items-center gap-3 shrink-0">
+            {p.task_total > 0 && (
+              <span className="inline-flex items-center gap-1.5" title="Tasks done"><FiCheckSquare /> {p.task_done}/{p.task_total}</span>
+            )}
+            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+              className="text-cs-text-muted opacity-0 group-hover:opacity-100 hover:!text-cs-red transition" title="Delete" aria-label="Delete">
+              <FiTrash2 />
+            </button>
+            <button type="button" onClick={(e) => onPin(p, e)} title={p.pinned ? 'Unpin' : 'Pin to top'} aria-label={p.pinned ? 'Unpin' : 'Pin'}
+              className={p.pinned ? 'text-cs-orange' : 'text-cs-text-muted hover:text-cs-text'}>
+              <FiStar className={p.pinned ? 'fill-current' : ''} />
+            </button>
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 function NewProjectModal({ onClose, onCreated, languageOptions, tracks }) {
   const navigate = useNavigate();
@@ -78,16 +142,15 @@ function NewProjectModal({ onClose, onCreated, languageOptions, tracks }) {
         {tracks.length > 0 && (
           <>
             <p className="mono-label mb-2"> link to a track (optional)</p>
-            <select
+            <SelectMenu
               value={trackSlug}
-              onChange={(e) => setTrackSlug(e.target.value)}
-              className="input w-full mb-5"
-            >
-              <option value="">— none —</option>
-              {tracks.map((t) => (
-                <option key={t.slug} value={t.slug}>{t.name}</option>
-              ))}
-            </select>
+              onChange={setTrackSlug}
+              ariaLabel="Link to a track"
+              className="w-full mb-5"
+              buttonClassName="w-full h-10 px-3 text-sm"
+              menuClassName="w-full max-w-none"
+              options={[{ value: '', label: 'None' }, ...tracks.map((t) => ({ value: t.slug, label: t.name }))]}
+            />
           </>
         )}
 
@@ -112,6 +175,7 @@ function ProjectsList() {
   const [tracks, setTracks] = useState([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('recent');
   const [pendingDelete, setPendingDelete] = useState(null);
 
   const languageOptions = useMemo(() => stacksForMajor(majorData), [majorData]);
@@ -149,102 +213,77 @@ function ProjectsList() {
   };
 
   const q = search.trim().toLowerCase();
-  const shown = projects.filter((p) => (filter === 'all' || p.status === filter)
-    && (!q || `${p.title} ${p.language}`.toLowerCase().includes(q)));
-  const count = (f) => (f === 'all' ? projects.length : projects.filter((p) => p.status === f).length);
-
-  if (loading) {
-    return (
-      <main className="w-full px-6 lg:px-10 py-8">
-        <div className="skeleton h-12 rounded-xl mb-5" />
-        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-[9rem] rounded-lg" />)}
-        </div>
-      </main>
-    );
-  }
+  const TABS = [['all', 'All'], ['active', 'Active'], ['done', 'Shipped'], ['archived', 'Archived']];
+  const count = (f) => (f === 'all' ? projects.length : projects.filter((x) => x.status === f).length);
+  const STAGE_ORDER = { plan: 0, build: 1, review: 2, ship: 3, shipped: 4 };
+  const shown = projects
+    .filter((x) => (filter === 'all' || x.status === filter)
+      && (!q || `${x.title} ${x.language} ${x.description || ''} ${x.repo_url || ''}`.toLowerCase().includes(q)))
+    .sort((x, y) => (sort === 'name' ? x.title.localeCompare(y.title)
+      : sort === 'progress' ? (STAGE_ORDER[y.stage] ?? 0) - (STAGE_ORDER[x.stage] ?? 0)
+        : (y.pinned - x.pinned) || (new Date(y.updated_at) - new Date(x.updated_at))));
 
   return (
     <main className="w-full px-6 lg:px-10 py-8">
-      <section className="rounded-xl border border-cs-line/10 px-5 pt-2 pb-6">
-        {/* Status tabs + actions */}
-        <div className="flex flex-wrap items-center gap-x-7 border-b border-cs-line/10">
-          {['all', 'active', 'done', 'archived'].map((f) => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`relative h-12 px-0.5 text-[0.9375rem] capitalize transition-colors ${filter === f ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
-              {f}<span className="ml-1.5 text-xs text-cs-text-muted">{count(f)}</span>
-              {filter === f && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
-            </button>
-          ))}
-          <div className="ml-auto flex items-center gap-2 py-2">
-            <Link to="/projects/generate" className="btn btn-ghost btn-sm"><FiZap /> Generate with AI</Link>
-            <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm"><FiPlus /> New project</button>
-          </div>
+      {/* Hero */}
+      <section className="text-center pt-2 pb-7">
+        <h1 className="text-3xl md:text-4xl font-semibold">Your projects</h1>
+        <p className="mt-2 text-cs-text-dim">Plan, build and ship projects you can show employers.</p>
+        <div className="mt-5 flex items-center justify-center gap-2">
+          <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm"><FiPlus /> New project</button>
+          <Link to="/projects/generate" className="btn btn-ghost btn-sm"><FiZap /> Generate with AI</Link>
         </div>
-
-        {/* Search */}
-        {projects.length > 0 && (
-          <label className="mt-5 mb-5 h-10 flex items-center gap-2 px-3 rounded-lg border border-cs-line/15 focus-within:border-cs-primary/50 transition-colors">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search projects"
-              className="flex-1 min-w-0 bg-transparent outline-none text-[0.9375rem] placeholder:text-cs-text-muted" />
-            {search
-              ? <button type="button" onClick={() => setSearch('')} className="text-cs-text-muted hover:text-cs-text"><FiX /></button>
-              : <FiSearch className="text-cs-text-muted" />}
-          </label>
-        )}
-
-        {shown.length === 0 ? (
-          <div className="text-center py-16">
-            <FiClipboard className="text-3xl text-cs-text-muted mx-auto mb-3" />
-            <p className="text-cs-text-dim mb-4">
-              {projects.length === 0 ? 'No projects yet.' : search ? `No projects match “${search}”.` : `No ${filter} projects.`}
-            </p>
-            {projects.length === 0 && (
-              <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm"><FiPlus /> Create your first project</button>
-            )}
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {shown.map((p) => {
-              const st = STATUS[p.status] || STATUS.active;
-              const pct = p.task_total ? Math.round((p.task_done / p.task_total) * 100) : 0;
-              return (
-                <Link key={p.id} to={`/projects/${p.id}`}
-                  className="group rounded-lg border border-cs-line/10 p-5 text-cs-text hover:bg-cs-overlay/[0.03] hover:border-cs-line/20 transition-colors flex flex-col">
-                  <div className="flex items-center gap-3">
-                    <LangLogo name={p.language} className="text-xl shrink-0" />
-                    <p className="text-base font-bold flex-1 min-w-0 truncate">{p.title}</p>
-                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPendingDelete(p.id); }}
-                      className="shrink-0 text-cs-text-muted opacity-0 group-hover:opacity-100 hover:!text-cs-red transition"
-                      title="Delete">
-                      <FiTrash2 />
-                    </button>
-                    <button onClick={(e) => togglePin(p, e)}
-                      className={`shrink-0 transition ${p.pinned ? 'text-cs-orange' : 'text-cs-text-muted opacity-0 group-hover:opacity-100 hover:text-cs-text'}`}
-                      title={p.pinned ? 'Unpin' : 'Pin'}>
-                      <FiStar className={p.pinned ? 'fill-current' : ''} />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 mt-4 text-sm text-cs-text-dim">
-                    <span className="truncate capitalize">
-                      {p.language}{p.has_review && <span className="normal-case text-cs-cyan"> · AI reviewed</span>}
-                    </span>
-                    <span className={`shrink-0 font-medium ${st.text}`}>{st.label}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 mt-2 text-sm text-cs-text-dim">
-                    <span>{p.task_total > 0 ? `${p.task_done}/${p.task_total} tasks` : p.snippet ? 'Has code' : 'No code yet'}</span>
-                    <span className="text-xs text-cs-text-muted">{timeAgo(p.updated_at)}</span>
-                  </div>
-                  <div className="mt-3 h-1.5 rounded-full bg-cs-overlay/[0.12] overflow-hidden">
-                    <div className={`h-full rounded-full ${pct === 100 ? 'bg-cs-green' : 'bg-cs-primary'}`} style={{ width: `${pct}%` }} />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
       </section>
+
+      {/* Search + sort */}
+      <div className="flex gap-3">
+        <label className="flex-1 h-11 flex items-center gap-2 px-4 rounded-lg border border-cs-line/15 bg-cs-overlay/[0.02] focus-within:border-cs-primary/50 transition-colors">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search your projects"
+            className="flex-1 min-w-0 bg-transparent outline-none text-[0.9375rem] placeholder:text-cs-text-muted" />
+          {search
+            ? <button type="button" onClick={() => setSearch('')} className="text-cs-text-muted hover:text-cs-text" aria-label="Clear search"><FiX /></button>
+            : <FiSearch className="text-cs-text-muted text-lg" />}
+        </label>
+        <SelectMenu value={sort} onChange={setSort} align="right" ariaLabel="Sort projects"
+          buttonClassName="h-11 px-4 text-[0.9375rem] min-w-[11rem] bg-cs-overlay/[0.02]"
+          options={[
+            { value: 'recent', label: 'Recently updated' },
+            { value: 'progress', label: 'Most progress' },
+            { value: 'name', label: 'Name' },
+          ]} />
+      </div>
+
+      {/* Tabs */}
+      <div className="mt-5 flex flex-wrap gap-x-8 border-b border-cs-line/10">
+        {TABS.map(([k, label]) => (
+          <button key={k} onClick={() => setFilter(k)}
+            className={`relative h-11 px-0.5 text-[0.9375rem] transition-colors ${filter === k ? 'text-cs-primary' : 'text-cs-text-dim hover:text-cs-text'}`}>
+            {label}<span className="ml-1.5 text-xs text-cs-text-muted">{loading ? '' : count(k)}</span>
+            {filter === k && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-cs-primary" />}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="mt-6 grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton h-60 rounded-lg" />)}
+        </div>
+      ) : shown.length === 0 ? (
+        <div className="text-center py-20">
+          <FiClipboard className="text-3xl text-cs-text-muted mx-auto mb-3" />
+          <p className="text-cs-text-dim mb-4">
+            {projects.length === 0 ? 'No projects yet. Start one and ship it to your portfolio.'
+              : search ? `No projects match “${search}”.` : 'Nothing here yet.'}
+          </p>
+          {projects.length === 0 && (
+            <button onClick={() => setShowNew(true)} className="btn btn-primary btn-sm"><FiPlus /> Create your first project</button>
+          )}
+        </div>
+      ) : (
+        <div className="mt-6 grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+          {shown.map((x) => <ProjectCard key={x.id} p={x} onPin={togglePin} onDelete={() => setPendingDelete(x.id)} />)}
+        </div>
+      )}
 
       {showNew && (
         <NewProjectModal

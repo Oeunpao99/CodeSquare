@@ -41,6 +41,7 @@ class ProjectUpdate(BaseModel):
     status: Optional[str] = None
     pinned: Optional[bool] = None
     track_slug: Optional[str] = None
+    ship: Optional[Dict[str, Any]] = None
 
 
 class ProjectCard(BaseModel):
@@ -54,6 +55,10 @@ class ProjectCard(BaseModel):
     task_total: int
     task_done: int
     has_review: bool
+    shipped: bool = False
+    stage: str = "plan"                 # plan | build | review | shipped (first unfinished step)
+    description: Optional[str] = None   # description, else the brief's problem
+    repo_url: Optional[str] = None
     updated_at: datetime
 
 
@@ -70,6 +75,7 @@ class ProjectDetail(BaseModel):
     pinned: bool
     track_slug: Optional[str] = None
     ai_review: Optional[Dict[str, Any]] = None
+    ship: Optional[Dict[str, Any]] = None
     created_at: datetime
     updated_at: datetime
 
@@ -83,6 +89,8 @@ class PortfolioItem(BaseModel):
     task_total: int
     task_done: int
     review_score: Optional[float] = None
+    repo_url: Optional[str] = None
+    demo_url: Optional[str] = None
     snippet: str
     updated_at: datetime
 
@@ -115,9 +123,47 @@ def _detail(p: UserProject) -> ProjectDetail:
         pinned=bool(p.pinned),
         track_slug=p.track_slug,
         ai_review=p.ai_review,
+        ship=p.ship,
         created_at=p.created_at,
         updated_at=p.updated_at,
     )
+
+
+_SHIP_KEYS = {"repo_url", "demo_url", "readme", "reflection", "shipped_at"}
+
+
+def _clean_ship(ship: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not ship:
+        return None
+    out: Dict[str, Any] = {}
+    for k in _SHIP_KEYS:
+        v = ship.get(k)
+        if isinstance(v, str):
+            v = v.strip()[:20000]
+            if k in ("repo_url", "demo_url") and v:
+                if not v.lower().startswith(("http://", "https://")):
+                    raise HTTPException(status_code=400, detail=f"{k.replace('_', ' ')} must start with https://")
+                v = v[:500]
+            if v:
+                out[k] = v
+    return out or None
+
+
+def _stage(p: UserProject) -> str:
+    """Same rules as the workspace's progress bar (ProjectFlow.stageState)."""
+    brief = p.brief if isinstance(p.brief, dict) else {}
+    tasks = p.tasks or []
+    ship = p.ship or {}
+    if p.status == "done" and ship.get("repo_url"):
+        return "shipped"
+    planned = bool(brief.get("requirements")) or (bool((brief.get("problem") or "").strip()) and bool(brief.get("done_when")))
+    if not planned:
+        return "plan"
+    if not ((p.code or "").strip() and tasks and all(t.get("done") for t in tasks)):
+        return "build"
+    if not p.ai_review:
+        return "review"
+    return "ship"
 
 
 # ---------- endpoints ----------
@@ -147,6 +193,10 @@ async def list_projects(
                 task_total=len(tasks),
                 task_done=sum(1 for t in tasks if t.get("done")),
                 has_review=p.ai_review is not None,
+                shipped=(p.status == "done") and bool((p.ship or {}).get("repo_url")),
+                stage=_stage(p),
+                description=p.description or ((p.brief or {}).get("problem") if isinstance(p.brief, dict) else None),
+                repo_url=(p.ship or {}).get("repo_url"),
                 updated_at=p.updated_at,
             )
         )
@@ -210,6 +260,8 @@ async def portfolio(
                 task_total=len(tasks),
                 task_done=sum(1 for t in tasks if t.get("done")),
                 review_score=float(score) if isinstance(score, (int, float)) else None,
+                repo_url=(p.ship or {}).get("repo_url") or None,
+                demo_url=(p.ship or {}).get("demo_url") or None,
                 snippet=(p.code or "").strip()[:200],
                 updated_at=p.updated_at,
             )
@@ -235,6 +287,16 @@ async def update_project(
 ):
     project = await _own(db, project_id, current_user.id)
     data = body.model_dump(exclude_unset=True)
+    if "ship" in data:
+        data["ship"] = _clean_ship(data["ship"])
+    # "Done" means shipped: it needs a repository link.
+    if data.get("status") == "done" and project.status != "done":
+        ship = data.get("ship", project.ship) or {}
+        if not ship.get("repo_url"):
+            raise HTTPException(status_code=400, detail="Add a repository link on the Ship step before marking the project done.")
+        ship = dict(ship)
+        ship.setdefault("shipped_at", datetime.utcnow().isoformat())
+        data["ship"] = ship
     for field, value in data.items():
         setattr(project, field, value)
     project.updated_at = datetime.utcnow()

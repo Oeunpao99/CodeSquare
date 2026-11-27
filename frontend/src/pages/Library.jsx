@@ -62,9 +62,9 @@ function CollectionCard({ c, forMajor = false }) {
             <FiCheckCircle className="text-sm" /> {c.finished}
           </span>
         )}
-        <span className="inline-flex items-center gap-1.5" title={c.rating_count ? `${c.rating_count} rating${c.rating_count === 1 ? '' : 's'}` : 'not rated yet'}>
+        <span className="inline-flex items-center gap-1.5">
           <FiStar className={`text-sm ${c.rating_count ? 'text-cs-orange fill-current' : ''}`} />
-          {c.rating_count ? `${c.rating_avg.toFixed(1)} (${c.rating_count})` : '—'}
+          {c.rating_count ? c.rating_avg.toFixed(1) : '—'}
         </span>
       </div>
 

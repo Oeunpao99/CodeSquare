@@ -118,10 +118,10 @@ function crumbsFor(pathname) {
     if (seg[2]) out.push([pretty(seg[2])]);
     return out;
   }
-  if (seg[0] === 'classes' && seg[1]) return [['My Classes', '/classes'], ['Class']];
+  if (seg[0] === 'classes' && seg[1]) return [['My Classes', '/classes'], [crumbName(seg[1]) || 'Class']];
   if (seg[0] === 'community' && seg[1] === 'post') return [['Community', '/community'], ['Post']];
   if (seg[0] === 'u' && seg[1]) return [['Community', '/community'], ['People', '/devs'], [`@${seg[1]}`]];
-  if (seg[0] === 'projects' && seg[1]) return [['Build', '/projects'], ['Projects', '/projects'], ['Project']];
+  if (seg[0] === 'projects' && seg[1]) return [['Build', '/projects'], ['Projects', '/projects'], [crumbName(seg[1]) || 'Project']];
   if (seg[0] === 'practice' && seg[1] === 'c') return [['Practice', '/practice'], ['Coding challenges', '/practice'], ['Challenge']];
   if (seg[0] === 'quizzes' && seg[1]) return [['Practice', '/practice'], ['Quizzes', '/quizzes'], ['Quiz']];
   return [[pretty(seg[0] || 'Home')]];

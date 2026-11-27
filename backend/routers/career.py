@@ -88,12 +88,18 @@ async def get_readiness(
 
     skills_score = round(sum(t.score for t in target_rows) / len(target_rows)) if target_rows else 0
 
-    project_count = (
+    # Shipped projects (status "done", with a repo link) count most; work in
+    # progress still counts a little.
+    status_rows = (
         await db.execute(
-            select(func.count(UserProject.id)).where(UserProject.user_id == current_user.id)
+            select(UserProject.status, func.count(UserProject.id))
+            .where(UserProject.user_id == current_user.id, UserProject.status != "archived")
+            .group_by(UserProject.status)
         )
-    ).scalar() or 0
-    projects_score = min(100, project_count * 25)
+    ).all()
+    shipped_count = sum(n for st, n in status_rows if st == "done")
+    wip_count = sum(n for st, n in status_rows if st != "done")
+    projects_score = min(100, shipped_count * 25 + wip_count * 10)
 
     problem_solving = skills.get("problem-solving", {}).get("score", 0)
 
@@ -141,12 +147,12 @@ async def get_readiness(
             next_steps.append(f"Keep {t.label} sharp with a harder challenge.")
             actions.append(Action(text=f"Keep {t.label} sharp with a harder challenge",
                                   to="/practice", cta="Practice"))
-    if project_count < 2:
+    if shipped_count < 2:
         next_steps.append(
-            f"Build a project you can show — you have {project_count}, aim for 2+."
+            f"Ship a project you can show — you have {shipped_count} shipped, aim for 2+."
         )
         actions.append(Action(
-            text=f"Build a project you can show (you have {project_count}, aim for 2+)",
+            text=f"Ship a project you can show (you have {shipped_count} shipped, aim for 2+)",
             to="/projects/generate", cta="Build",
         ))
 

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import SelectMenu from '../../components/SelectMenu';
 import {
   FiShield, FiSearch, FiCheck, FiChevronRight, FiChevronDown, FiExternalLink,
 } from 'react-icons/fi';
@@ -335,15 +336,13 @@ export default function AdminUsers() {
                           <div className="flex flex-col gap-3 items-start">
                             <label className="flex items-center gap-2 text-[0.75rem] text-cs-text-dim">
                               Plan
-                              <select
+                              <SelectMenu
                                 value={detail.plan}
                                 disabled={saving}
-                                onChange={(e) => patchUser(u.id, { plan: e.target.value })}
-                                className="px-2.5 py-1.5 rounded-lg bg-cs-overlay/5 border border-cs-line/14 text-cs-primary outline-none"
-                              >
-                                <option value="free">Free</option>
-                                <option value="pro">Pro</option>
-                              </select>
+                                onChange={(v) => patchUser(u.id, { plan: v })}
+                                ariaLabel="Plan"
+                                options={[{ value: 'free', label: 'Free' }, { value: 'pro', label: 'Pro' }]}
+                              />
                             </label>
                             <label className="flex items-center gap-2 text-[0.75rem] text-cs-text-dim cursor-pointer">
                               <input

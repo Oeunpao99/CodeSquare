@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import SelectMenu from '../components/SelectMenu';
 import { Link } from 'react-router-dom';
 import {
   FiUsers, FiSearch, FiZap, FiBook, FiCode,
@@ -81,19 +82,17 @@ export default function Devs() {
               className="input w-full h-10 !py-0 pl-9 pr-3 text-sm"
             />
           </div>
-          <select
+          <SelectMenu
             value={major}
-            onChange={(e) => setMajor(e.target.value)}
-            className="input h-10 !py-0 px-3 text-sm w-auto"
-          >
-            <option value="">All majors</option>
-            {MAJOR_KEYS.map((k) => (
-              <option key={k} value={k}>{MAJORS[k]?.label || k}</option>
-            ))}
-            {Object.keys(MAJORS).filter((k) => !MAJOR_KEYS.includes(k)).map((k) => (
-              <option key={k} value={k}>{MAJORS[k]?.label || k}</option>
-            ))}
-          </select>
+            onChange={setMajor}
+            ariaLabel="Filter by major"
+            buttonClassName="h-10 px-3 text-sm"
+            options={[
+              { value: '', label: 'All majors' },
+              ...[...MAJOR_KEYS, ...Object.keys(MAJORS).filter((k) => !MAJOR_KEYS.includes(k))]
+                .map((k) => ({ value: k, label: MAJORS[k]?.label || k })),
+            ]}
+          />
           <button type="submit" className="btn btn-primary h-10 !py-0">Search</button>
           {(q || major) && (
             <button type="button" onClick={clearFilters} className="h-10 inline-flex items-center gap-1.5 px-2 text-cs-text-dim hover:text-cs-text text-sm">
